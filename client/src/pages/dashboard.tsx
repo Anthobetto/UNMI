@@ -69,6 +69,12 @@ const recentCalls = [
   },
 ];
 
+// Fix the data.map errors in the Call Distribution chart
+const callDistributionData = [
+  { name: "Answered", value: 85 },
+  { name: "Missed", value: 15 },
+];
+
 export default function Dashboard() {
   const { data: locations } = useQuery<Location[]>({
     queryKey: ["/api/locations"],
@@ -213,13 +219,13 @@ export default function Dashboard() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={[{ name: "Answered", value: 85 }, { name: "Missed", value: 15 }]}
+                        data={callDistributionData}
                         innerRadius={60}
                         outerRadius={80}
                         paddingAngle={5}
                         dataKey="value"
                       >
-                        {data.map((_, index) => (
+                        {callDistributionData.map((_, index: number) => (
                           <Cell
                             key={`cell-${index}`}
                             fill={COLORS[index % COLORS.length]}
@@ -230,7 +236,7 @@ export default function Dashboard() {
                   </ResponsiveContainer>
                 </div>
                 <div className="flex justify-center gap-4">
-                  {data.map((entry, index) => (
+                  {callDistributionData.map((entry, index: number) => (
                     <div key={entry.name} className="flex items-center gap-2">
                       <div
                         className="w-3 h-3 rounded-full"
