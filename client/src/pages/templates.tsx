@@ -65,20 +65,15 @@ export default function Templates() {
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Template
+                  Add Template  
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Create New Template</DialogTitle>
+                  <DialogTitle>Add New Template</DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
-                  <form
-                    onSubmit={form.handleSubmit((data) =>
-                      createTemplate.mutate(data)
-                    )}
-                    className="space-y-4"
-                  >
+                  <form onSubmit={form.handleSubmit((data) => createTemplate.mutate(data))} className="space-y-4">
                     <FormField
                       control={form.control}
                       name="name"
@@ -99,22 +94,14 @@ export default function Templates() {
                         <FormItem>
                           <FormLabel>Content</FormLabel>
                           <FormControl>
-                            <Textarea
-                              {...field}
-                              rows={6}
-                              placeholder="Enter template content..."
-                            />
+                            <Textarea {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <Button
-                      type="submit"
-                      className="w-full"
-                      disabled={createTemplate.isPending}
-                    >
-                      Create Template
+                    <Button type="submit" className="w-full" disabled={createTemplate.isPending}>
+                      Add Template
                     </Button>
                   </form>
                 </Form>
@@ -130,10 +117,8 @@ export default function Templates() {
                   <CardTitle className="text-xl">{template.name}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="prose prose-sm max-w-none">
-                    <pre className="text-sm whitespace-pre-wrap bg-muted p-4 rounded-lg">
-                      {template.content}
-                    </pre>
+                  <div className="text-sm text-muted-foreground">
+                    {template.content}
                   </div>
                 </CardContent>
               </Card>
