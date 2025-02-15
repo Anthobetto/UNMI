@@ -6,7 +6,9 @@ import { z } from "zod";
 import {
   insertLocationSchema,
   insertTemplateSchema,
-  insertRoutingRuleSchema
+  insertRoutingRuleSchema,
+  insertPhoneNumberSchema,
+  insertCallSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -26,6 +28,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       userId: req.user.id
     });
     res.status(201).json(location);
+  });
+
+  // Phone Numbers
+  app.get("/api/phone-numbers", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const numbers = await storage.getPhoneNumbers(req.user.id);
+    res.json(numbers);
+  });
+
+  app.get("/api/locations/:locationId/phone-numbers", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const numbers = await storage.getLocationPhoneNumbers(parseInt(req.params.locationId));
+    res.json(numbers);
+  });
+
+  app.post("/api/phone-numbers", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const phoneNumber = await storage.createPhoneNumber({
+      ...req.body,
+      userId: req.user.id
+    });
+    res.status(201).json(phoneNumber);
+  });
+
+  // Calls
+  app.get("/api/calls", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const calls = await storage.getCalls(req.user.id);
+    res.json(calls);
+  });
+
+  app.get("/api/phone-numbers/:phoneNumberId/calls", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const calls = await storage.getCallsByPhoneNumber(parseInt(req.params.phoneNumberId));
+    res.json(calls);
+  });
+
+  app.post("/api/calls", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const call = await storage.createCall({
+      ...req.body,
+      userId: req.user.id
+    });
+    res.status(201).json(call);
   });
 
   // Templates

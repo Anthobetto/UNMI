@@ -26,8 +26,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Location, insertLocationSchema } from "@shared/schema";
-import { MapPin, Plus } from "lucide-react";
+import { Location, PhoneNumber, insertLocationSchema, insertPhoneNumberSchema } from "@shared/schema";
+import { MapPin, Plus, Phone } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function Locations() {
@@ -35,13 +35,26 @@ export default function Locations() {
     queryKey: ["/api/locations"],
   });
 
-  const form = useForm({
+  const { data: phoneNumbers } = useQuery<PhoneNumber[]>({
+    queryKey: ["/api/phone-numbers"],
+  });
+
+  const locationForm = useForm({
     resolver: zodResolver(insertLocationSchema.omit({ userId: true })),
     defaultValues: {
       name: "",
       address: "",
       latitude: "",
       longitude: "",
+    },
+  });
+
+  const phoneForm = useForm({
+    resolver: zodResolver(insertPhoneNumberSchema.omit({ userId: true })),
+    defaultValues: {
+      locationId: 0,
+      number: "",
+      active: true,
     },
   });
 
@@ -52,6 +65,16 @@ export default function Locations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
+    },
+  });
+
+  const createPhoneNumber = useMutation({
+    mutationFn: async (data: Omit<PhoneNumber, "id" | "userId">) => {
+      const res = await apiRequest("POST", "/api/phone-numbers", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/phone-numbers"] });
     },
   });
 
@@ -73,15 +96,15 @@ export default function Locations() {
                 <DialogHeader>
                   <DialogTitle>Add New Location</DialogTitle>
                 </DialogHeader>
-                <Form {...form}>
+                <Form {...locationForm}>
                   <form
-                    onSubmit={form.handleSubmit((data) =>
+                    onSubmit={locationForm.handleSubmit((data) =>
                       createLocation.mutate(data)
                     )}
                     className="space-y-4"
                   >
                     <FormField
-                      control={form.control}
+                      control={locationForm.control}
                       name="name"
                       render={({ field }) => (
                         <FormItem>
@@ -94,7 +117,7 @@ export default function Locations() {
                       )}
                     />
                     <FormField
-                      control={form.control}
+                      control={locationForm.control}
                       name="address"
                       render={({ field }) => (
                         <FormItem>
@@ -108,7 +131,7 @@ export default function Locations() {
                     />
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
-                        control={form.control}
+                        control={locationForm.control}
                         name="latitude"
                         render={({ field }) => (
                           <FormItem>
@@ -121,7 +144,7 @@ export default function Locations() {
                         )}
                       />
                       <FormField
-                        control={form.control}
+                        control={locationForm.control}
                         name="longitude"
                         render={({ field }) => (
                           <FormItem>
@@ -157,10 +180,72 @@ export default function Locations() {
                     <CardDescription>{location.address}</CardDescription>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   <div className="text-sm text-muted-foreground">
                     <div>Latitude: {location.latitude}</div>
                     <div>Longitude: {location.longitude}</div>
+                  </div>
+
+                  {/* Phone Numbers Section */}
+                  <div className="border-t pt-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="font-semibold">Phone Numbers</h3>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <Plus className="h-3 w-3 mr-1" />
+                            Add Number
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Add Phone Number</DialogTitle>
+                          </DialogHeader>
+                          <Form {...phoneForm}>
+                            <form
+                              onSubmit={phoneForm.handleSubmit((data) =>
+                                createPhoneNumber.mutate({ ...data, locationId: location.id })
+                              )}
+                              className="space-y-4"
+                            >
+                              <FormField
+                                control={phoneForm.control}
+                                name="number"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Phone Number</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} placeholder="+1 (555) 000-0000" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <Button
+                                type="submit"
+                                className="w-full"
+                                disabled={createPhoneNumber.isPending}
+                              >
+                                Add Number
+                              </Button>
+                            </form>
+                          </Form>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                    <div className="space-y-2">
+                      {phoneNumbers
+                        ?.filter(pn => pn.locationId === location.id)
+                        .map((phoneNumber) => (
+                          <div
+                            key={phoneNumber.id}
+                            className="flex items-center gap-2 text-sm"
+                          >
+                            <Phone className="h-3 w-3" />
+                            <span>{phoneNumber.number}</span>
+                          </div>
+                        ))}
+                    </div>
                   </div>
                 </CardContent>
               </Card>

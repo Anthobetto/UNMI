@@ -1,16 +1,16 @@
 import { IStorage } from "./types";
 import {
-  User, Location, Template, RoutingRule,
+  User, Location, Template, RoutingRule, PhoneNumber, Call,
   InsertUser, InsertLocation, InsertTemplate, InsertRoutingRule,
-  users, locations, templates, routingRules
+  InsertPhoneNumber, InsertCall,
+  users, locations, templates, routingRules, phoneNumbers, calls,
+  Message, InsertMessage, messages
 } from "@shared/schema";
 import session from "express-session";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
-import { Message, InsertMessage, messages } from "@shared/schema"; //Import missing types
-
 
 const PostgresSessionStore = connectPg(session);
 
@@ -24,6 +24,7 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
+  // User methods
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
@@ -39,6 +40,7 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  // Location methods
   async getLocations(userId: number): Promise<Location[]> {
     return db.select().from(locations).where(eq(locations.userId, userId));
   }
@@ -48,6 +50,41 @@ export class DatabaseStorage implements IStorage {
     return location;
   }
 
+  // Phone number methods
+  async getPhoneNumbers(userId: number): Promise<PhoneNumber[]> {
+    return db.select().from(phoneNumbers).where(eq(phoneNumbers.userId, userId));
+  }
+
+  async getLocationPhoneNumbers(locationId: number): Promise<PhoneNumber[]> {
+    return db.select()
+      .from(phoneNumbers)
+      .where(eq(phoneNumbers.locationId, locationId));
+  }
+
+  async createPhoneNumber(insertPhoneNumber: InsertPhoneNumber): Promise<PhoneNumber> {
+    const [phoneNumber] = await db.insert(phoneNumbers)
+      .values(insertPhoneNumber)
+      .returning();
+    return phoneNumber;
+  }
+
+  // Call methods
+  async getCalls(userId: number): Promise<Call[]> {
+    return db.select().from(calls).where(eq(calls.userId, userId));
+  }
+
+  async getCallsByPhoneNumber(phoneNumberId: number): Promise<Call[]> {
+    return db.select()
+      .from(calls)
+      .where(eq(calls.phoneNumberId, phoneNumberId));
+  }
+
+  async createCall(insertCall: InsertCall): Promise<Call> {
+    const [call] = await db.insert(calls).values(insertCall).returning();
+    return call;
+  }
+
+  // Template methods
   async getTemplates(userId: number): Promise<Template[]> {
     return db.select().from(templates).where(eq(templates.userId, userId));
   }
@@ -57,6 +94,7 @@ export class DatabaseStorage implements IStorage {
     return template;
   }
 
+  // Routing rules methods
   async getRoutingRules(userId: number): Promise<RoutingRule[]> {
     return db.select().from(routingRules).where(eq(routingRules.userId, userId));
   }
@@ -66,6 +104,7 @@ export class DatabaseStorage implements IStorage {
     return rule;
   }
 
+  // Message methods
   async getMessages(userId: number): Promise<Message[]> {
     return db.select().from(messages).where(eq(messages.userId, userId));
   }
