@@ -36,7 +36,7 @@ export function Sidebar() {
     <div className="flex h-full flex-col bg-sidebar border-r">
       <div className="flex flex-1 flex-col gap-y-4 px-6 py-4">
         <div className="flex h-16 shrink-0 items-center justify-between">
-          <span className="text-2xl font-bold">CallFlow</span>
+          <span className="text-2xl font-bold">TextUp</span>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">

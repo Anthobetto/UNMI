@@ -12,39 +12,29 @@ import { Check } from "lucide-react";
 
 const plans = [
   {
-    name: "Starter",
-    price: "$29",
-    description: "Perfect for small businesses",
+    name: "Per Location",
+    price: "30€",
+    description: "Price per location, per month",
     features: [
-      "Up to 3 locations",
-      "Basic call routing",
-      "5 call templates",
+      "Location-based call routing",
+      "Basic call templates",
+      "Real-time analytics",
       "Email support",
-    ],
-  },
-  {
-    name: "Professional",
-    price: "$79",
-    description: "For growing companies",
-    features: [
-      "Up to 10 locations",
-      "Advanced call routing",
-      "20 call templates",
-      "Priority support",
-      "Call analytics",
+      "24/7 system monitoring",
     ],
   },
   {
     name: "Enterprise",
-    price: "$199",
-    description: "For large organizations",
+    price: "Custom",
+    description: "Discounted rates for large groups",
     features: [
-      "Unlimited locations",
+      "Volume-based discounts",
       "Custom routing rules",
-      "Unlimited templates",
+      "Premium templates",
       "24/7 phone support",
       "Advanced analytics",
       "Custom integrations",
+      "Dedicated account manager",
     ],
   },
 ];
@@ -56,13 +46,13 @@ export default function Pricing() {
       <div className="flex-1 overflow-y-auto">
         <main className="p-8">
           <div className="text-center mb-12">
-            <h1 className="text-3xl font-bold mb-4">Pricing Plans</h1>
+            <h1 className="text-3xl font-bold mb-4">Simple, Transparent Pricing</h1>
             <p className="text-lg text-muted-foreground">
-              Choose the perfect plan for your business
+              Choose the plan that fits your business needs
             </p>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+          <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">
             {plans.map((plan) => (
               <Card key={plan.name} className="flex flex-col">
                 <CardHeader>
@@ -72,7 +62,9 @@ export default function Pricing() {
                 <CardContent className="flex-1">
                   <div className="mb-6">
                     <span className="text-4xl font-bold">{plan.price}</span>
-                    <span className="text-muted-foreground">/month</span>
+                    {plan.name === "Per Location" && (
+                      <span className="text-muted-foreground">/month</span>
+                    )}
                   </div>
                   <ul className="space-y-3">
                     {plan.features.map((feature) => (
@@ -84,8 +76,8 @@ export default function Pricing() {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full" variant="outline">
-                    Get Started
+                  <Button className="w-full" variant={plan.name === "Enterprise" ? "outline" : "default"}>
+                    {plan.name === "Enterprise" ? "Contact Sales" : "Get Started"}
                   </Button>
                 </CardFooter>
               </Card>
