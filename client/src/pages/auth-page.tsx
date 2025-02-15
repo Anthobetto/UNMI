@@ -2,7 +2,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { insertUserSchema } from "@shared/schema";
+import { insertUserSchema, InsertUser } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,22 +23,32 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PhoneCall } from "lucide-react";
 
+type LoginData = Pick<InsertUser, "username" | "password">;
+
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
   const [, setLocation] = useLocation();
 
-  // Redirect if already logged in
   if (user) {
     setLocation("/");
     return null;
   }
 
-  const loginForm = useForm({
+  const loginForm = useForm<LoginData>({
     resolver: zodResolver(insertUserSchema.pick({ username: true, password: true })),
+    defaultValues: {
+      username: "",
+      password: "",
+    },
   });
 
-  const registerForm = useForm({
+  const registerForm = useForm<InsertUser>({
     resolver: zodResolver(insertUserSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+      companyName: "",
+    },
   });
 
   return (
