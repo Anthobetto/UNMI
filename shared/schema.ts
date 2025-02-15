@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -17,6 +17,7 @@ export const locations = pgTable("locations", {
   address: text("address").notNull(),
   latitude: text("latitude").notNull(),
   longitude: text("longitude").notNull(),
+  businessType: text("business_type"),
 });
 
 export const routingRules = pgTable("routing_rules", {
@@ -28,6 +29,26 @@ export const routingRules = pgTable("routing_rules", {
   action: text("action").notNull(),
 });
 
+export const calls = pgTable("calls", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  locationId: integer("location_id").notNull(),
+  phoneNumber: text("phone_number").notNull(),
+  messageSent: text("message_sent"),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
+export const templates = pgTable("templates", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  name: text("name").notNull(),
+  content: text("content").notNull(),
+  imageUrl: text("image_url"),
+  externalLink: text("external_link"),
+  isSystem: boolean("is_system").default(false).notNull(),
+  type: text("type").notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -37,10 +58,24 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export const insertLocationSchema = createInsertSchema(locations);
 export const insertRuleSchema = createInsertSchema(routingRules);
 
+export const insertTemplateSchema = createInsertSchema(templates).omit({
+  id: true,
+  userId: true,
+  isSystem: true,
+});
+
+export const insertCallSchema = createInsertSchema(calls).omit({
+  id: true,
+  userId: true,
+  timestamp: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Location = typeof locations.$inferSelect;
 export type RoutingRule = typeof routingRules.$inferSelect;
+export type Template = typeof templates.$inferSelect;
+export type Call = typeof calls.$inferSelect;
 
 export const PRICING_TIERS = {
   basic: {
