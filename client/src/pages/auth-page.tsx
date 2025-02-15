@@ -21,7 +21,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PhoneCall } from "lucide-react";
+import { 
+  PhoneCall, 
+  BarChart3, 
+  Clock, 
+  HeartHandshake,
+  Lightbulb,
+  TrendingUp
+} from "lucide-react";
 
 type LoginData = Pick<InsertUser, "username" | "password">;
 
@@ -64,7 +71,7 @@ export default function AuthPage() {
               </span>
             </CardTitle>
             <CardDescription>
-              Manage your business calls efficiently
+              Transform your business communications
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -183,24 +190,66 @@ export default function AuthPage() {
 
       {/* Right column - Hero */}
       <div className="hidden lg:flex flex-1 bg-gradient-to-br from-primary/10 to-primary/5 items-center justify-center p-12">
-        <div className="max-w-2xl">
-          <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-            Intelligent Call Management for Modern Businesses
+        <div className="max-w-2xl space-y-8">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+            Elevate Your Business Communication
           </h1>
-          <ul className="space-y-4 text-lg">
-            <li className="flex items-center gap-2">
-              ✓ Location-based call routing
-            </li>
-            <li className="flex items-center gap-2">
-              ✓ Smart templates for consistent communication
-            </li>
-            <li className="flex items-center gap-2">
-              ✓ Real-time analytics and reporting
-            </li>
-            <li className="flex items-center gap-2">
-              ✓ Multi-site business support
-            </li>
-          </ul>
+
+          <div className="grid gap-6">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <TrendingUp className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">Drive Revenue Growth</h3>
+                <p className="text-muted-foreground">
+                  Convert missed calls into opportunities with instant follow-ups and smart message routing
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Clock className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">24/7 Business Presence</h3>
+                <p className="text-muted-foreground">
+                  Never miss a customer inquiry with automated responses and round-the-clock message handling
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Lightbulb className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">Operational Excellence</h3>
+                <p className="text-muted-foreground">
+                  Streamline communications across all locations with intelligent routing and templates
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <HeartHandshake className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">Enhanced Customer Experience</h3>
+                <p className="text-muted-foreground">
+                  Deliver consistent, professional responses across all channels - SMS, WhatsApp, and voice
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-6 border-t border-primary/10">
+            <p className="text-sm text-muted-foreground">
+              Trusted by growing businesses across multiple industries
+            </p>
+          </div>
         </div>
       </div>
     </div>
