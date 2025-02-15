@@ -1,5 +1,4 @@
-import { IStorage } from "@shared/schema";
-import { User, Location, RoutingRule, InsertUser } from "@shared/schema";
+import { IStorage, User, Location, RoutingRule, InsertUser } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 
@@ -18,7 +17,7 @@ export class MemStorage implements IStorage {
     this.rules = new Map();
     this.currentId = 1;
     this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000,
+      checkPeriod: 86400000, // 24 hours
     });
   }
 

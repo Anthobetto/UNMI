@@ -1,46 +1,38 @@
-import { pgTable, text, serial, integer, boolean, jsonb } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  companyName: text("company_name").notNull(),
-  plan: text("plan").default("basic").notNull(),
-});
+export interface User {
+  id: number;
+  username: string;
+  password: string;
+  companyName: string;
+  plan: "basic" | "pro" | "enterprise";
+}
 
-export const locations = pgTable("locations", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  name: text("name").notNull(),
-  address: text("address").notNull(),
-  latitude: text("latitude").notNull(),
-  longitude: text("longitude").notNull(),
-});
+export interface Location {
+  id: number;
+  userId: number;
+  name: string;
+  address: string;
+  latitude: string;
+  longitude: string;
+}
 
-export const routingRules = pgTable("routing_rules", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  locationId: integer("location_id").notNull(),
-  priority: integer("priority").notNull(),
-  conditions: jsonb("conditions").notNull(),
-  action: text("action").notNull(),
-});
+export interface RoutingRule {
+  id: number;
+  userId: number;
+  locationId: number;
+  priority: number;
+  conditions: Record<string, any>;
+  action: string;
+}
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-  companyName: true,
+export const insertUserSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  companyName: z.string().min(1, "Company name is required"),
 });
-
-export const insertLocationSchema = createInsertSchema(locations);
-export const insertRuleSchema = createInsertSchema(routingRules);
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
-export type Location = typeof locations.$inferSelect;
-export type RoutingRule = typeof routingRules.$inferSelect;
 
 export const PRICING_TIERS = {
   basic: {
@@ -70,3 +62,14 @@ export const PRICING_TIERS = {
     ],
   },
 } as const;
+
+export interface IStorage {
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  getLocations(userId: number): Promise<Location[]>;
+  createLocation(location: Omit<Location, "id">): Promise<Location>;
+  getRules(userId: number): Promise<RoutingRule[]>;
+  createRule(rule: Omit<RoutingRule, "id">): Promise<RoutingRule>;
+  sessionStore: any;
+}
