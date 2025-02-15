@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -25,6 +25,24 @@ export const templates = pgTable("templates", {
   content: text("content").notNull(),
 });
 
+// Define message type as a const for type safety
+export const MessageType = {
+  SMS: 'SMS',
+  WhatsApp: 'WhatsApp'
+} as const;
+
+export type MessageTypeValue = typeof MessageType[keyof typeof MessageType];
+
+export const messages = pgTable("messages", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  type: text("type").notNull().$type<MessageTypeValue>(),
+  content: text("content").notNull(),
+  recipient: text("recipient").notNull(),
+  status: text("status").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const routingRules = pgTable("routing_rules", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
@@ -33,17 +51,22 @@ export const routingRules = pgTable("routing_rules", {
   conditions: jsonb("conditions").notNull(),
 });
 
+// Create schemas
 export const insertUserSchema = createInsertSchema(users);
 export const insertLocationSchema = createInsertSchema(locations);
 export const insertTemplateSchema = createInsertSchema(templates);
 export const insertRoutingRuleSchema = createInsertSchema(routingRules);
+export const insertMessageSchema = createInsertSchema(messages);
 
+// Export types
 export type User = typeof users.$inferSelect;
 export type Location = typeof locations.$inferSelect;
 export type Template = typeof templates.$inferSelect;
 export type RoutingRule = typeof routingRules.$inferSelect;
+export type Message = typeof messages.$inferSelect;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertLocation = z.infer<typeof insertLocationSchema>;
 export type InsertTemplate = z.infer<typeof insertTemplateSchema>;
 export type InsertRoutingRule = z.infer<typeof insertRoutingRuleSchema>;
+export type InsertMessage = z.infer<typeof insertMessageSchema>;

@@ -9,6 +9,8 @@ import { db } from "./db";
 import { eq } from "drizzle-orm";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
+import { Message, InsertMessage, messages } from "@shared/schema"; //Import missing types
+
 
 const PostgresSessionStore = connectPg(session);
 
@@ -62,6 +64,23 @@ export class DatabaseStorage implements IStorage {
   async createRoutingRule(insertRule: InsertRoutingRule): Promise<RoutingRule> {
     const [rule] = await db.insert(routingRules).values(insertRule).returning();
     return rule;
+  }
+
+  async getMessages(userId: number): Promise<Message[]> {
+    return db.select().from(messages).where(eq(messages.userId, userId));
+  }
+
+  async createMessage(insertMessage: InsertMessage): Promise<Message> {
+    const [message] = await db.insert(messages).values(insertMessage).returning();
+    return message;
+  }
+
+  async getMessageStats(userId: number): Promise<{ sms: number; whatsapp: number }> {
+    const userMessages = await this.getMessages(userId);
+    return {
+      sms: userMessages.filter(m => m.type === 'SMS').length,
+      whatsapp: userMessages.filter(m => m.type === 'WhatsApp').length
+    };
   }
 }
 

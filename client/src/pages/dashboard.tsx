@@ -14,6 +14,9 @@ import {
   FileText,
   ArrowUpRight,
   ArrowDownRight,
+  MessageSquare,
+  Phone,
+  MessageCircle,
 } from "lucide-react";
 import { ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import {
@@ -162,13 +165,36 @@ export default function Dashboard() {
                 </p>
               </CardContent>
             </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Messages Sent Today
+                </CardTitle>
+                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">63</div>
+                <div className="flex gap-2 text-xs text-muted-foreground">
+                  <span className="flex items-center">
+                    <Phone className="h-3 w-3 mr-1" />
+                    SMS: 42
+                  </span>
+                  <span className="flex items-center">
+                    <MessageCircle className="h-3 w-3 mr-1" />
+                    WhatsApp: 21
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Recent Calls Table */}
           <Card className="mb-8">
             <CardHeader>
               <CardTitle>Recent Calls</CardTitle>
-              <CardDescription>Last 5 incoming calls across all locations</CardDescription>
+              <CardDescription>
+                Last 5 incoming calls across all locations
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
@@ -183,7 +209,9 @@ export default function Dashboard() {
                 <TableBody>
                   {recentCalls.map((call) => (
                     <TableRow key={call.id}>
-                      <TableCell className="font-medium">{call.number}</TableCell>
+                      <TableCell className="font-medium">
+                        {call.number}
+                      </TableCell>
                       <TableCell>{call.shop}</TableCell>
                       <TableCell>{call.location}</TableCell>
                       <TableCell>{call.timestamp}</TableCell>
@@ -240,33 +268,71 @@ export default function Dashboard() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Active Routing Rules</CardTitle>
-                <CardDescription>
-                  Currently applied routing configurations
-                </CardDescription>
+                <CardTitle>Message Type Distribution</CardTitle>
+                <CardDescription>Last 30 days</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {rules?.map((rule) => (
-                    <div
-                      key={rule.id}
-                      className="flex items-center justify-between p-2 rounded-lg bg-muted"
-                    >
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        <span className="text-sm font-medium">
-                          Location #{rule.locationId}
-                        </span>
-                      </div>
-                      <span className="text-sm text-muted-foreground">
-                        Priority: {rule.priority}
-                      </span>
-                    </div>
-                  ))}
+                <div className="h-[200px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: "SMS", value: 65 },
+                          { name: "WhatsApp", value: 35 },
+                        ]}
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        <Cell fill="hsl(var(--chart-1))" />
+                        <Cell fill="hsl(var(--chart-2))" />
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex justify-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-[hsl(var(--chart-1))]" />
+                    <span className="text-sm">SMS: 65%</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-[hsl(var(--chart-2))]" />
+                    <span className="text-sm">WhatsApp: 35%</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Active Routing Rules</CardTitle>
+              <CardDescription>
+                Currently applied routing configurations
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {rules?.map((rule) => (
+                  <div
+                    key={rule.id}
+                    className="flex items-center justify-between p-2 rounded-lg bg-muted"
+                  >
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" />
+                      <span className="text-sm font-medium">
+                        Location #{rule.locationId}
+                      </span>
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      Priority: {rule.priority}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </main>
       </div>
     </div>
