@@ -59,7 +59,9 @@ export default function AuthPage() {
           <CardHeader className="text-center">
             <CardTitle className="flex justify-center items-center gap-2 text-2xl font-bold">
               <PhoneCall className="h-6 w-6" />
-              TextUp
+              <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                TextUp
+              </span>
             </CardTitle>
             <CardDescription>
               Manage your business calls efficiently
@@ -182,7 +184,7 @@ export default function AuthPage() {
       {/* Right column - Hero */}
       <div className="hidden lg:flex flex-1 bg-gradient-to-br from-primary/10 to-primary/5 items-center justify-center p-12">
         <div className="max-w-2xl">
-          <h1 className="text-4xl font-bold mb-6">
+          <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
             Intelligent Call Management for Modern Businesses
           </h1>
           <ul className="space-y-4 text-lg">

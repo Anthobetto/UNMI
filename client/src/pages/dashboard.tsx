@@ -28,14 +28,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const data = [
-  { name: "Answered", value: 85 },
-  { name: "Missed", value: 15 },
-];
-
 const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-3))"];
 
-// Sample data for recent calls - this would normally come from an API
+// Sample data for recent calls
 const recentCalls = [
   {
     id: 1,
@@ -90,11 +85,13 @@ export default function Dashboard() {
       <Sidebar />
       <div className="flex-1 overflow-y-auto">
         <main className="p-8">
-          <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
+          <h1 className="text-3xl font-bold mb-8 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+            Dashboard
+          </h1>
 
           {/* Stats Overview */}
           <div className="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
+            <Card className="bg-gradient-to-br from-background to-primary/5">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">
                   Total Calls Today
@@ -113,7 +110,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-gradient-to-br from-background to-primary/5">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">
                   Active Locations
@@ -130,7 +127,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-gradient-to-br from-background to-primary/5">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">
                   Active Templates
@@ -147,25 +144,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Average Response Time
-                </CardTitle>
-                <PhoneCall className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">18s</div>
-                <p className="text-xs text-muted-foreground">
-                  <span className="text-red-500 inline-flex items-center">
-                    <ArrowDownRight className="h-3 w-3" />
-                    3s
-                  </span>{" "}
-                  vs last week
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
+            <Card className="bg-gradient-to-br from-background to-primary/5">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">
                   Messages Sent Today
@@ -189,7 +168,7 @@ export default function Dashboard() {
           </div>
 
           {/* Recent Calls Table */}
-          <Card className="mb-8">
+          <Card className="mb-8 bg-gradient-to-br from-background to-primary/5">
             <CardHeader>
               <CardTitle>Recent Calls</CardTitle>
               <CardDescription>
@@ -224,7 +203,7 @@ export default function Dashboard() {
 
           {/* Charts and Details */}
           <div className="grid gap-6 md:grid-cols-2">
-            <Card>
+            <Card className="bg-gradient-to-br from-background to-primary/5">
               <CardHeader>
                 <CardTitle>Call Distribution</CardTitle>
                 <CardDescription>Today's call statistics</CardDescription>
@@ -234,7 +213,7 @@ export default function Dashboard() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={data}
+                        data={[{ name: "Answered", value: 85 }, { name: "Missed", value: 15 }]}
                         innerRadius={60}
                         outerRadius={80}
                         paddingAngle={5}
@@ -266,7 +245,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-gradient-to-br from-background to-primary/5">
               <CardHeader>
                 <CardTitle>Message Type Distribution</CardTitle>
                 <CardDescription>Last 30 days</CardDescription>
@@ -305,7 +284,7 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          <Card>
+          <Card className="bg-gradient-to-br from-background to-primary/5">
             <CardHeader>
               <CardTitle>Active Routing Rules</CardTitle>
               <CardDescription>
