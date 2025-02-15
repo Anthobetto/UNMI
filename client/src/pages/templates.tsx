@@ -49,6 +49,7 @@ export default function Templates() {
       name: "",
       content: "",
       type: "missed_call",
+      channel: "both",
     },
   });
 
@@ -68,12 +69,12 @@ export default function Templates() {
       <div className="flex-1 overflow-y-auto">
         <main className="p-8">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold">Templates</h1>
+            <h1 className="text-3xl font-bold">Message Templates</h1>
             <Dialog>
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Template  
+                  Add Template
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -119,6 +120,28 @@ export default function Templates() {
                     />
                     <FormField
                       control={form.control}
+                      name="channel"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Channel</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select channel" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="sms">SMS Only</SelectItem>
+                              <SelectItem value="whatsapp">WhatsApp Only</SelectItem>
+                              <SelectItem value="both">Both SMS & WhatsApp</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
                       name="content"
                       render={({ field }) => (
                         <FormItem>
@@ -146,7 +169,9 @@ export default function Templates() {
                   <FileText className="h-5 w-5" />
                   <div>
                     <CardTitle className="text-xl">{template.name}</CardTitle>
-                    <CardDescription>Type: {template.type}</CardDescription>
+                    <CardDescription>
+                      Type: {template.type} | Channel: {template.channel}
+                    </CardDescription>
                   </div>
                 </CardHeader>
                 <CardContent>

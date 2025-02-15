@@ -14,8 +14,6 @@ export const locations = pgTable("locations", {
   userId: integer("user_id").notNull(),
   name: text("name").notNull(),
   address: text("address").notNull(),
-  latitude: text("latitude").notNull(),
-  longitude: text("longitude").notNull(),
 });
 
 export const phoneNumbers = pgTable("phone_numbers", {
@@ -23,17 +21,8 @@ export const phoneNumbers = pgTable("phone_numbers", {
   userId: integer("user_id").notNull(),
   locationId: integer("location_id").notNull(),
   number: text("phone_number").notNull().unique(),
+  type: text("type").notNull(), // 'whatsapp', 'sms', or 'both'
   active: boolean("active").notNull().default(true),
-});
-
-export const calls = pgTable("calls", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  phoneNumberId: integer("phone_number_id").notNull(),
-  callerNumber: text("caller_number").notNull(),
-  status: text("status").notNull(), // 'answered', 'missed', 'rejected'
-  duration: integer("duration"), // in seconds
-  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const templates = pgTable("templates", {
@@ -42,6 +31,7 @@ export const templates = pgTable("templates", {
   name: text("name").notNull(),
   content: text("content").notNull(),
   type: text("type").notNull(), // 'missed_call', 'after_hours', 'welcome'
+  channel: text("channel").notNull(), // 'whatsapp', 'sms', or 'both'
 });
 
 // Define message type as a const for type safety
@@ -55,11 +45,21 @@ export type MessageTypeValue = typeof MessageType[keyof typeof MessageType];
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
-  callId: integer("call_id"),  // Optional, as messages can be sent without a call
+  phoneNumberId: integer("phone_number_id").notNull(),
   type: text("type").notNull().$type<MessageTypeValue>(),
   content: text("content").notNull(),
   recipient: text("recipient").notNull(),
   status: text("status").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const calls = pgTable("calls", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  phoneNumberId: integer("phone_number_id").notNull(),
+  callerNumber: text("caller_number").notNull(),
+  status: text("status").notNull(), // 'answered', 'missed', 'rejected'
+  duration: integer("duration"), // in seconds
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

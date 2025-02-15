@@ -25,6 +25,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Location, PhoneNumber, insertLocationSchema, insertPhoneNumberSchema } from "@shared/schema";
 import { MapPin, Plus, Phone } from "lucide-react";
@@ -44,8 +51,6 @@ export default function Locations() {
     defaultValues: {
       name: "",
       address: "",
-      latitude: "",
-      longitude: "",
     },
   });
 
@@ -54,6 +59,7 @@ export default function Locations() {
     defaultValues: {
       locationId: 0,
       number: "",
+      type: "both",
       active: true,
     },
   });
@@ -129,34 +135,6 @@ export default function Locations() {
                         </FormItem>
                       )}
                     />
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={locationForm.control}
-                        name="latitude"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Latitude</FormLabel>
-                            <FormControl>
-                              <Input {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={locationForm.control}
-                        name="longitude"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Longitude</FormLabel>
-                            <FormControl>
-                              <Input {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
                     <Button
                       type="submit"
                       className="w-full"
@@ -180,16 +158,11 @@ export default function Locations() {
                     <CardDescription>{location.address}</CardDescription>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-sm text-muted-foreground">
-                    <div>Latitude: {location.latitude}</div>
-                    <div>Longitude: {location.longitude}</div>
-                  </div>
-
+                <CardContent>
                   {/* Phone Numbers Section */}
-                  <div className="border-t pt-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <h3 className="font-semibold">Phone Numbers</h3>
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-semibold">Communication Channels</h3>
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button variant="outline" size="sm">
@@ -199,7 +172,7 @@ export default function Locations() {
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>Add Phone Number</DialogTitle>
+                            <DialogTitle>Add Communication Channel</DialogTitle>
                           </DialogHeader>
                           <Form {...phoneForm}>
                             <form
@@ -221,6 +194,28 @@ export default function Locations() {
                                   </FormItem>
                                 )}
                               />
+                              <FormField
+                                control={phoneForm.control}
+                                name="type"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Channel Type</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Select channel type" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="sms">SMS Only</SelectItem>
+                                        <SelectItem value="whatsapp">WhatsApp Only</SelectItem>
+                                        <SelectItem value="both">Both SMS & WhatsApp</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
                               <Button
                                 type="submit"
                                 className="w-full"
@@ -233,16 +228,21 @@ export default function Locations() {
                         </DialogContent>
                       </Dialog>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {phoneNumbers
                         ?.filter(pn => pn.locationId === location.id)
                         .map((phoneNumber) => (
                           <div
                             key={phoneNumber.id}
-                            className="flex items-center gap-2 text-sm"
+                            className="flex items-center justify-between p-3 bg-muted rounded-lg"
                           >
-                            <Phone className="h-3 w-3" />
-                            <span>{phoneNumber.number}</span>
+                            <div className="flex items-center gap-2">
+                              <Phone className="h-4 w-4" />
+                              <span>{phoneNumber.number}</span>
+                            </div>
+                            <span className="text-sm text-muted-foreground capitalize">
+                              {phoneNumber.type}
+                            </span>
                           </div>
                         ))}
                     </div>
