@@ -1,71 +1,69 @@
-import { users, locations, routingRules } from "@shared/schema";
-import { db } from "./db";
-import { eq } from "drizzle-orm";
-import { User, InsertUser, Location, RoutingRule } from "@shared/schema";
+import { IStorage } from "@shared/schema";
+import { User, Location, RoutingRule, InsertUser } from "@shared/schema";
 import session from "express-session";
-import connectPg from "connect-pg-simple";
-import { pool } from "./db";
+import createMemoryStore from "memorystore";
 
-const PostgresSessionStore = connectPg(session);
+const MemoryStore = createMemoryStore(session);
 
-export class DatabaseStorage {
+export class MemStorage implements IStorage {
+  private users: Map<number, User>;
+  private locations: Map<number, Location>;
+  private rules: Map<number, RoutingRule>;
+  private currentId: number;
   public sessionStore: session.Store;
 
   constructor() {
-    this.sessionStore = new PostgresSessionStore({
-      pool,
-      createTableIfMissing: true,
+    this.users = new Map();
+    this.locations = new Map();
+    this.rules = new Map();
+    this.currentId = 1;
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000,
     });
   }
 
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    return this.users.get(id);
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user;
+    return Array.from(this.users.values()).find(
+      (user) => user.username === username,
+    );
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
-      .returning();
+    const id = this.currentId++;
+    const user: User = { ...insertUser, id, plan: "basic" };
+    this.users.set(id, user);
     return user;
   }
 
   async getLocations(userId: number): Promise<Location[]> {
-    return await db
-      .select()
-      .from(locations)
-      .where(eq(locations.userId, userId));
+    return Array.from(this.locations.values()).filter(
+      (location) => location.userId === userId,
+    );
   }
 
   async createLocation(location: Omit<Location, "id">): Promise<Location> {
-    const [newLocation] = await db
-      .insert(locations)
-      .values(location)
-      .returning();
+    const id = this.currentId++;
+    const newLocation = { ...location, id };
+    this.locations.set(id, newLocation);
     return newLocation;
   }
 
   async getRules(userId: number): Promise<RoutingRule[]> {
-    return await db
-      .select()
-      .from(routingRules)
-      .where(eq(routingRules.userId, userId))
-      .orderBy(routingRules.priority);
+    return Array.from(this.rules.values())
+      .filter((rule) => rule.userId === userId)
+      .sort((a, b) => a.priority - b.priority);
   }
 
   async createRule(rule: Omit<RoutingRule, "id">): Promise<RoutingRule> {
-    const [newRule] = await db
-      .insert(routingRules)
-      .values(rule)
-      .returning();
+    const id = this.currentId++;
+    const newRule = { ...rule, id };
+    this.rules.set(id, newRule);
     return newRule;
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = new MemStorage();
