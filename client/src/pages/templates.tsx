@@ -25,6 +25,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Template, insertTemplateSchema } from "@shared/schema";
@@ -41,6 +48,7 @@ export default function Templates() {
     defaultValues: {
       name: "",
       content: "",
+      type: "missed_call",
     },
   });
 
@@ -89,6 +97,28 @@ export default function Templates() {
                     />
                     <FormField
                       control={form.control}
+                      name="type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Template Type</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select template type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="missed_call">Missed Call</SelectItem>
+                              <SelectItem value="after_hours">After Hours</SelectItem>
+                              <SelectItem value="welcome">Welcome</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
                       name="content"
                       render={({ field }) => (
                         <FormItem>
@@ -114,7 +144,10 @@ export default function Templates() {
               <Card key={template.id}>
                 <CardHeader className="flex flex-row items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  <CardTitle className="text-xl">{template.name}</CardTitle>
+                  <div>
+                    <CardTitle className="text-xl">{template.name}</CardTitle>
+                    <CardDescription>Type: {template.type}</CardDescription>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="text-sm text-muted-foreground">
