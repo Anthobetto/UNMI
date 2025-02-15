@@ -13,10 +13,12 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import {
   Form,
   FormControl,
@@ -47,30 +49,49 @@ export default function Locations() {
   });
 
   const locationForm = useForm({
-    resolver: zodResolver(insertLocationSchema.omit({ userId: true })),
+    resolver: zodResolver(
+      z.object({
+        name: z.string().min(1, "Name is required"),
+        address: z.string().min(1, "Address is required"),
+        phoneNumber: z.string().min(1, "Phone number is required"),
+        phoneType: z.enum(["sms", "whatsapp", "both"]),
+      })
+    ),
     defaultValues: {
       name: "",
       address: "",
-    },
-  });
-
-  const phoneForm = useForm({
-    resolver: zodResolver(insertPhoneNumberSchema.omit({ userId: true })),
-    defaultValues: {
-      locationId: 0,
-      number: "",
-      type: "both",
-      active: true,
+      phoneNumber: "",
+      phoneType: "both",
     },
   });
 
   const createLocation = useMutation({
-    mutationFn: async (data: Omit<Location, "id" | "userId">) => {
-      const res = await apiRequest("POST", "/api/locations", data);
-      return res.json();
+    mutationFn: async (data: {
+      name: string;
+      address: string;
+      phoneNumber: string;
+      phoneType: string;
+    }) => {
+      // First create the location
+      const locationRes = await apiRequest("POST", "/api/locations", {
+        name: data.name,
+        address: data.address,
+      });
+      const location = await locationRes.json();
+
+      // Then create the associated phone number
+      await apiRequest("POST", "/api/phone-numbers", {
+        locationId: location.id,
+        number: data.phoneNumber,
+        type: data.phoneType,
+        active: true,
+      });
+
+      return location;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/phone-numbers"] });
     },
   });
 
@@ -101,6 +122,9 @@ export default function Locations() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Add New Location</DialogTitle>
+                  <DialogDescription>
+                    Add a new business location with its primary contact number.
+                  </DialogDescription>
                 </DialogHeader>
                 <Form {...locationForm}>
                   <form
@@ -131,6 +155,41 @@ export default function Locations() {
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={locationForm.control}
+                      name="phoneNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone Number</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="+1 (555) 000-0000" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={locationForm.control}
+                      name="phoneType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Channel Type</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select channel type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="sms">SMS Only</SelectItem>
+                              <SelectItem value="whatsapp">WhatsApp Only</SelectItem>
+                              <SelectItem value="both">Both SMS & WhatsApp</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -230,7 +289,7 @@ export default function Locations() {
                     </div>
                     <div className="space-y-3">
                       {phoneNumbers
-                        ?.filter(pn => pn.locationId === location.id)
+                        ?.filter((pn) => pn.locationId === location.id)
                         .map((phoneNumber) => (
                           <div
                             key={phoneNumber.id}
