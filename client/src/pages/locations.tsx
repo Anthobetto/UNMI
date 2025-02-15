@@ -35,11 +35,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Location, PhoneNumber, insertLocationSchema, insertPhoneNumberSchema } from "@shared/schema";
+import { Location, PhoneNumber } from "@shared/schema";
 import { MapPin, Plus, Phone } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+
+const locationFormSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  address: z.string().min(1, "Address is required"),
+  phoneNumber: z.string().min(1, "Phone number is required"),
+  phoneType: z.enum(["sms", "whatsapp", "both"]),
+});
+
+type LocationFormData = z.infer<typeof locationFormSchema>;
 
 export default function Locations() {
+  const { toast } = useToast();
   const { data: locations } = useQuery<Location[]>({
     queryKey: ["/api/locations"],
   });
@@ -48,15 +59,8 @@ export default function Locations() {
     queryKey: ["/api/phone-numbers"],
   });
 
-  const locationForm = useForm({
-    resolver: zodResolver(
-      z.object({
-        name: z.string().min(1, "Name is required"),
-        address: z.string().min(1, "Address is required"),
-        phoneNumber: z.string().min(1, "Phone number is required"),
-        phoneType: z.enum(["sms", "whatsapp", "both"]),
-      })
-    ),
+  const locationForm = useForm<LocationFormData>({
+    resolver: zodResolver(locationFormSchema),
     defaultValues: {
       name: "",
       address: "",
@@ -66,42 +70,68 @@ export default function Locations() {
   });
 
   const createLocation = useMutation({
-    mutationFn: async (data: {
-      name: string;
-      address: string;
-      phoneNumber: string;
-      phoneType: string;
-    }) => {
-      // First create the location
-      const locationRes = await apiRequest("POST", "/api/locations", {
-        name: data.name,
-        address: data.address,
-      });
-      const location = await locationRes.json();
+    mutationFn: async (data: LocationFormData) => {
+      try {
+        // First create the location
+        const locationRes = await apiRequest("POST", "/api/locations", {
+          name: data.name,
+          address: data.address,
+        });
+        const location = await locationRes.json();
 
-      // Then create the associated phone number
-      await apiRequest("POST", "/api/phone-numbers", {
-        locationId: location.id,
-        number: data.phoneNumber,
-        type: data.phoneType,
-        active: true,
-      });
+        // Then create the associated phone number
+        await apiRequest("POST", "/api/phone-numbers", {
+          locationId: location.id,
+          number: data.phoneNumber,
+          type: data.phoneType,
+          active: true,
+        });
 
-      return location;
+        return location;
+      } catch (error) {
+        console.error("Error creating location:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/phone-numbers"] });
+      toast({
+        title: "Success",
+        description: "Location and phone number created successfully",
+      });
+      locationForm.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: "Failed to create location: " + error.message,
+        variant: "destructive",
+      });
     },
   });
 
   const createPhoneNumber = useMutation({
-    mutationFn: async (data: Omit<PhoneNumber, "id" | "userId">) => {
-      const res = await apiRequest("POST", "/api/phone-numbers", data);
+    mutationFn: async (data: { locationId: number; number: string; type: string }) => {
+      const res = await apiRequest("POST", "/api/phone-numbers", {
+        ...data,
+        active: true,
+      });
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/phone-numbers"] });
+      toast({
+        title: "Success",
+        description: "Phone number added successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: "Failed to add phone number: " + error.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -218,7 +248,6 @@ export default function Locations() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {/* Phone Numbers Section */}
                   <div>
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="font-semibold">Communication Channels</h3>
@@ -233,57 +262,32 @@ export default function Locations() {
                           <DialogHeader>
                             <DialogTitle>Add Communication Channel</DialogTitle>
                           </DialogHeader>
-                          <Form {...phoneForm}>
-                            <form
-                              onSubmit={phoneForm.handleSubmit((data) =>
-                                createPhoneNumber.mutate({ ...data, locationId: location.id })
-                              )}
-                              className="space-y-4"
+                          <div className="space-y-4">
+                            <Input placeholder="+1 (555) 000-0000" />
+                            <Select defaultValue="both">
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select channel type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="sms">SMS Only</SelectItem>
+                                <SelectItem value="whatsapp">WhatsApp Only</SelectItem>
+                                <SelectItem value="both">Both SMS & WhatsApp</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              className="w-full"
+                              onClick={() =>
+                                createPhoneNumber.mutate({
+                                  locationId: location.id,
+                                  number: "",
+                                  type: "both",
+                                })
+                              }
+                              disabled={createPhoneNumber.isPending}
                             >
-                              <FormField
-                                control={phoneForm.control}
-                                name="number"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Phone Number</FormLabel>
-                                    <FormControl>
-                                      <Input {...field} placeholder="+1 (555) 000-0000" />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={phoneForm.control}
-                                name="type"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Channel Type</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                      <FormControl>
-                                        <SelectTrigger>
-                                          <SelectValue placeholder="Select channel type" />
-                                        </SelectTrigger>
-                                      </FormControl>
-                                      <SelectContent>
-                                        <SelectItem value="sms">SMS Only</SelectItem>
-                                        <SelectItem value="whatsapp">WhatsApp Only</SelectItem>
-                                        <SelectItem value="both">Both SMS & WhatsApp</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <Button
-                                type="submit"
-                                className="w-full"
-                                disabled={createPhoneNumber.isPending}
-                              >
-                                Add Number
-                              </Button>
-                            </form>
-                          </Form>
+                              Add Number
+                            </Button>
+                          </div>
                         </DialogContent>
                       </Dialog>
                     </div>
