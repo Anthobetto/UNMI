@@ -16,6 +16,14 @@ import {
   ArrowDownRight,
 } from "lucide-react";
 import { ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const data = [
   { name: "Answered", value: 85 },
@@ -24,15 +32,54 @@ const data = [
 
 const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-3))"];
 
+// Sample data for recent calls - this would normally come from an API
+const recentCalls = [
+  {
+    id: 1,
+    number: "+1 (555) 123-4567",
+    shop: "Downtown Coffee",
+    location: "Main Street",
+    timestamp: "10:30 AM",
+  },
+  {
+    id: 2,
+    number: "+1 (555) 234-5678",
+    shop: "Westside Bakery",
+    location: "West Plaza",
+    timestamp: "10:25 AM",
+  },
+  {
+    id: 3,
+    number: "+1 (555) 345-6789",
+    shop: "North Cafe",
+    location: "North Avenue",
+    timestamp: "10:20 AM",
+  },
+  {
+    id: 4,
+    number: "+1 (555) 456-7890",
+    shop: "East Diner",
+    location: "East Street",
+    timestamp: "10:15 AM",
+  },
+  {
+    id: 5,
+    number: "+1 (555) 567-8901",
+    shop: "South Restaurant",
+    location: "South Boulevard",
+    timestamp: "10:10 AM",
+  },
+];
+
 export default function Dashboard() {
-  const { data: locations } = useQuery<Location[]>({ 
-    queryKey: ["/api/locations"] 
+  const { data: locations } = useQuery<Location[]>({
+    queryKey: ["/api/locations"],
   });
-  const { data: templates } = useQuery<Template[]>({ 
-    queryKey: ["/api/templates"] 
+  const { data: templates } = useQuery<Template[]>({
+    queryKey: ["/api/templates"],
   });
-  const { data: rules } = useQuery<RoutingRule[]>({ 
-    queryKey: ["/api/routing-rules"] 
+  const { data: rules } = useQuery<RoutingRule[]>({
+    queryKey: ["/api/routing-rules"],
   });
 
   return (
@@ -116,6 +163,36 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Recent Calls Table */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Recent Calls</CardTitle>
+              <CardDescription>Last 5 incoming calls across all locations</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Number</TableHead>
+                    <TableHead>Shop</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Time</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recentCalls.map((call) => (
+                    <TableRow key={call.id}>
+                      <TableCell className="font-medium">{call.number}</TableCell>
+                      <TableCell>{call.shop}</TableCell>
+                      <TableCell>{call.location}</TableCell>
+                      <TableCell>{call.timestamp}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
 
           {/* Charts and Details */}
           <div className="grid gap-6 md:grid-cols-2">

@@ -6,9 +6,20 @@ import {
   FileText,
   CreditCard,
   LogOut,
+  User,
+  Settings,
+  HelpCircle,
+  CreditCard as Billing,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -24,8 +35,34 @@ export function Sidebar() {
   return (
     <div className="flex h-full flex-col bg-sidebar border-r">
       <div className="flex flex-1 flex-col gap-y-4 px-6 py-4">
-        <div className="flex h-16 shrink-0 items-center">
+        <div className="flex h-16 shrink-0 items-center justify-between">
           <span className="text-2xl font-bold">CallFlow</span>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <User className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem>
+                <User className="mr-2 h-4 w-4" />
+                <span>Mi Perfil</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Billing className="mr-2 h-4 w-4" />
+                <span>Facturación</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <HelpCircle className="mr-2 h-4 w-4" />
+                <span>Servicio al Cliente</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => logoutMutation.mutate()}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Cerrar Sesión</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <nav className="flex flex-1 flex-col gap-y-4">
           {navigation.map((item) => (
@@ -56,13 +93,6 @@ export function Sidebar() {
               {user?.username}
             </p>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => logoutMutation.mutate()}
-          >
-            <LogOut className="h-5 w-5" />
-          </Button>
         </div>
       </div>
     </div>
