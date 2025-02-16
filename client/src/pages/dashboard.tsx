@@ -92,17 +92,10 @@ export default function Dashboard() {
   const { data: rules } = useQuery<RoutingRule[]>({
     queryKey: ["/api/routing-rules"],
   });
-  const { data: missedCallsData } = useQuery<{ total: number }>({
-    queryKey: ["/api/calls/missed"],
-    queryFn: async () => {
-      const response = await fetch("/api/calls/missed");
-      return response.json();
-    },
-  });
 
-  const expectedGains = missedCallsData?.total
-    ? Number(averagePrice) * missedCallsData.total
-    : 0;
+  // Use the constant messages sent count for now
+  const totalMessagesSent = 63; // This matches the "Messages Sent Today" count
+  const expectedGains = totalMessagesSent * Number(averagePrice);
 
   return (
     <div className="flex h-screen">
@@ -176,7 +169,7 @@ export default function Dashboard() {
                 <MessageSquare className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">63</div>
+                <div className="text-2xl font-bold">{totalMessagesSent}</div>
                 <div className="flex gap-2 text-xs text-muted-foreground">
                   <span className="flex items-center">
                     <Phone className="h-3 w-3 mr-1" />
@@ -190,15 +183,15 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            {/* New Expected Gains Calculator Card */}
+            {/* Expected Gains Calculator Card */}
             <Card className="md:col-span-2 bg-gradient-to-br from-primary/20 to-primary/5 border-primary/10">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
                   <CardTitle className="text-lg font-medium">
-                    Expected Gains Calculator
+                    Expected Revenue Calculator
                   </CardTitle>
                   <CardDescription>
-                    Potential revenue from recovered missed calls
+                    Potential revenue from today's message engagements
                   </CardDescription>
                 </div>
                 <Calculator className="h-5 w-5 text-primary" />
@@ -222,9 +215,9 @@ export default function Dashboard() {
 
                   <div className="grid grid-cols-2 gap-4 p-4 bg-background/50 rounded-lg">
                     <div>
-                      <p className="text-sm text-muted-foreground">Recovered Calls</p>
+                      <p className="text-sm text-muted-foreground">Messages Sent Today</p>
                       <p className="text-2xl font-bold text-primary">
-                        {missedCallsData?.total || 0}
+                        {totalMessagesSent}
                       </p>
                     </div>
                     <div>
