@@ -45,9 +45,24 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(locations).where(eq(locations.userId, userId));
   }
 
-  async createLocation(insertLocation: InsertLocation): Promise<Location> {
-    const [location] = await db.insert(locations).values(insertLocation).returning();
-    return location;
+  async createLocation(location: InsertLocation): Promise<Location> {
+    // Check if this is the first location for the user
+    const existingLocations = await db
+      .select()
+      .from(locations)
+      .where(eq(locations.userId, location.userId));
+
+    const isFirstLocation = existingLocations.length === 0;
+
+    const result = await db
+      .insert(locations)
+      .values({
+        ...location,
+        isFirstLocation,
+        trialStartDate: isFirstLocation ? new Date() : null,
+      })
+      .returning();
+    return result[0];
   }
 
   // Phone number methods

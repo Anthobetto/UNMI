@@ -14,6 +14,8 @@ export const locations = pgTable("locations", {
   userId: integer("user_id").notNull(),
   name: text("name").notNull(),
   address: text("address").notNull(),
+  trialStartDate: timestamp("trial_start_date"),
+  isFirstLocation: boolean("is_first_location").default(false),
 });
 
 export const phoneNumbers = pgTable("phone_numbers", {

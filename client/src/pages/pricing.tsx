@@ -12,14 +12,27 @@ import { Check } from "lucide-react";
 
 const plans = [
   {
-    name: "Per Location",
-    price: "30€",
-    description: "Price per location, per month",
+    name: "Free Trial",
+    price: "0€",
+    description: "30 days free for your first location",
     features: [
+      "One location free for 30 days",
       "Location-based call routing",
       "Basic call templates",
       "Real-time analytics",
       "Email support",
+    ],
+  },
+  {
+    name: "Per Location",
+    price: "30€",
+    description: "Per additional location, per month",
+    features: [
+      "All Free Trial features",
+      "Multiple locations",
+      "Advanced call routing",
+      "Premium templates",
+      "Priority support",
       "24/7 system monitoring",
     ],
   },
