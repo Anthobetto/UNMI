@@ -15,6 +15,37 @@ import { pool } from "./db";
 
 const PostgresSessionStore = connectPg(session);
 
+interface IStorage {
+  sessionStore: session.Store;
+  getContents(userId: number): Promise<Content[]>;
+  getContentsByCategory(userId: number, category: string): Promise<Content[]>;
+  createContent(content: InsertContent): Promise<Content>;
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(insertUser: InsertUser): Promise<User>;
+  getGroups(userId: number): Promise<Group[]>;
+  createGroup(insertGroup: InsertGroup): Promise<Group>;
+  getLocations(userId: number): Promise<Location[]>;
+  getGroupLocations(groupId: number): Promise<Location[]>;
+  createLocation(location: InsertLocation): Promise<Location>;
+  getPhoneNumbers(userId: number): Promise<PhoneNumber[]>;
+  getLocationPhoneNumbers(locationId: number): Promise<PhoneNumber[]>;
+  getLinkedNumbers(phoneNumber: string): Promise<PhoneNumber[]>;
+  createPhoneNumber(insertPhoneNumber: InsertPhoneNumber): Promise<PhoneNumber>;
+  getTemplates(userId: number): Promise<Template[]>;
+  getLocationTemplates(locationId: number): Promise<Template[]>;
+  getGroupTemplates(groupId: number): Promise<Template[]>;
+  createTemplate(insertTemplate: InsertTemplate): Promise<Template>;
+  getCalls(userId: number): Promise<Call[]>;
+  getCallsByPhoneNumber(phoneNumberId: number): Promise<Call[]>;
+  createCall(insertCall: InsertCall): Promise<Call>;
+  getRoutingRules(userId: number): Promise<RoutingRule[]>;
+  createRoutingRule(insertRule: InsertRoutingRule): Promise<RoutingRule>;
+  getMessages(userId: number): Promise<Message[]>;
+  createMessage(insertMessage: InsertMessage): Promise<Message>;
+  getMessageStats(userId: number): Promise<{ sms: number; whatsapp: number }>;
+}
+
 export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
 
@@ -40,7 +71,12 @@ export class DatabaseStorage implements IStorage {
 
   async createContent(insertContent: InsertContent): Promise<Content> {
     const [content] = await db.insert(contents)
-      .values(insertContent)
+      .values({
+        ...insertContent,
+        metadata: insertContent.metadata || {},
+        createdAt: new Date(),
+        active: true
+      })
       .returning();
     return content;
   }
