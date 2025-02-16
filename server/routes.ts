@@ -13,10 +13,18 @@ import {
 } from "@shared/schema";
 import multer from "multer";
 import path from "path";
+import fs from "fs";
+import express from 'express';
+
+// Ensure uploads directory exists
+const uploadsDir = "./uploads";
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+}
 
 // Configure multer for file uploads
 const multerStorage = multer.diskStorage({
-  destination: "./uploads",
+  destination: uploadsDir,
   filename: function (req, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname));
   }
@@ -37,6 +45,9 @@ const upload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
 
+  // Serve uploaded files statically
+  app.use('/uploads', express.static(uploadsDir));
+
   // Content Management Routes
   app.get("/api/contents", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
@@ -54,14 +65,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
-    const content = await storage.createContent({
-      ...req.body,
-      userId: req.user.id,
-      url: `/uploads/${req.file.filename}`,
-      type: req.file.mimetype.split('/')[0],
-    });
-
-    res.status(201).json(content);
+    try {
+      const content = await storage.createContent({
+        ...req.body,
+        userId: req.user.id,
+        url: `/uploads/${req.file.filename}`,
+        type: req.file.mimetype.split('/')[0],
+      });
+      res.status(201).json(content);
+    } catch (error) {
+      console.error('Error creating content:', error);
+      res.status(500).json({ message: "Failed to create content" });
+    }
   });
 
   // Group routes
