@@ -9,7 +9,7 @@ import {
 } from "@shared/schema";
 import session from "express-session";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
 
@@ -33,8 +33,9 @@ export class DatabaseStorage implements IStorage {
   async getContentsByCategory(userId: number, category: string): Promise<Content[]> {
     return db.select()
       .from(contents)
-      .where(eq(contents.userId, userId))
-      .where(eq(contents.category, category));
+      .where(
+        sql`${eq(contents.userId, userId)} AND ${eq(contents.category, category)}`
+      );
   }
 
   async createContent(insertContent: InsertContent): Promise<Content> {
