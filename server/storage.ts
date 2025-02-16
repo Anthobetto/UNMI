@@ -3,8 +3,9 @@ import {
   User, Location, Template, RoutingRule, PhoneNumber, Call,
   InsertUser, InsertLocation, InsertTemplate, InsertRoutingRule,
   InsertPhoneNumber, InsertCall,
+  Message, InsertMessage, messages,
+  Group, InsertGroup, groups,
   users, locations, templates, routingRules, phoneNumbers, calls,
-  Message, InsertMessage, messages
 } from "@shared/schema";
 import session from "express-session";
 import { db } from "./db";
@@ -40,9 +41,23 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  // Location methods
+  // Group methods
+  async getGroups(userId: number): Promise<Group[]> {
+    return db.select().from(groups).where(eq(groups.userId, userId));
+  }
+
+  async createGroup(insertGroup: InsertGroup): Promise<Group> {
+    const [group] = await db.insert(groups).values(insertGroup).returning();
+    return group;
+  }
+
+  // Location methods with group support
   async getLocations(userId: number): Promise<Location[]> {
     return db.select().from(locations).where(eq(locations.userId, userId));
+  }
+
+  async getGroupLocations(groupId: number): Promise<Location[]> {
+    return db.select().from(locations).where(eq(locations.groupId, groupId));
   }
 
   async createLocation(location: InsertLocation): Promise<Location> {
@@ -65,7 +80,7 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  // Phone number methods
+  // Enhanced phone number methods
   async getPhoneNumbers(userId: number): Promise<PhoneNumber[]> {
     return db.select().from(phoneNumbers).where(eq(phoneNumbers.userId, userId));
   }
@@ -76,6 +91,12 @@ export class DatabaseStorage implements IStorage {
       .where(eq(phoneNumbers.locationId, locationId));
   }
 
+  async getLinkedNumbers(phoneNumber: string): Promise<PhoneNumber[]> {
+    return db.select()
+      .from(phoneNumbers)
+      .where(eq(phoneNumbers.linkedNumber, phoneNumber));
+  }
+
   async createPhoneNumber(insertPhoneNumber: InsertPhoneNumber): Promise<PhoneNumber> {
     const [phoneNumber] = await db.insert(phoneNumbers)
       .values(insertPhoneNumber)
@@ -83,7 +104,29 @@ export class DatabaseStorage implements IStorage {
     return phoneNumber;
   }
 
-  // Call methods
+  // Enhanced template methods
+  async getTemplates(userId: number): Promise<Template[]> {
+    return db.select().from(templates).where(eq(templates.userId, userId));
+  }
+
+  async getLocationTemplates(locationId: number): Promise<Template[]> {
+    return db.select()
+      .from(templates)
+      .where(eq(templates.locationId, locationId));
+  }
+
+  async getGroupTemplates(groupId: number): Promise<Template[]> {
+    return db.select()
+      .from(templates)
+      .where(eq(templates.groupId, groupId));
+  }
+
+  async createTemplate(insertTemplate: InsertTemplate): Promise<Template> {
+    const [template] = await db.insert(templates).values(insertTemplate).returning();
+    return template;
+  }
+
+  // Enhanced call methods
   async getCalls(userId: number): Promise<Call[]> {
     return db.select().from(calls).where(eq(calls.userId, userId));
   }
@@ -97,16 +140,6 @@ export class DatabaseStorage implements IStorage {
   async createCall(insertCall: InsertCall): Promise<Call> {
     const [call] = await db.insert(calls).values(insertCall).returning();
     return call;
-  }
-
-  // Template methods
-  async getTemplates(userId: number): Promise<Template[]> {
-    return db.select().from(templates).where(eq(templates.userId, userId));
-  }
-
-  async createTemplate(insertTemplate: InsertTemplate): Promise<Template> {
-    const [template] = await db.insert(templates).values(insertTemplate).returning();
-    return template;
   }
 
   // Routing rules methods
@@ -125,7 +158,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
-    const [message] = await db.insert(messages).values(insertMessage).returning();
+    const [message] = await db.insert(messages).values([insertMessage]).returning();
     return message;
   }
 

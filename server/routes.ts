@@ -2,22 +2,44 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { z } from "zod";
 import {
   insertLocationSchema,
   insertTemplateSchema,
   insertRoutingRuleSchema,
   insertPhoneNumberSchema,
-  insertCallSchema
+  insertCallSchema,
+  insertGroupSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
 
+  // Group routes
+  app.get("/api/groups", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const groups = await storage.getGroups(req.user.id);
+    res.json(groups);
+  });
+
+  app.post("/api/groups", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const group = await storage.createGroup({
+      ...req.body,
+      userId: req.user.id
+    });
+    res.status(201).json(group);
+  });
+
   // Locations
   app.get("/api/locations", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const locations = await storage.getLocations(req.user.id);
+    res.json(locations);
+  });
+
+  app.get("/api/groups/:groupId/locations", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const locations = await storage.getGroupLocations(parseInt(req.params.groupId));
     res.json(locations);
   });
 
@@ -30,7 +52,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(201).json(location);
   });
 
-  // Phone Numbers
+  // Phone Numbers with enhanced functionality
   app.get("/api/phone-numbers", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const numbers = await storage.getPhoneNumbers(req.user.id);
@@ -43,6 +65,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(numbers);
   });
 
+  app.get("/api/phone-numbers/:number/linked", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const numbers = await storage.getLinkedNumbers(req.params.number);
+    res.json(numbers);
+  });
+
   app.post("/api/phone-numbers", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const phoneNumber = await storage.createPhoneNumber({
@@ -52,22 +80,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(201).json(phoneNumber);
   });
 
+  // Templates with group and location support
+  app.get("/api/templates", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const templates = await storage.getTemplates(req.user.id);
+    res.json(templates);
+  });
+
+  app.get("/api/locations/:locationId/templates", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const templates = await storage.getLocationTemplates(parseInt(req.params.locationId));
+    res.json(templates);
+  });
+
+  app.get("/api/groups/:groupId/templates", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const templates = await storage.getGroupTemplates(parseInt(req.params.groupId));
+    res.json(templates);
+  });
+
+  app.post("/api/templates", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const template = await storage.createTemplate({
+      ...req.body,
+      userId: req.user.id
+    });
+    res.status(201).json(template);
+  });
+
   // Calls
   app.get("/api/calls", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const calls = await storage.getCalls(req.user.id);
     res.json(calls);
-  });
-
-  // New endpoint for missed calls count
-  app.get("/api/calls/missed", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    const calls = await storage.getCalls(req.user.id);
-    // Filter missed calls that have received a response (message sent)
-    const answeredMissedCalls = calls.filter(call => 
-      call.status === 'missed' // Only count missed calls
-    );
-    res.json({ total: answeredMissedCalls.length });
   });
 
   app.get("/api/phone-numbers/:phoneNumberId/calls", async (req, res) => {
@@ -83,22 +128,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       userId: req.user.id
     });
     res.status(201).json(call);
-  });
-
-  // Templates
-  app.get("/api/templates", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    const templates = await storage.getTemplates(req.user.id);
-    res.json(templates);
-  });
-
-  app.post("/api/templates", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    const template = await storage.createTemplate({
-      ...req.body,
-      userId: req.user.id
-    });
-    res.status(201).json(template);
   });
 
   // Routing Rules

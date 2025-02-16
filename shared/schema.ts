@@ -9,11 +9,22 @@ export const users = pgTable("users", {
   companyName: text("company_name").notNull(),
 });
 
-export const locations = pgTable("locations", {
+export const groups = pgTable("groups", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   name: text("name").notNull(),
+  sharedNumber: text("shared_number"),
+  active: boolean("active").default(true),
+});
+
+export const locations = pgTable("locations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  groupId: integer("group_id"),  // Optional, for locations that belong to a group
+  name: text("name").notNull(),
   address: text("address").notNull(),
+  timezone: text("timezone").default("UTC"),
+  businessHours: jsonb("business_hours"), // Store opening hours
   trialStartDate: timestamp("trial_start_date"),
   isFirstLocation: boolean("is_first_location").default(false),
 });
@@ -23,17 +34,23 @@ export const phoneNumbers = pgTable("phone_numbers", {
   userId: integer("user_id").notNull(),
   locationId: integer("location_id").notNull(),
   number: text("phone_number").notNull().unique(),
-  type: text("type").notNull(), // 'whatsapp', 'sms', or 'both'
+  type: text("type").notNull(), // 'fixed', 'mobile', 'shared'
+  linkedNumber: text("linked_number"), // For fixed->mobile linking
+  channel: text("channel").notNull(), // 'whatsapp', 'sms', or 'both'
   active: boolean("active").notNull().default(true),
+  forwardingEnabled: boolean("forwarding_enabled").default(true),
 });
 
 export const templates = pgTable("templates", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
+  locationId: integer("location_id"), // Optional, for location-specific templates
+  groupId: integer("group_id"), // Optional, for group-wide templates
   name: text("name").notNull(),
   content: text("content").notNull(),
   type: text("type").notNull(), // 'missed_call', 'after_hours', 'welcome'
   channel: text("channel").notNull(), // 'whatsapp', 'sms', or 'both'
+  variables: jsonb("variables").default('{}'), // Dynamic variables for the template
 });
 
 // Define message type as a const for type safety
@@ -63,6 +80,8 @@ export const calls = pgTable("calls", {
   status: text("status").notNull(), // 'answered', 'missed', 'rejected'
   duration: integer("duration"), // in seconds
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  routedToLocation: integer("routed_to_location"), // For tracking call routing
+  callType: text("call_type"), // 'direct', 'forwarded', 'ivr'
 });
 
 export const routingRules = pgTable("routing_rules", {
@@ -70,11 +89,14 @@ export const routingRules = pgTable("routing_rules", {
   userId: integer("user_id").notNull(),
   locationId: integer("location_id").notNull(),
   priority: integer("priority").notNull(),
-  conditions: jsonb("conditions").notNull(),
+  conditions: jsonb("conditions").notNull(), // Store routing conditions
+  forwardingNumber: text("forwarding_number"), // Number to forward to
+  ivrOptions: jsonb("ivr_options"), // IVR menu configuration
 });
 
 // Create schemas
 export const insertUserSchema = createInsertSchema(users);
+export const insertGroupSchema = createInsertSchema(groups);
 export const insertLocationSchema = createInsertSchema(locations);
 export const insertTemplateSchema = createInsertSchema(templates);
 export const insertRoutingRuleSchema = createInsertSchema(routingRules);
@@ -84,6 +106,7 @@ export const insertCallSchema = createInsertSchema(calls);
 
 // Export types
 export type User = typeof users.$inferSelect;
+export type Group = typeof groups.$inferSelect;
 export type Location = typeof locations.$inferSelect;
 export type Template = typeof templates.$inferSelect;
 export type RoutingRule = typeof routingRules.$inferSelect;
@@ -92,6 +115,7 @@ export type PhoneNumber = typeof phoneNumbers.$inferSelect;
 export type Call = typeof calls.$inferSelect;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type InsertGroup = z.infer<typeof insertGroupSchema>;
 export type InsertLocation = z.infer<typeof insertLocationSchema>;
 export type InsertTemplate = z.infer<typeof insertTemplateSchema>;
 export type InsertRoutingRule = z.infer<typeof insertRoutingRuleSchema>;
