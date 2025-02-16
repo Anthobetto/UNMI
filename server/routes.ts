@@ -59,6 +59,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(calls);
   });
 
+  // New endpoint for missed calls count
+  app.get("/api/calls/missed", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const calls = await storage.getCalls(req.user.id);
+    // Filter missed calls that have received a response (message sent)
+    const answeredMissedCalls = calls.filter(call => 
+      call.status === 'missed' // Only count missed calls
+    );
+    res.json({ total: answeredMissedCalls.length });
+  });
+
   app.get("/api/phone-numbers/:phoneNumberId/calls", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const calls = await storage.getCallsByPhoneNumber(parseInt(req.params.phoneNumberId));

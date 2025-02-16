@@ -17,6 +17,8 @@ import {
   MessageSquare,
   Phone,
   MessageCircle,
+  DollarSign,
+  Calculator,
 } from "lucide-react";
 import { ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import {
@@ -27,6 +29,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-3))"];
 
@@ -76,6 +81,8 @@ const callDistributionData = [
 ];
 
 export default function Dashboard() {
+  const [averagePrice, setAveragePrice] = useState("50"); // Default average price
+
   const { data: locations } = useQuery<Location[]>({
     queryKey: ["/api/locations"],
   });
@@ -85,6 +92,17 @@ export default function Dashboard() {
   const { data: rules } = useQuery<RoutingRule[]>({
     queryKey: ["/api/routing-rules"],
   });
+  const { data: missedCallsData } = useQuery<{ total: number }>({
+    queryKey: ["/api/calls/missed"],
+    queryFn: async () => {
+      const response = await fetch("/api/calls/missed");
+      return response.json();
+    },
+  });
+
+  const expectedGains = missedCallsData?.total
+    ? Number(averagePrice) * missedCallsData.total
+    : 0;
 
   return (
     <div className="flex h-screen">
@@ -168,6 +186,54 @@ export default function Dashboard() {
                     <MessageCircle className="h-3 w-3 mr-1" />
                     WhatsApp: 21
                   </span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* New Expected Gains Calculator Card */}
+            <Card className="md:col-span-2 bg-gradient-to-br from-primary/20 to-primary/5 border-primary/10">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <div>
+                  <CardTitle className="text-lg font-medium">
+                    Expected Gains Calculator
+                  </CardTitle>
+                  <CardDescription>
+                    Potential revenue from recovered missed calls
+                  </CardDescription>
+                </div>
+                <Calculator className="h-5 w-5 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="averagePrice">Average Sale Value</Label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="averagePrice"
+                        type="number"
+                        value={averagePrice}
+                        onChange={(e) => setAveragePrice(e.target.value)}
+                        className="pl-8"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 p-4 bg-background/50 rounded-lg">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Recovered Calls</p>
+                      <p className="text-2xl font-bold text-primary">
+                        {missedCallsData?.total || 0}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Potential Revenue</p>
+                      <p className="text-2xl font-bold text-primary">
+                        ${expectedGains.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
