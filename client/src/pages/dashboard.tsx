@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Sidebar } from "@/components/nav/sidebar";
 import {
   Card,
@@ -103,6 +103,7 @@ const callDistributionData = [
 
 export default function Dashboard() {
   const [averagePrice, setAveragePrice] = useState("50"); // Default average price
+  const queryClient = useQueryClient();
 
   const { data: locations } = useQuery<Location[]>({
     queryKey: ["/api/locations"],
@@ -122,7 +123,6 @@ export default function Dashboard() {
     queryKey: ["/api/contents"],
   });
 
-  const queryClient = useQueryClient();
   const uploadContent = useMutation({
     mutationFn: async (formData: FormData) => {
       const res = await fetch("/api/contents", {

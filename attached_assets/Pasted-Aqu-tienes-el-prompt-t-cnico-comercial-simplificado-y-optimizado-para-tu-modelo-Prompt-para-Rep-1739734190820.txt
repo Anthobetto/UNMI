@@ -1,0 +1,77 @@
+Aquí tienes el prompt técnico-comercial simplificado y optimizado para tu modelo:
+
+Prompt para Replit AI:
+
+markdown
+Copy
+"Crea un sistema de gestión de llamadas para PYMEs con modelo freemium que incluya:  
+
+**1. Modelo Comercial Simplificado**  
+- **Free Trial (30 días):**  
+  ✅ 1 local con:  
+  - Mensajes ILIMITADOS (WhatsApp/SMS)  
+  - Plantillas personalizables sin restricciones  
+  - Soporte 24/7 vía Chatbot + Email  
+
+- **Plan Post-Trial:**  
+Característica	Starter (30€/mes)	Grupos Personalizados
+Locales	1	3-50 (+15€/local)
+Mensajes incluidos	1,000/mes	5,000/grupo
+Números dedicados	1 fijo + 1 móvil	Múltiples compartidos
+Soporte prioritario	Básico	VIP con gestor
+Copy
+
+**2. Requerimientos Técnicos Clave**  
+- **Núcleo de Mensajería:**  
+- Envío automático post-llamada usando:  
+  ```python  
+  # Lógica de priorización  
+  def seleccionar_canal(numero):  
+      if es_whatsapp_valido(numero):  
+          return 'whatsapp'  
+      else:  
+          return 'sms' if hora_actual_en_horario_comercial() else None  
+  ```  
+
+- Plantillas dinámicas con editor WYSIWYG:  
+  ![Editor](https://i.imgur.com/Zn2wY3r.png)  
+  - Drag & drop de elementos (texto/imágenes/CTAs)  
+  - Previsualización en tiempo real  
+
+- **Dashboard Essentials:**  
+- Vista única por local con:  
+  - Contador de mensajes restantes  
+  - Quick-access a:  
+    1. Historial de llamadas  
+    2. Editor de plantillas  
+    3. Configuración de números  
+- Sistema de alertas:  
+  ```javascript  
+  // Ejemplo notificación  
+  if (mensajes_enviados >= plan.limite * 0.9) {  
+    mostrarPopup('¡90% de uso alcanzado! Considera actualizar tu plan');  
+  }  
+  ```  
+
+**3. Arquitectura Costo-Efectiva**  
+- **Tech Stack:**  
+- Frontend: Vue.js + Vuetify (SPA lightweight)  
+- Backend: Firebase Functions + Firestore (serverless)  
+- SMS/WhatsApp: Twilio + WhatsApp Cloud API  
+- Caché: Cloudflare Workers ($0.15/M solicitudes)  
+
+- **Flujo de Mensajería:**  
+```mermaid  
+graph TD  
+  A[Llamada entrante] --> B{¿Número en trial?}  
+  B -->|Sí| C[Enviar WhatsApp/SMS sin límites]  
+  B -->|No| D[Verificar créditos plan]  
+  D -->|Créditos OK| C  
+  D -->|Sin créditos| E[Notificar usuario]  
+4. Entregables Prioritarios
+
+Sistema de monitoreo de uso en tiempo real
+
+Integración nativa con WhatsApp Business
+
+Módulo de upgrade automático de planes
