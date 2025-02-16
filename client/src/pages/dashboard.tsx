@@ -102,9 +102,11 @@ export default function Dashboard() {
       <Sidebar />
       <div className="flex-1 overflow-y-auto">
         <main className="p-8">
-          <h1 className="text-3xl font-bold mb-8 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-            Dashboard
-          </h1>
+          <div className="text-center mb-12">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+              Dashboard
+            </h1>
+          </div>
 
           {/* Stats Overview */}
           <div className="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">

@@ -1,0 +1,127 @@
+Aquí tienes la estructura técnica optimizada para resolver tus requerimientos clave, priorizando fiabilidad y relación calidad-precio:
+
+Arquitectura Específica para Gestión de Números
+1. Modelo de Datos Clave
+javascript
+Copy
+// Estructura en Firebase/PostgreSQL
+{
+  "empresa": {
+    "id": "UUID",
+    "grupos": [
+      {
+        "id": "G01",
+        "nombre": "Grupo Norte",
+        "numero_compartido": "+123456789",
+        "locales": [
+          {
+            "id": "L01",
+            "nombre": "Tienda Centro",
+            "numeros": {
+              "fijo": "+555123456",
+              "movil": "+555654321"
+            },
+            "plantilla_whatsapp": "JSON_TEMPLATE",
+            "plantilla_sms": "TEXT_TEMPLATE"
+          }
+        ]
+      }
+    ]
+  }
+}
+2. Flujo de Llamada con Twilio (Cost-Effective)
+mermaid
+Copy
+sequenceDiagram
+    participant Llamante
+    participant Twilio
+    participant NuestroServidor
+    participant WhatsAppAPI
+
+    Llamante->>Twilio: Llama al número (fijo/móvil)
+    Twilio->>NuestroServidor: Webhook POST (callerId, calledNumber)
+    NuestroServidor->>Twilio: Consulta DB para determinar:
+        - Si es número compartido → geolocalización llamante (API Abstract)
+        - Si es fijo → obtiene móvil asociado
+        - Selecciona plantilla correcta
+    Twilio-->>Llamante: Desvía llamada a móvil (si es fijo)
+    NuestroServidor->>WhatsAppAPI: Envía plantilla con:
+        - Variables dinámicas (nombre tienda, horario local)
+        - Enlace trackeable único
+    WhatsAppAPI-->>Llamante: Mensaje personalizado
+    NuestroServidor->>DB: Registra interacción con metadata:
+        - ID local/grupo
+        - Tipo de número (fijo/móvil)
+        - Coste operación
+3. Configuración Técnica en Replit AI
+Prompt Optimizado:
+
+markdown
+Copy
+"Crea un sistema de gestión de llamadas para múltiples locales usando Twilio y WhatsApp Business API con:
+
+1. **Core de Números:**
+   - Sistema de vinculación automática fijo→móvil por local
+   - Números compartidos por grupos con detección de tienda mediante:
+     * Geolocalización aproximada (API Abstract)
+     * Código postal del llamante (Twilio Lookup)
+     * Menú IVR básico ("Presione 1 para X tienda")
+
+2. **Flujo de Mensajería:**
+   - Envío post-llamada usando plantillas pre-aprobadas de WhatsApp
+   - Lógica de selección canal:
+     * WhatsApp como prioridad (si número válido)
+     * SMS como fallback (para números no WhatsApp)
+   - Variables dinámicas en plantillas:
+     ```json
+     {
+       "tienda": "{{local_nombre}}",
+       "horario": "{{local_horario}}",
+       "enlace": "https://track.me/{{llamada_id}}"
+     }
+     ```
+
+3. **Integraciones:**
+   - Twilio Functions para:
+     * Forwarding inteligente (fijo→móvil)
+     * Detección tipo de número (Lookup API)
+   - Webhook configurable por local:
+     ```python
+     @app.route('/webhook', methods=['POST'])
+     def handle_call():
+         called_number = request.form['Called']
+         # Determinar si es grupo o local individual
+         if es_numero_compartido(called_number):
+             local = detectar_local_por_geolocalizacion(request.form['CallerCountry'])
+         else:
+             local = obtener_local_por_numero(called_number)
+         
+         enviar_whatsapp(local['plantilla'], request.form['Caller'])
+     ```
+
+4. **Dashboard Unificado:**
+   - Vista de llamadas agrupadas por:
+     * Número original (fijo/móvil compartido)
+     * Local real (detectado post-llamada)
+   - Sistema de costes desglosado:
+     * Coste forwarding (si aplica)
+     * Coste mensaje (WhatsApp vs SMS)
+     * Coste detección geolocalización
+
+5. **Optimización de Costes:**
+   - Cache Redis para:
+     * Geolocalización (evitar repeticiones)
+     * Plantillas (reducir llamadas a DB)
+   - Lógica de rate-limiting para SMS
+   - Priorización WhatsApp sobre SMS
+
+Entregables clave:
+- Diagrama de flujo para números compartidos
+- Código para detección automática fijo/móvil
+- Sistema de herencia de plantillas grupo→local
+- Política de reintentos para WhatsApp fallido
+- Cálculo de ROI por mensaje enviado"
+4. Recomendaciones Clave
+Estrategia de Números:
+
+Usar Twilio Elastic SIP Trunk para fijos (más barato que números individuales)
