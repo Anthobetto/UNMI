@@ -94,6 +94,19 @@ export const routingRules = pgTable("routing_rules", {
   ivrOptions: jsonb("ivr_options"), // IVR menu configuration
 });
 
+export const contents = pgTable("contents", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  type: text("type").notNull(), // 'video', 'image', 'pdf'
+  url: text("url").notNull(),
+  category: text("category").notNull(), // 'learning', 'marketing', 'training'
+  metadata: jsonb("metadata").default('{}'), // For storing additional info like dimensions, duration, etc.
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  active: boolean("active").default(true),
+});
+
 // Create schemas
 export const insertUserSchema = createInsertSchema(users);
 export const insertGroupSchema = createInsertSchema(groups);
@@ -103,6 +116,7 @@ export const insertRoutingRuleSchema = createInsertSchema(routingRules);
 export const insertMessageSchema = createInsertSchema(messages);
 export const insertPhoneNumberSchema = createInsertSchema(phoneNumbers);
 export const insertCallSchema = createInsertSchema(calls);
+export const insertContentSchema = createInsertSchema(contents);
 
 // Export types
 export type User = typeof users.$inferSelect;
@@ -113,6 +127,7 @@ export type RoutingRule = typeof routingRules.$inferSelect;
 export type Message = typeof messages.$inferSelect;
 export type PhoneNumber = typeof phoneNumbers.$inferSelect;
 export type Call = typeof calls.$inferSelect;
+export type Content = typeof contents.$inferSelect;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertGroup = z.infer<typeof insertGroupSchema>;
@@ -122,3 +137,4 @@ export type InsertRoutingRule = z.infer<typeof insertRoutingRuleSchema>;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type InsertPhoneNumber = z.infer<typeof insertPhoneNumberSchema>;
 export type InsertCall = z.infer<typeof insertCallSchema>;
+export type InsertContent = z.infer<typeof insertContentSchema>;

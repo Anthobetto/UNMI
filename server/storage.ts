@@ -1,10 +1,10 @@
-import { IStorage } from "./types";
 import {
   User, Location, Template, RoutingRule, PhoneNumber, Call,
   InsertUser, InsertLocation, InsertTemplate, InsertRoutingRule,
   InsertPhoneNumber, InsertCall,
   Message, InsertMessage, messages,
   Group, InsertGroup, groups,
+  Content, InsertContent, contents,
   users, locations, templates, routingRules, phoneNumbers, calls,
 } from "@shared/schema";
 import session from "express-session";
@@ -23,6 +23,25 @@ export class DatabaseStorage implements IStorage {
       pool,
       createTableIfMissing: true,
     });
+  }
+
+  // Content management methods
+  async getContents(userId: number): Promise<Content[]> {
+    return db.select().from(contents).where(eq(contents.userId, userId));
+  }
+
+  async getContentsByCategory(userId: number, category: string): Promise<Content[]> {
+    return db.select()
+      .from(contents)
+      .where(eq(contents.userId, userId))
+      .where(eq(contents.category, category));
+  }
+
+  async createContent(insertContent: InsertContent): Promise<Content> {
+    const [content] = await db.insert(contents)
+      .values(insertContent)
+      .returning();
+    return content;
   }
 
   // User methods

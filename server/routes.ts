@@ -8,11 +8,61 @@ import {
   insertRoutingRuleSchema,
   insertPhoneNumberSchema,
   insertCallSchema,
-  insertGroupSchema
+  insertGroupSchema,
+  insertContentSchema
 } from "@shared/schema";
+import multer from "multer";
+import path from "path";
+
+// Configure multer for file uploads
+const multerStorage = multer.diskStorage({
+  destination: "./uploads",
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf', 'video/mp4'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type'));
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
+
+  // Content Management Routes
+  app.get("/api/contents", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const contents = await storage.getContents(req.user.id);
+    res.json(contents);
+  });
+
+  app.get("/api/contents/category/:category", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const contents = await storage.getContentsByCategory(req.user.id, req.params.category);
+    res.json(contents);
+  });
+
+  app.post("/api/contents", upload.single('file'), async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+    const content = await storage.createContent({
+      ...req.body,
+      userId: req.user.id,
+      url: `/uploads/${req.file.filename}`,
+      type: req.file.mimetype.split('/')[0],
+    });
+
+    res.status(201).json(content);
+  });
 
   // Group routes
   app.get("/api/groups", async (req, res) => {
