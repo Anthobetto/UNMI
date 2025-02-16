@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Sidebar } from "@/components/nav/sidebar";
 import {
   Card,
@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Location, Template, RoutingRule, Content } from "@shared/schema";
+import { Location, Template, RoutingRule } from "@shared/schema";
 import {
   PhoneCall,
   MapPin,
@@ -19,10 +19,6 @@ import {
   MessageCircle,
   DollarSign,
   Calculator,
-  Plus,
-  Video,
-  Image,
-  FileArchive
 } from "lucide-react";
 import { ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import {
@@ -36,27 +32,9 @@ import {
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-
 
 const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-3))"];
 
-// Sample data for recent calls
 const recentCalls = [
   {
     id: 1,
@@ -95,14 +73,13 @@ const recentCalls = [
   },
 ];
 
-// Fix the data.map errors in the Call Distribution chart
 const callDistributionData = [
   { name: "Answered", value: 85 },
   { name: "Missed", value: 15 },
 ];
 
 export default function Dashboard() {
-  const [averagePrice, setAveragePrice] = useState("50"); // Default average price
+  const [averagePrice, setAveragePrice] = useState("50"); 
   const queryClient = useQueryClient();
 
   const { data: locations } = useQuery<Location[]>({
@@ -115,27 +92,8 @@ export default function Dashboard() {
     queryKey: ["/api/routing-rules"],
   });
 
-  // Use the constant messages sent count for now
-  const totalMessagesSent = 63; // This matches the "Messages Sent Today" count
+  const totalMessagesSent = 63; 
   const expectedGains = totalMessagesSent * Number(averagePrice);
-
-  const { data: contents } = useQuery<Content[]>({
-    queryKey: ["/api/contents"],
-  });
-
-  const uploadContent = useMutation({
-    mutationFn: async (formData: FormData) => {
-      const res = await fetch("/api/contents", {
-        method: "POST",
-        body: formData,
-      });
-      if (!res.ok) throw new Error("Failed to upload content");
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/contents"] });
-    },
-  });
 
   return (
     <div className="flex h-screen">
@@ -148,7 +106,6 @@ export default function Dashboard() {
             </h1>
           </div>
 
-          {/* Stats Overview */}
           <div className="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
             <Card className="bg-gradient-to-br from-background to-primary/5">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -225,7 +182,6 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            {/* Expected Gains Calculator Card */}
             <Card className="md:col-span-2 bg-gradient-to-br from-primary/20 to-primary/5 border-primary/10">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
@@ -274,7 +230,6 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          {/* Recent Calls Table */}
           <Card className="mb-8 bg-gradient-to-br from-background to-primary/5">
             <CardHeader>
               <CardTitle>Recent Calls</CardTitle>
@@ -308,7 +263,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Charts and Details */}
           <div className="grid gap-6 md:grid-cols-2">
             <Card className="bg-gradient-to-br from-background to-primary/5">
               <CardHeader>
@@ -391,97 +345,6 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          {/* Add Content Management Section */}
-          <Card className="mb-8">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Learning & Marketing Content</CardTitle>
-                <CardDescription>
-                  Access training materials, marketing resources and documentation
-                </CardDescription>
-              </div>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Upload Content
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Upload New Content</DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={(e) => {
-                    e.preventDefault();
-                    const formData = new FormData(e.currentTarget);
-                    uploadContent.mutate(formData);
-                  }} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="title">Title</Label>
-                      <Input id="title" name="title" required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="description">Description</Label>
-                      <Textarea id="description" name="description" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="category">Category</Label>
-                      <Select name="category" defaultValue="learning">
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="learning">Learning</SelectItem>
-                          <SelectItem value="marketing">Marketing</SelectItem>
-                          <SelectItem value="training">Training</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="file">File</Label>
-                      <Input id="file" name="file" type="file" accept=".pdf,image/*,video/*" required />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={uploadContent.isPending}>
-                      Upload
-                    </Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {contents?.map((content) => (
-                  <Card key={content.id} className="flex flex-col">
-                    <CardHeader>
-                      <div className="flex items-center gap-2">
-                        {content.type === 'video' && <Video className="h-5 w-5" />}
-                        {content.type === 'image' && <Image className="h-5 w-5" />}
-                        {content.type === 'application' && <FileArchive className="h-5 w-5" />}
-                        <div>
-                          <CardTitle className="text-lg">{content.title}</CardTitle>
-                          <CardDescription>{content.category}</CardDescription>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground">
-                        {content.description}
-                      </p>
-                    </CardContent>
-                    <CardContent className="mt-auto">
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => window.open(content.url, '_blank')}
-                      >
-                        View Content
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
 
           <Card className="bg-gradient-to-br from-background to-primary/5">
             <CardHeader>

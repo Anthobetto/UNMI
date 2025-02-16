@@ -10,6 +10,7 @@ import {
   Settings,
   HelpCircle,
   CreditCard as Billing,
+  Files,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Locations", href: "/locations", icon: MapPin },
   { name: "Templates", href: "/templates", icon: FileText },
+  { name: "Contents", href: "/contents", icon: Files },
   { name: "Pricing", href: "/pricing", icon: CreditCard },
 ];
 
