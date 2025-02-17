@@ -17,7 +17,7 @@ export async function initializeSlack() {
 }
 
 export async function sendCallNotification(call: Call) {
-  if (!slack) {
+  if (!slack || !SLACK_CHANNEL_ID) {
     console.log('Simulating Slack notification for call:', call);
     return;
   }
@@ -58,7 +58,7 @@ export async function sendCallNotification(call: Call) {
 }
 
 export async function sendMessageNotification(message: Message) {
-  if (!slack) {
+  if (!slack || !SLACK_CHANNEL_ID) {
     console.log('Simulating Slack notification for message:', message);
     return;
   }

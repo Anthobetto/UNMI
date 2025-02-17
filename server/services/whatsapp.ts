@@ -1,5 +1,5 @@
 import { storage } from "../storage";
-import { Message, Template } from "@shared/schema";
+import { Message, Template, InsertMessage } from "@shared/schema";
 import twilio from 'twilio';
 
 // Initialize Twilio client for SMS fallback
@@ -32,7 +32,7 @@ export async function sendWhatsAppMessage(message: Message, template?: Template)
     if (!isWhatsAppConfigured) {
       // Try SMS fallback if WhatsApp is not available
       if (twilioClient) {
-        return await sendSMSFallback(message.recipient, messageContent);
+        return await sendSMSFallback(message);
       }
 
       // Simulate message sending in development
@@ -67,7 +67,7 @@ export async function sendWhatsAppMessage(message: Message, template?: Template)
     if (!response.ok) {
       // If WhatsApp fails, try SMS fallback
       if (twilioClient) {
-        return await sendSMSFallback(message.recipient, messageContent);
+        return await sendSMSFallback(message);
       }
       throw new Error(`WhatsApp API error: ${response.statusText}`);
     }
@@ -86,25 +86,30 @@ export async function sendWhatsAppMessage(message: Message, template?: Template)
   }
 }
 
-async function sendSMSFallback(to: string, content: string): Promise<Message> {
+async function sendSMSFallback(message: Message): Promise<Message> {
   if (!twilioClient) {
     throw new Error('Twilio not configured for SMS fallback');
   }
 
   try {
     const result = await twilioClient.messages.create({
-      body: content,
-      to,
+      body: message.content,
+      to: message.recipient,
       from: process.env.TWILIO_PHONE_NUMBER
     });
 
-    return {
+    const smsMessage: InsertMessage = {
+      userId: message.userId,
+      phoneNumberId: message.phoneNumberId,
       type: 'SMS',
-      status: result.status,
-      content,
-      recipient: to,
-      metadata: { messageSid: result.sid }
-    } as Message;
+      content: message.content,
+      recipient: message.recipient,
+      status: 'sent',
+      createdAt: new Date()
+    };
+
+    // Create a new message record for the SMS fallback
+    return await storage.createMessage(smsMessage);
   } catch (error) {
     console.error('SMS fallback failed:', error);
     throw new Error('Failed to send SMS fallback');
@@ -143,7 +148,7 @@ export async function handleIncomingWhatsApp(payload: any) {
       throw new Error('Invalid webhook payload');
     }
 
-    const message = await storage.createMessage({
+    const message: InsertMessage = {
       userId: payload.userId,
       phoneNumberId: payload.phoneNumberId,
       type: 'WhatsApp',
@@ -151,9 +156,9 @@ export async function handleIncomingWhatsApp(payload: any) {
       recipient: payload.from,
       status: 'received',
       createdAt: new Date()
-    });
+    };
 
-    return message;
+    return await storage.createMessage(message);
   } catch (error) {
     console.error('Error handling incoming WhatsApp:', error);
     throw new Error('Failed to process incoming WhatsApp message');

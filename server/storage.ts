@@ -8,8 +8,7 @@ import {
   users, locations, templates, routingRules, phoneNumbers, calls,
 } from "@shared/schema";
 import session from "express-session";
-import { db } from "./db";
-import { eq, sql } from "drizzle-orm";
+import { db as supabaseDb } from "./services/supabase";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
 
@@ -56,173 +55,227 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
+  // Helper method to convert camelCase to snake_case for Supabase
+  private toSnakeCase(obj: any): any {
+    if (obj === null || typeof obj !== 'object') return obj;
+    return Object.keys(obj).reduce((acc: any, key) => {
+      const newKey = key.replace(/([A-Z])/g, "_$1").toLowerCase();
+      acc[newKey] = this.toSnakeCase(obj[key]);
+      return acc;
+    }, {});
+  }
+
   // Content management methods
   async getContents(userId: number): Promise<Content[]> {
-    return db.select().from(contents).where(eq(contents.userId, userId));
+    const { data, error } = await supabaseDb.contents.getByUser(userId);
+    if (error) throw error;
+    return data || [];
   }
 
   async getContentsByCategory(userId: number, category: string): Promise<Content[]> {
-    return db.select()
-      .from(contents)
-      .where(
-        sql`${eq(contents.userId, userId)} AND ${eq(contents.category, category)}`
-      );
+    const { data, error } = await supabaseDb.contents.getByCategory(userId, category);
+    if (error) throw error;
+    return data || [];
   }
 
-  async createContent(insertContent: InsertContent): Promise<Content> {
-    const [content] = await db.insert(contents)
-      .values({
-        ...insertContent,
-        metadata: insertContent.metadata || {},
-        createdAt: new Date(),
-        active: true
-      })
-      .returning();
-    return content;
+  async createContent(content: InsertContent): Promise<Content> {
+    const { data, error } = await supabaseDb.contents.create(this.toSnakeCase(content));
+    if (error) throw error;
+    return data;
   }
 
   // User methods
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    const { data, error } = await supabaseDb.users.getById(id);
+    if (error) throw error;
+    return data || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user;
+    const { data, error } = await supabaseDb.users.getByUsername(username);
+    if (error) throw error;
+    return data || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
-    return user;
+    const { data, error } = await supabaseDb.users.create(this.toSnakeCase(insertUser));
+    if (error) throw error;
+    return data;
   }
 
   // Group methods
   async getGroups(userId: number): Promise<Group[]> {
-    return db.select().from(groups).where(eq(groups.userId, userId));
+    const { data, error } = await supabaseDb.groups.getByUser(userId);
+    if (error) throw error;
+    return data || [];
   }
 
   async createGroup(insertGroup: InsertGroup): Promise<Group> {
-    const [group] = await db.insert(groups).values(insertGroup).returning();
-    return group;
+    const { data, error } = await supabaseDb.groups.create(this.toSnakeCase(insertGroup));
+    if (error) throw error;
+    return data;
   }
 
-  // Location methods with group support
+  // Location methods
   async getLocations(userId: number): Promise<Location[]> {
-    return db.select().from(locations).where(eq(locations.userId, userId));
+    const { data, error } = await supabaseDb.locations.getByUser(userId);
+    if (error) throw error;
+    return data || [];
   }
 
   async getGroupLocations(groupId: number): Promise<Location[]> {
-    return db.select().from(locations).where(eq(locations.groupId, groupId));
+    const { data, error } = await supabaseDb.locations.getByGroup(groupId);
+    if (error) throw error;
+    return data || [];
   }
 
   async createLocation(location: InsertLocation): Promise<Location> {
-    // Check if this is the first location for the user
-    const existingLocations = await db
-      .select()
-      .from(locations)
-      .where(eq(locations.userId, location.userId));
+    const { data: existingLocations } = await supabaseDb.locations.getByUser(location.userId);
+    const isFirstLocation = !existingLocations || existingLocations.length === 0;
 
-    const isFirstLocation = existingLocations.length === 0;
-
-    const result = await db
-      .insert(locations)
-      .values({
-        ...location,
-        isFirstLocation,
-        trialStartDate: isFirstLocation ? new Date() : null,
-      })
-      .returning();
-    return result[0];
+    const { data, error } = await supabaseDb.locations.create(this.toSnakeCase({
+      ...location,
+      is_first_location: isFirstLocation,
+      trial_start_date: isFirstLocation ? new Date().toISOString() : null,
+    }));
+    if (error) throw error;
+    return data;
   }
 
-  // Enhanced phone number methods
+  // Phone number methods
   async getPhoneNumbers(userId: number): Promise<PhoneNumber[]> {
-    return db.select().from(phoneNumbers).where(eq(phoneNumbers.userId, userId));
+    const { data, error } = await supabaseDb.phoneNumbers.getByUser(userId);
+    if (error) throw error;
+    return data || [];
   }
 
   async getLocationPhoneNumbers(locationId: number): Promise<PhoneNumber[]> {
-    return db.select()
-      .from(phoneNumbers)
-      .where(eq(phoneNumbers.locationId, locationId));
+    const { data, error } = await supabaseDb.phoneNumbers.getByLocation(locationId);
+    if (error) throw error;
+    return data || [];
   }
 
   async getLinkedNumbers(phoneNumber: string): Promise<PhoneNumber[]> {
-    return db.select()
-      .from(phoneNumbers)
-      .where(eq(phoneNumbers.linkedNumber, phoneNumber));
+    const { data, error } = await supabaseDb.phoneNumbers.getLinked(phoneNumber);
+    if (error) throw error;
+    return data || [];
   }
 
-  async createPhoneNumber(insertPhoneNumber: InsertPhoneNumber): Promise<PhoneNumber> {
-    const [phoneNumber] = await db.insert(phoneNumbers)
-      .values(insertPhoneNumber)
-      .returning();
-    return phoneNumber;
+  async createPhoneNumber(phoneNumber: InsertPhoneNumber): Promise<PhoneNumber> {
+    const { data, error } = await supabaseDb.phoneNumbers.create(this.toSnakeCase({
+      user_id: phoneNumber.userId,
+      location_id: phoneNumber.locationId,
+      number: phoneNumber.number,
+      type: phoneNumber.type,
+      active: phoneNumber.active,
+      linked_number: phoneNumber.linkedNumber
+    }));
+    if (error) throw error;
+    return data;
   }
 
-  // Enhanced template methods
+  // Template methods
   async getTemplates(userId: number): Promise<Template[]> {
-    return db.select().from(templates).where(eq(templates.userId, userId));
+    const { data, error } = await supabaseDb.templates.getByUser(userId);
+    if (error) throw error;
+    return data || [];
   }
 
   async getLocationTemplates(locationId: number): Promise<Template[]> {
-    return db.select()
-      .from(templates)
-      .where(eq(templates.locationId, locationId));
+    const { data, error } = await supabaseDb.templates.getByLocation(locationId);
+    if (error) throw error;
+    return data || [];
   }
 
   async getGroupTemplates(groupId: number): Promise<Template[]> {
-    return db.select()
-      .from(templates)
-      .where(eq(templates.groupId, groupId));
+    const { data, error } = await supabaseDb.templates.getByGroup(groupId);
+    if (error) throw error;
+    return data || [];
   }
 
-  async createTemplate(insertTemplate: InsertTemplate): Promise<Template> {
-    const [template] = await db.insert(templates).values(insertTemplate).returning();
-    return template;
+  async createTemplate(template: InsertTemplate): Promise<Template> {
+    const { data, error } = await supabaseDb.templates.create(this.toSnakeCase({
+      user_id: template.userId,
+      location_id: template.locationId,
+      group_id: template.groupId,
+      name: template.name,
+      content: template.content,
+      type: template.type,
+      variables: template.variables
+    }));
+    if (error) throw error;
+    return data;
   }
 
-  // Enhanced call methods
+  // Call methods
   async getCalls(userId: number): Promise<Call[]> {
-    return db.select().from(calls).where(eq(calls.userId, userId));
+    const { data, error } = await supabaseDb.calls.getByUser(userId);
+    if (error) throw error;
+    return data || [];
   }
 
   async getCallsByPhoneNumber(phoneNumberId: number): Promise<Call[]> {
-    return db.select()
-      .from(calls)
-      .where(eq(calls.phoneNumberId, phoneNumberId));
+    const { data, error } = await supabaseDb.calls.getByPhoneNumber(phoneNumberId);
+    if (error) throw error;
+    return data || [];
   }
 
-  async createCall(insertCall: InsertCall): Promise<Call> {
-    const [call] = await db.insert(calls).values(insertCall).returning();
-    return call;
+  async createCall(call: InsertCall): Promise<Call> {
+    const { data, error } = await supabaseDb.calls.create(this.toSnakeCase({
+      user_id: call.userId,
+      phone_number_id: call.phoneNumberId,
+      caller_number: call.callerNumber,
+      status: call.status,
+      duration: call.duration,
+      created_at: call.createdAt?.toISOString(),
+      routed_to_location: call.routedToLocation,
+      call_type: call.callType
+    }));
+    if (error) throw error;
+    return data;
   }
 
-  // Routing rules methods
+  // Routing rule methods
   async getRoutingRules(userId: number): Promise<RoutingRule[]> {
-    return db.select().from(routingRules).where(eq(routingRules.userId, userId));
+    const { data, error } = await supabaseDb.routingRules.getByUser(userId);
+    if (error) throw error;
+    return data || [];
   }
 
-  async createRoutingRule(insertRule: InsertRoutingRule): Promise<RoutingRule> {
-    const [rule] = await db.insert(routingRules).values(insertRule).returning();
-    return rule;
+  async createRoutingRule(rule: InsertRoutingRule): Promise<RoutingRule> {
+    const { data, error } = await supabaseDb.routingRules.create(this.toSnakeCase(rule));
+    if (error) throw error;
+    return data;
   }
 
   // Message methods
   async getMessages(userId: number): Promise<Message[]> {
-    return db.select().from(messages).where(eq(messages.userId, userId));
+    const { data, error } = await supabaseDb.messages.getByUser(userId);
+    if (error) throw error;
+    return data || [];
   }
 
-  async createMessage(insertMessage: InsertMessage): Promise<Message> {
-    const [message] = await db.insert(messages).values([insertMessage]).returning();
-    return message;
+  async createMessage(message: InsertMessage): Promise<Message> {
+    const { data, error } = await supabaseDb.messages.create(this.toSnakeCase({
+      user_id: message.userId,
+      phone_number_id: message.phoneNumberId,
+      type: message.type,
+      content: message.content,
+      recipient: message.recipient,
+      status: message.status,
+      created_at: message.createdAt?.toISOString()
+    }));
+    if (error) throw error;
+    return data;
   }
 
   async getMessageStats(userId: number): Promise<{ sms: number; whatsapp: number }> {
-    const userMessages = await this.getMessages(userId);
+    const { data: messages, error } = await supabaseDb.messages.getByUser(userId);
+    if (error) throw error;
+
     return {
-      sms: userMessages.filter(m => m.type === 'SMS').length,
-      whatsapp: userMessages.filter(m => m.type === 'WhatsApp').length
+      sms: (messages || []).filter(m => m.type === 'SMS').length,
+      whatsapp: (messages || []).filter(m => m.type === 'WhatsApp').length
     };
   }
 }
