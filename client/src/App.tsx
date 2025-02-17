@@ -3,7 +3,6 @@ import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
-import { ProtectedRoute } from "./lib/protected-route";
 
 import AuthPage from "@/pages/auth-page";
 import Dashboard from "@/pages/dashboard";
@@ -17,23 +16,24 @@ import NotFound from "@/pages/not-found";
 function Router() {
   const { isLoading } = useAuth();
 
+  // Show a simple loading state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="loading-spinner">Loading...</div>
+        <div>Loading...</div>
       </div>
     );
   }
 
   return (
     <Switch>
+      <Route path="/" component={Contents} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/subscription" component={Subscription} />
-      <ProtectedRoute path="/" component={Dashboard} />
-      <ProtectedRoute path="/locations" component={Locations} />
-      <ProtectedRoute path="/templates" component={Templates} />
-      <ProtectedRoute path="/contents" component={Contents} />
-      <ProtectedRoute path="/pricing" component={Pricing} />
+      <Route path="/locations" component={Locations} />
+      <Route path="/templates" component={Templates} />
+      <Route path="/contents" component={Contents} />
+      <Route path="/pricing" component={Pricing} />
       <Route component={NotFound} />
     </Switch>
   );
