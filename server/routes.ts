@@ -352,10 +352,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // WebSocket setup for real-time updates
-  const wsServer = new WebSocketServer({ 
+  const wsServer = new WebSocketServer({
     noServer: true,
     path: '/ws',
-    perMessageDeflate: false 
+    perMessageDeflate: false
   });
 
   wsServer.on('connection', (ws: WebSocket) => {

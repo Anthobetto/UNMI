@@ -1,5 +1,5 @@
 import { storage } from "../storage";
-import { Message } from "@shared/schema";
+import { Message, Template } from "@shared/schema";
 
 // Check for WhatsApp API key in environment variables
 const WHATSAPP_API_KEY = process.env.WHATSAPP_API_KEY;
@@ -12,17 +12,27 @@ export async function initializeWhatsApp() {
   return true;
 }
 
-export async function sendWhatsAppMessage(message: Message) {
+export async function sendWhatsAppMessage(message: Message, template?: Template) {
   try {
     const isWhatsAppConfigured = await initializeWhatsApp();
+    let messageContent = message.content;
+
+    // Process template if provided
+    if (template && template.variables) {
+      messageContent = processTemplate(template, message);
+    }
 
     if (!isWhatsAppConfigured) {
       // Simulate message sending in development
-      console.log('Simulating WhatsApp message:', message);
+      console.log('Simulating WhatsApp message:', {
+        ...message,
+        content: messageContent
+      });
 
       // Create a simulated successful response
       const updatedMessage = {
         ...message,
+        content: messageContent,
         status: 'sent'
       };
 
@@ -40,7 +50,7 @@ export async function sendWhatsAppMessage(message: Message) {
         to: message.recipient,
         type: 'text',
         text: {
-          body: message.content
+          body: messageContent
         }
       })
     });
@@ -53,6 +63,7 @@ export async function sendWhatsAppMessage(message: Message) {
 
     return {
       ...message,
+      content: messageContent,
       status: 'sent',
       metadata: result
     };
@@ -60,6 +71,18 @@ export async function sendWhatsAppMessage(message: Message) {
     console.error('Error sending WhatsApp message:', error);
     throw new Error('Failed to send WhatsApp message');
   }
+}
+
+function processTemplate(template: Template, message: Message): string {
+  let content = template.content;
+  const variables = template.variables as Record<string, string>;
+
+  // Replace template variables
+  Object.entries(variables).forEach(([key, value]) => {
+    content = content.replace(`{{${key}}}`, value);
+  });
+
+  return content;
 }
 
 export async function handleIncomingWhatsApp(payload: any) {
@@ -80,8 +103,6 @@ export async function handleIncomingWhatsApp(payload: any) {
       createdAt: new Date()
     });
 
-    // Broadcast to connected WebSocket clients
-    // This will be handled by the WebSocket server in routes.ts
     return message;
   } catch (error) {
     console.error('Error handling incoming WhatsApp:', error);
