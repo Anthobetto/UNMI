@@ -5,17 +5,17 @@ const supabaseUrl = 'https://cqkqfugenstkgwwvbwxx.supabase.co';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
 
 if (!supabaseServiceKey) {
-  console.error('SUPABASE_SERVICE_KEY is required for database operations');
-  process.exit(1);
+  console.warn('SUPABASE_SERVICE_KEY is not set, some database operations may be limited');
 }
 
 // Create a single supabase client for interacting with your database
 export const supabase = createClient<Database>(
   supabaseUrl,
-  supabaseServiceKey,
+  supabaseServiceKey || '',
   {
     auth: {
-      persistSession: false
+      persistSession: false,
+      autoRefreshToken: false
     }
   }
 );
@@ -43,7 +43,7 @@ export const subscribeToTable = async (
 // Database operations with proper types and error handling
 export const db = {
   users: {
-    getById: async (id: number) => {
+    async getById(id: number) {
       try {
         const { data, error } = await supabase
           .from('users')
@@ -51,38 +51,40 @@ export const db = {
           .eq('id', id)
           .single();
         if (error) throw error;
-        return { data, error: null };
+        return data;
       } catch (error) {
         console.error('Error in users.getById:', error);
-        return { data: null, error };
+        return null;
       }
     },
-    getByUsername: async (username: string) => {
+
+    async getByEmail(email: string) {
       try {
         const { data, error } = await supabase
           .from('users')
           .select('*')
-          .eq('username', username)
+          .eq('email', email)
           .single();
         if (error) throw error;
-        return { data, error: null };
+        return data;
       } catch (error) {
-        console.error('Error in users.getByUsername:', error);
-        return { data: null, error };
+        console.error('Error in users.getByEmail:', error);
+        return null;
       }
     },
-    create: async (data: Database['public']['Tables']['users']['Insert']) => {
+
+    async create(userData: any) {
       try {
-        const { data: newUser, error } = await supabase
+        const { data, error } = await supabase
           .from('users')
-          .insert(data)
+          .insert([userData])
           .select()
           .single();
         if (error) throw error;
-        return { data: newUser, error: null };
+        return data;
       } catch (error) {
         console.error('Error in users.create:', error);
-        return { data: null, error };
+        return null;
       }
     }
   },
