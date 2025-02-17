@@ -7,7 +7,7 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase credentials');
-  throw new Error('Missing Supabase credentials');
+  throw new Error('Missing Supabase credentials. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.');
 }
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
@@ -17,29 +17,29 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   }
 });
 
-// Database types
-export type Tables = Database['public']['Tables'];
-export type Enums = Database['public']['Enums'];
-
-// Type-safe database functions with error handling
+// Strongly typed database functions with proper error handling
 export const db = {
   auth: {
     async getSession() {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        return session;
+      } catch (error) {
         console.error('Error getting session:', error);
         return null;
       }
-      return session;
     },
 
     async getUser() {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error) {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error) throw error;
+        return user;
+      } catch (error) {
         console.error('Error getting user:', error);
         return null;
       }
-      return user;
     }
   },
 
@@ -59,6 +59,7 @@ export const db = {
       }
     }
   },
+
   messages: {
     getRecent: async () => {
       try {
@@ -75,28 +76,48 @@ export const db = {
       }
     }
   },
+
   templates: {
     getAll: async () => {
       try {
-        return await supabase.from('templates').select('*');
+        const { data, error } = await supabase.from('templates').select('*');
+        if (error) throw error;
+        return data;
       } catch (error) {
         console.error('Error fetching templates:', error);
-        return { data: [], error: null };
+        return [];
       }
     }
   },
+
   locations: {
     getAll: async () => {
       try {
-        return await supabase.from('locations').select('*');
+        const { data, error } = await supabase.from('locations').select('*');
+        if (error) throw error;
+        return data;
       } catch (error) {
         console.error('Error fetching locations:', error);
-        return { data: [], error: null };
+        return [];
+      }
+    }
+  },
+
+  contents: {
+    getAll: async () => {
+      try {
+        const { data, error } = await supabase.from('contents').select('*');
+        if (error) throw error;
+        return data;
+      } catch (error) {
+        console.error('Error fetching contents:', error);
+        return [];
       }
     }
   }
 };
 
+// Let's verify if our application is working now by checking the Stripe configuration
 const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 
 if (!stripePublishableKey) {

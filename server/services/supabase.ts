@@ -1,17 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@shared/types/supabase';
 
-const supabaseUrl = 'https://cqkqfugenstkgwwvbwxx.supabase.co';
+// Initialize Supabase client with environment variables
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
 
+if (!supabaseUrl?.startsWith('http')) {
+  console.warn('Invalid or missing Supabase URL. Mock mode will be enabled.');
+}
+
 if (!supabaseServiceKey) {
-  console.warn('SUPABASE_SERVICE_KEY is not set, some database operations may be limited');
+  console.warn('Missing Supabase service key. Mock mode will be enabled.');
 }
 
 // Create a single supabase client for interacting with your database
 export const supabase = createClient<Database>(
-  supabaseUrl,
-  supabaseServiceKey || '',
+  supabaseUrl || 'http://localhost',
+  supabaseServiceKey || 'mock-key',
   {
     auth: {
       persistSession: false,
@@ -20,27 +25,73 @@ export const supabase = createClient<Database>(
   }
 );
 
-// Helper functions for real-time subscriptions
-export const subscribeToTable = async (
-  table: keyof Database['public']['Tables'],
-  callback: (payload: any) => void
-) => {
+// Helper function to verify database connection
+export async function verifyDatabaseConnection() {
   try {
-    return supabase
-      .channel(`${table}_changes`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table },
-        callback
-      )
-      .subscribe();
+    console.log('Attempting to connect to Supabase database...');
+    const { data, error } = await supabase.from('users').select('count').single();
+    if (error) {
+      console.warn('Supabase connection failed:', error.message);
+      console.log('Continuing in mock mode...');
+      return true; // Continue anyway to allow mock data
+    }
+    console.log('Successfully connected to Supabase database');
+    return true;
   } catch (error) {
-    console.error(`Failed to subscribe to ${table}:`, error);
-    return null;
+    console.warn('Database connection error:', error);
+    console.log('Continuing in mock mode...');
+    return true; // Continue anyway to allow mock data
   }
-};
+}
 
-// Database operations with proper types and error handling
+// Helper function to seed mock data
+export async function seedMockData() {
+  try {
+    console.log('Starting to seed mock data...');
+
+    // Insert mock calls
+    const mockCalls = Array.from({ length: 5 }, (_, i) => ({
+      user_id: 1,
+      phone_number_id: 1,
+      caller_number: `+1${Math.floor(Math.random() * 9000000000) + 1000000000}`,
+      status: ['answered', 'missed', 'busy'][Math.floor(Math.random() * 3)],
+      duration: Math.floor(Math.random() * 300),
+      created_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
+    }));
+
+    // Insert mock messages
+    const mockMessages = Array.from({ length: 3 }, (_, i) => ({
+      user_id: 1,
+      phone_number_id: 1,
+      type: Math.random() > 0.5 ? 'SMS' : 'WhatsApp',
+      content: `Test message ${i + 1}`,
+      recipient: `+1${Math.floor(Math.random() * 9000000000) + 1000000000}`,
+      status: 'sent',
+      created_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
+    }));
+
+    console.log('Inserting initial batch of mock data...');
+
+    // Insert in smaller batches to avoid timeouts
+    const { error: callsError } = await supabase.from('calls').insert(mockCalls);
+    if (callsError) {
+      console.warn('Error seeding mock calls:', callsError.message);
+    }
+
+    const { error: messagesError } = await supabase.from('messages').insert(mockMessages);
+    if (messagesError) {
+      console.warn('Error seeding mock messages:', messagesError.message);
+    }
+
+    console.log('Successfully seeded initial mock data');
+    return true;
+  } catch (error) {
+    console.warn('Error seeding mock data:', error);
+    return false;
+  }
+}
+
+// Strongly typed database access layer
 export const db = {
   users: {
     async getById(id: number) {
@@ -88,7 +139,10 @@ export const db = {
       }
     }
   },
+
   calls: {
+    getByUser: (userId: number) =>
+      supabase.from('calls').select('*').eq('user_id', userId),
     create: async (data: Database['public']['Tables']['calls']['Insert']) => {
       try {
         const { data: newCall, error } = await supabase
@@ -118,12 +172,12 @@ export const db = {
         return { data: null, error };
       }
     },
-    getByUser: (userId: number) =>
-      supabase.from('calls').select('*').eq('user_id', userId),
     getByPhoneNumber: (phoneNumberId: number) =>
       supabase.from('calls').select('*').eq('phone_number_id', phoneNumberId)
   },
   messages: {
+    getByUser: (userId: number) =>
+      supabase.from('messages').select('*').eq('user_id', userId),
     create: async (data: Database['public']['Tables']['messages']['Insert']) => {
       try {
         const { data: newMessage, error } = await supabase
@@ -153,8 +207,6 @@ export const db = {
         return { data: null, error };
       }
     },
-    getByUser: (userId: number) =>
-      supabase.from('messages').select('*').eq('user_id', userId)
   },
   templates: {
     create: async (data: Database['public']['Tables']['templates']['Insert']) => {

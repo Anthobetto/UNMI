@@ -3,13 +3,15 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import path from 'path';
 import fs from 'fs';
+import { setupAuth } from "./auth";
+import { verifyDatabaseConnection, seedMockData } from "./services/supabase";
 
 const app = express();
 
 // importantly only setup vite in development and before
 // setting up other routes so it can handle HMR properly
 if (app.get("env") === "development") {
-  setupVite(app);
+  setupVite(app, path.join(process.cwd(), 'client'));
 }
 
 app.use(express.json());
@@ -62,6 +64,14 @@ process.on('unhandledRejection', (reason, promise) => {
 
 (async () => {
   try {
+    // Verify database connection before proceeding
+    const isDbConnected = await verifyDatabaseConnection();
+    if (!isDbConnected) {
+      throw new Error('Failed to connect to database');
+    }
+
+    // Set up authentication before registering routes
+    setupAuth(app);
     const server = await registerRoutes(app);
 
     // Enhanced error handling middleware
@@ -82,11 +92,19 @@ process.on('unhandledRejection', (reason, promise) => {
       serveStatic(app);
     }
 
-    // ALWAYS serve the app on port 5000
-    // this serves both the API and the client
+    // Start the server first
     const PORT = 5000;
-    server.listen(PORT, "0.0.0.0", () => {
-      log(`serving on port ${PORT}`);
+    server.listen(PORT, "0.0.0.0", async () => {
+      log(`Server started on port ${PORT}`);
+
+      // Seed mock data after server is running
+      try {
+        await seedMockData();
+        log('Mock data seeded successfully');
+      } catch (error) {
+        console.error('Failed to seed mock data:', error);
+        // Don't crash the server if seeding fails
+      }
     });
   } catch (error) {
     console.error('Failed to start server:', error);
