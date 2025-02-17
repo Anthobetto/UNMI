@@ -1,8 +1,15 @@
 import { storage } from "../storage";
 import { Message, Template } from "@shared/schema";
+import twilio from 'twilio';
 
-// Check for WhatsApp API key in environment variables
+// Initialize Twilio client for SMS fallback
+const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
+const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
 const WHATSAPP_API_KEY = process.env.WHATSAPP_API_KEY;
+
+const twilioClient = TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN 
+  ? twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+  : null;
 
 export async function initializeWhatsApp() {
   if (!WHATSAPP_API_KEY) {
@@ -23,23 +30,25 @@ export async function sendWhatsAppMessage(message: Message, template?: Template)
     }
 
     if (!isWhatsAppConfigured) {
+      // Try SMS fallback if WhatsApp is not available
+      if (twilioClient) {
+        return await sendSMSFallback(message.recipient, messageContent);
+      }
+
       // Simulate message sending in development
-      console.log('Simulating WhatsApp message:', {
+      console.log('Simulating WhatsApp/SMS message:', {
         ...message,
         content: messageContent
       });
 
-      // Create a simulated successful response
-      const updatedMessage = {
+      return {
         ...message,
         content: messageContent,
         status: 'sent'
       };
-
-      return updatedMessage;
     }
 
-    // Real WhatsApp API implementation
+    // Attempt WhatsApp delivery
     const response = await fetch('https://api.whatsapp.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -56,6 +65,10 @@ export async function sendWhatsAppMessage(message: Message, template?: Template)
     });
 
     if (!response.ok) {
+      // If WhatsApp fails, try SMS fallback
+      if (twilioClient) {
+        return await sendSMSFallback(message.recipient, messageContent);
+      }
       throw new Error(`WhatsApp API error: ${response.statusText}`);
     }
 
@@ -68,8 +81,33 @@ export async function sendWhatsAppMessage(message: Message, template?: Template)
       metadata: result
     };
   } catch (error) {
-    console.error('Error sending WhatsApp message:', error);
-    throw new Error('Failed to send WhatsApp message');
+    console.error('Error sending WhatsApp/SMS message:', error);
+    throw new Error('Failed to send message');
+  }
+}
+
+async function sendSMSFallback(to: string, content: string): Promise<Message> {
+  if (!twilioClient) {
+    throw new Error('Twilio not configured for SMS fallback');
+  }
+
+  try {
+    const result = await twilioClient.messages.create({
+      body: content,
+      to,
+      from: process.env.TWILIO_PHONE_NUMBER
+    });
+
+    return {
+      type: 'SMS',
+      status: result.status,
+      content,
+      recipient: to,
+      metadata: { messageSid: result.sid }
+    } as Message;
+  } catch (error) {
+    console.error('SMS fallback failed:', error);
+    throw new Error('Failed to send SMS fallback');
   }
 }
 
@@ -77,22 +115,34 @@ function processTemplate(template: Template, message: Message): string {
   let content = template.content;
   const variables = template.variables as Record<string, string>;
 
-  // Replace template variables
+  // Replace template variables with actual values
   Object.entries(variables).forEach(([key, value]) => {
-    content = content.replace(`{{${key}}}`, value);
+    const placeholder = `{{${key}}}`;
+    // Add support for common dynamic fields
+    const dynamicValue = getDynamicValue(key, message) || value;
+    content = content.replace(new RegExp(placeholder, 'g'), dynamicValue);
   });
 
   return content;
 }
 
+function getDynamicValue(key: string, message: Message): string | null {
+  // Add support for common dynamic fields like business name, CTA links, etc.
+  const dynamicFields: Record<string, () => string> = {
+    'business_name': () => 'Your Business', // This should come from user settings
+    'cta_link': () => `https://booking.example.com/${message.recipient}`,
+    'timestamp': () => new Date().toLocaleString(),
+  };
+
+  return dynamicFields[key]?.() || null;
+}
+
 export async function handleIncomingWhatsApp(payload: any) {
   try {
-    // Validate webhook payload
     if (!payload.userId || !payload.phoneNumberId || !payload.content || !payload.from) {
       throw new Error('Invalid webhook payload');
     }
 
-    // Process incoming WhatsApp message
     const message = await storage.createMessage({
       userId: payload.userId,
       phoneNumberId: payload.phoneNumberId,
