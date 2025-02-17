@@ -354,7 +354,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // WebSocket setup for real-time updates
   const wsServer = new WebSocketServer({ 
     noServer: true,
-    perMessageDeflate: false // Disable per-message deflate to avoid frame issues
+    path: '/ws',
+    perMessageDeflate: false 
   });
 
   wsServer.on('connection', (ws: WebSocket) => {
@@ -363,6 +364,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     // Send initial connection confirmation
     ws.send(JSON.stringify({ type: 'connected' }));
+
+    ws.on('message', (data) => {
+      try {
+        // Parse incoming messages
+        const message = JSON.parse(data.toString());
+        console.log('Received message:', message);
+      } catch (error) {
+        console.error('Error parsing message:', error);
+      }
+    });
 
     ws.on('error', (error) => {
       console.error('WebSocket error:', error);
@@ -393,9 +404,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Upgrade HTTP server to WebSocket when requested
   httpServer.on('upgrade', (request, socket, head) => {
-    wsServer.handleUpgrade(request, socket, head, (ws) => {
-      wsServer.emit('connection', ws, request);
-    });
+    if (request.url?.startsWith('/ws')) {
+      wsServer.handleUpgrade(request, socket, head, (ws) => {
+        wsServer.emit('connection', ws, request);
+      });
+    }
   });
 
   return httpServer;
