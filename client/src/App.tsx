@@ -9,6 +9,7 @@ import AuthPage from "@/pages/auth-page";
 import Dashboard from "@/pages/dashboard";
 import Locations from "@/pages/locations";
 import Templates from "@/pages/templates";
+import Contents from "@/pages/contents";
 import Pricing from "@/pages/pricing";
 import Subscription from "@/pages/subscription";
 import NotFound from "@/pages/not-found";
@@ -19,6 +20,7 @@ function Router() {
       <ProtectedRoute path="/" component={Dashboard} />
       <ProtectedRoute path="/locations" component={Locations} />
       <ProtectedRoute path="/templates" component={Templates} />
+      <ProtectedRoute path="/contents" component={Contents} />
       <ProtectedRoute path="/pricing" component={Pricing} />
       <Route path="/subscription" component={Subscription} />
       <Route path="/auth" component={AuthPage} />
