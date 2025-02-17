@@ -34,15 +34,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const [, navigate] = useLocation();
 
-  // In development, return mock user data
   const {
     data: user,
     error,
     isLoading,
   } = useQuery<SelectUser | null>({
     queryKey: ["/api/user"],
-    queryFn: () => Promise.resolve(null), // Start with no user
-    retry: false
+    queryFn: () => Promise.resolve(mockUser), // Use mock user in development
+    retry: false,
+    staleTime: 30000, // Cache for 30 seconds
+    refetchOnWindowFocus: false
   });
 
   const loginMutation = useMutation({
@@ -115,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user: user ?? null,
-        isLoading: false, // In development, don't show loading state
+        isLoading: isLoading, //Corrected isLoading to reflect actual loading state.
         error,
         loginMutation,
         logoutMutation,

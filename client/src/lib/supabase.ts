@@ -6,36 +6,10 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Missing Supabase credentials. Database operations will be simulated.');
+  console.error('Missing Supabase credentials. Please check your environment variables.');
 }
 
-// Create a mock client for development
-const createMockClient = () => ({
-  channel: () => ({
-    on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }),
-  }),
-  from: () => ({
-    select: () => ({ data: [], error: null }),
-    insert: () => ({ data: [], error: null }),
-    update: () => ({ data: [], error: null }),
-    delete: () => ({ data: [], error: null }),
-  }),
-});
-
-export const supabase = (!supabaseUrl || !supabaseAnonKey) 
-  ? createMockClient() as any
-  : createClient<Database>(supabaseUrl, supabaseAnonKey);
-
-// Real-time subscription helpers
-export const subscribeToChannel = (
-  channel: string,
-  callback: (payload: any) => void
-) => {
-  return supabase
-    .channel(channel)
-    .on('postgres_changes', { event: '*', schema: 'public' }, callback)
-    .subscribe();
-};
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
 
 // Database types
 export type Tables = Database['public']['Tables'];
@@ -44,8 +18,6 @@ export type Enums = Database['public']['Enums'];
 // Type-safe database functions with error handling
 export const db = {
   calls: {
-    subscribe: (callback: (payload: any) => void) => 
-      subscribeToChannel('calls', callback),
     getRecent: async () => {
       try {
         return await supabase
@@ -54,14 +26,12 @@ export const db = {
           .order('created_at', { ascending: false })
           .limit(10);
       } catch (error) {
-        console.warn('Error fetching recent calls:', error);
+        console.error('Error fetching recent calls:', error);
         return { data: [], error: null };
       }
     }
   },
   messages: {
-    subscribe: (callback: (payload: any) => void) => 
-      subscribeToChannel('messages', callback),
     getRecent: async () => {
       try {
         return await supabase
@@ -70,7 +40,7 @@ export const db = {
           .order('created_at', { ascending: false })
           .limit(10);
       } catch (error) {
-        console.warn('Error fetching recent messages:', error);
+        console.error('Error fetching recent messages:', error);
         return { data: [], error: null };
       }
     }
@@ -80,7 +50,7 @@ export const db = {
       try {
         return await supabase.from('templates').select('*');
       } catch (error) {
-        console.warn('Error fetching templates:', error);
+        console.error('Error fetching templates:', error);
         return { data: [], error: null };
       }
     }
@@ -90,7 +60,7 @@ export const db = {
       try {
         return await supabase.from('locations').select('*');
       } catch (error) {
-        console.warn('Error fetching locations:', error);
+        console.error('Error fetching locations:', error);
         return { data: [], error: null };
       }
     }
