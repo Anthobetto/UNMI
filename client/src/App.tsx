@@ -16,6 +16,7 @@ import NotFound from "@/pages/not-found";
 function Router() {
   const { isLoading, user } = useAuth();
 
+  // Show a simple loading state while checking auth
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -24,7 +25,7 @@ function Router() {
     );
   }
 
-  // If no user is logged in, redirect to auth page
+  // If no user is logged in, only show auth page and redirect all other routes to it
   if (!user) {
     return (
       <Switch>
@@ -36,10 +37,13 @@ function Router() {
     );
   }
 
+  // If user is logged in, show all routes
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
-      <Route path="/auth" component={AuthPage} />
+      <Route path="/auth">
+        <Redirect to="/" />
+      </Route>
       <Route path="/subscription" component={Subscription} />
       <Route path="/locations" component={Locations} />
       <Route path="/templates" component={Templates} />
