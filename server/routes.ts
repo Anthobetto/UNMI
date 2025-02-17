@@ -5,6 +5,9 @@ import { setupAuth } from "./auth";
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
+import multer from "multer";
+import { createPaymentSession } from "./services/stripe";
+import { WebSocketServer, WebSocket } from 'ws';
 
 // Ensure uploads directory exists
 const uploadsDir = "./uploads";
@@ -37,6 +40,9 @@ const upload = multer({
     }
   }
 });
+
+// WebSocket clients for real-time updates
+const clients = new Set<WebSocket>();
 
 export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
@@ -109,11 +115,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/locations", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    const location = await storage.createLocation({
-      ...req.body,
-      userId: req.user.id
-    });
-    res.status(201).json(location);
+
+    try {
+      // Create a Stripe checkout session
+      const session = await createPaymentSession(req.user.id);
+
+      // Create the location after successful payment
+      const location = await storage.createLocation({
+        ...req.body,
+        userId: req.user.id
+      });
+
+      // Return both the location data and the session URL
+      res.status(201).json({
+        location,
+        sessionUrl: session.url
+      });
+    } catch (error) {
+      console.error('Error in location creation:', error);
+      res.status(500).json({ message: "Failed to create location" });
+    }
   });
 
   // Phone Numbers with enhanced functionality
@@ -210,7 +231,172 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(201).json(rule);
   });
 
+  // Call Management APIs
+  app.post("/api/calls/webhook", async (req, res) => {
+    if (!req.body.callSid) return res.status(400).json({ error: "Missing callSid" });
+
+    try {
+      // 1. Create call record
+      const call = await storage.createCall({
+        userId: req.body.userId,
+        phoneNumberId: req.body.phoneNumberId,
+        callerNumber: req.body.from,
+        status: req.body.status,
+        duration: req.body.duration || 0,
+        createdAt: new Date(),
+        routedToLocation: req.body.locationId,
+        callType: 'direct'
+      });
+
+      // 2. Get location template
+      const templates = await storage.getLocationTemplates(req.body.locationId);
+      const missedCallTemplate = templates.find(t => t.type === 'missed_call');
+
+      if (missedCallTemplate && req.body.status === 'missed') {
+        // 3. Send WhatsApp message using template
+        const message = await storage.createMessage({
+          userId: req.body.userId,
+          phoneNumberId: req.body.phoneNumberId,
+          type: 'WhatsApp',
+          content: missedCallTemplate.content,
+          recipient: req.body.from,
+          status: 'pending',
+          createdAt: new Date()
+        });
+
+        // 4. Broadcast update to connected clients
+        const update = {
+          type: 'call_received',
+          call,
+          message
+        };
+
+        clients.forEach(client => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(update));
+          }
+        });
+      }
+
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('Error processing call webhook:', error);
+      res.status(500).json({ error: "Failed to process call" });
+    }
+  });
+
+  // Get call statistics
+  app.get("/api/calls/stats", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const calls = await storage.getCalls(req.user.id);
+      const stats = {
+        total: calls.length,
+        missed: calls.filter(c => c.status === 'missed').length,
+        answered: calls.filter(c => c.status === 'answered').length,
+        averageDuration: calls.reduce((acc, curr) => acc + (curr.duration || 0), 0) / calls.length
+      };
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch call statistics" });
+    }
+  });
+
+
+  // Message Management APIs
+
+  // Send WhatsApp message
+  app.post("/api/messages/whatsapp", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const message = await storage.createMessage({
+        userId: req.user.id,
+        phoneNumberId: req.body.phoneNumberId,
+        type: 'WhatsApp',
+        content: req.body.content,
+        recipient: req.body.recipient,
+        status: 'pending',
+        createdAt: new Date()
+      });
+
+      // Broadcast message to connected clients
+      const update = {
+        type: 'message_sent',
+        message
+      };
+
+      clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify(update));
+        }
+      });
+
+      res.status(201).json(message);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to send WhatsApp message" });
+    }
+  });
+
+  // Get message statistics
+  app.get("/api/messages/stats", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const stats = await storage.getMessageStats(req.user.id);
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch message statistics" });
+    }
+  });
+
+  // WebSocket setup for real-time updates
+  const wsServer = new WebSocketServer({ 
+    noServer: true,
+    perMessageDeflate: false // Disable per-message deflate to avoid frame issues
+  });
+
+  wsServer.on('connection', (ws: WebSocket) => {
+    clients.add(ws);
+    console.log('New WebSocket client connected');
+
+    // Send initial connection confirmation
+    ws.send(JSON.stringify({ type: 'connected' }));
+
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error);
+    });
+
+    ws.on('close', () => {
+      clients.delete(ws);
+      console.log('WebSocket client disconnected');
+    });
+
+    // Ping/pong to keep connection alive
+    const pingInterval = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.ping();
+      }
+    }, 30000);
+
+    ws.on('pong', () => {
+      // Reset connection timeout on pong
+    });
+
+    ws.on('close', () => {
+      clearInterval(pingInterval);
+    });
+  });
+
   const httpServer = createServer(app);
+
+  // Upgrade HTTP server to WebSocket when requested
+  httpServer.on('upgrade', (request, socket, head) => {
+    wsServer.handleUpgrade(request, socket, head, (ws) => {
+      wsServer.emit('connection', ws, request);
+    });
+  });
+
   return httpServer;
 }
-import multer from "multer";

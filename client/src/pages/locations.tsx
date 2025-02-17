@@ -39,6 +39,8 @@ import { Location, PhoneNumber } from "@shared/schema";
 import { MapPin, Plus, Phone } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
+import React from 'react';
 
 const locationFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -51,6 +53,8 @@ type LocationFormData = z.infer<typeof locationFormSchema>;
 
 export default function Locations() {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
+
   const { data: locations } = useQuery<Location[]>({
     queryKey: ["/api/locations"],
   });
@@ -72,35 +76,23 @@ export default function Locations() {
   const createLocation = useMutation({
     mutationFn: async (data: LocationFormData) => {
       try {
-        // First create the location
+        // First create the location and get the checkout session
         const locationRes = await apiRequest("POST", "/api/locations", {
           name: data.name,
           address: data.address,
         });
-        const location = await locationRes.json();
+        const { location, sessionUrl } = await locationRes.json();
 
-        // Then create the associated phone number
-        await apiRequest("POST", "/api/phone-numbers", {
-          locationId: location.id,
-          number: data.phoneNumber,
-          type: data.phoneType,
-          active: true,
-        });
+        if (sessionUrl) {
+          // Redirect to Stripe Checkout
+          window.location.href = sessionUrl;
+        }
 
         return location;
       } catch (error) {
         console.error("Error creating location:", error);
         throw error;
       }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/locations"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/phone-numbers"] });
-      toast({
-        title: "Success",
-        description: "Location and phone number created successfully",
-      });
-      locationForm.reset();
     },
     onError: (error: Error) => {
       toast({
@@ -135,6 +127,31 @@ export default function Locations() {
     },
   });
 
+  // Check for success/canceled query parameters
+  const searchParams = new URLSearchParams(window.location.search);
+  const isSuccess = searchParams.get('success') === 'true';
+  const isCanceled = searchParams.get('canceled') === 'true';
+
+  // Show appropriate toast based on payment status
+  React.useEffect(() => {
+    if (isSuccess) {
+      toast({
+        title: "Success",
+        description: "Location created successfully!",
+      });
+      // Clear the query parameters
+      setLocation('/locations');
+    } else if (isCanceled) {
+      toast({
+        title: "Payment Canceled",
+        description: "Location creation was canceled.",
+        variant: "destructive",
+      });
+      // Clear the query parameters
+      setLocation('/locations');
+    }
+  }, [isSuccess, isCanceled, toast, setLocation]);
+
   return (
     <div className="flex h-screen">
       <Sidebar />
@@ -154,6 +171,7 @@ export default function Locations() {
                   <DialogTitle>Add New Location</DialogTitle>
                   <DialogDescription>
                     Add a new business location with its primary contact number.
+                    A payment of $20 will be required to activate the location.
                   </DialogDescription>
                 </DialogHeader>
                 <Form {...locationForm}>
@@ -229,7 +247,7 @@ export default function Locations() {
                       className="w-full"
                       disabled={createLocation.isPending}
                     >
-                      Add Location
+                      Continue to Payment
                     </Button>
                   </form>
                 </Form>
