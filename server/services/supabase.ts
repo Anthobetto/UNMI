@@ -1,16 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@shared/types/supabase';
 
-const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseUrl = 'https://cqkqfugenstkgwwvbwxx.supabase.co';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  console.warn('Missing Supabase credentials. Database operations will be simulated.');
+if (!supabaseServiceKey) {
+  console.warn('Missing Supabase service key. Database operations will be simulated.');
 }
 
 // Create a single supabase client for interacting with your database
 export const supabase = createClient<Database>(
-  supabaseUrl || 'https://your-project.supabase.co',
+  supabaseUrl,
   supabaseServiceKey || 'your-service-key',
   {
     auth: {

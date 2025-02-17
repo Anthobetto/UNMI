@@ -8,7 +8,7 @@ import fs from 'fs';
 import multer from "multer";
 import { createPaymentSession } from "./services/stripe";
 import { WebSocketServer, WebSocket } from 'ws';
-import { handleIncomingCall, getTwilioCallToken } from './services/twilio';
+import { handleIncomingCall, getTwilioCallToken, sendMessage } from './services/twilio';
 
 // Ensure uploads directory exists
 const uploadsDir = "./uploads";
@@ -292,22 +292,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-
-  // Message Management APIs
-
-  // Send WhatsApp message
-  app.post("/api/messages/whatsapp", async (req, res) => {
+  // Message Management APIs section update
+  app.post("/api/messages", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
 
     try {
-      const message = await storage.createMessage({
+      const message = await sendMessage({
         userId: req.user.id,
         phoneNumberId: req.body.phoneNumberId,
-        type: 'WhatsApp',
+        type: req.body.type, // 'SMS' or 'WhatsApp'
         content: req.body.content,
         recipient: req.body.recipient,
-        status: 'pending',
-        createdAt: new Date()
+        template: req.body.template // Optional template
       });
 
       // Broadcast message to connected clients
@@ -324,7 +320,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json(message);
     } catch (error) {
-      res.status(500).json({ error: "Failed to send WhatsApp message" });
+      res.status(500).json({ error: "Failed to send message" });
     }
   });
 
