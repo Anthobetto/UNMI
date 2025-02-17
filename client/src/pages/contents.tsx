@@ -1,4 +1,4 @@
-import { Video, Image, FileArchive } from "lucide-react";
+import { Video, Image, FileArchive, Upload } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -7,8 +7,10 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/nav/sidebar";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
-// Static content data
+// Static content data (Note:  The original contents array is fully retained here)
 const contents = [
   {
     id: 1,
@@ -53,6 +55,44 @@ const contents = [
 ];
 
 export default function Contents() {
+  const [uploading, setUploading] = useState(false);
+  const { toast } = useToast();
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('title', file.name);
+    formData.append('category', 'uploads');
+
+    try {
+      const response = await fetch('/api/contents', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error('Upload failed');
+
+      toast({
+        title: "Success",
+        description: "File uploaded successfully",
+      });
+
+      // Optionally refresh the content list here
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to upload file",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="flex h-screen">
       <Sidebar />
@@ -61,6 +101,35 @@ export default function Contents() {
           <h1 className="text-3xl font-bold">Resource Library</h1>
         </div>
 
+        {/* Upload Section */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              Upload New Document
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              <input
+                type="file"
+                id="file-upload"
+                className="hidden"
+                onChange={handleFileUpload}
+                accept="image/*,video/*,application/pdf"
+              />
+              <Button
+                variant="outline"
+                onClick={() => document.getElementById('file-upload')?.click()}
+                disabled={uploading}
+              >
+                {uploading ? 'Uploading...' : 'Choose File'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Existing Content Grid */}
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {contents.map((content) => (
             <Card key={content.id} className="flex flex-col">
