@@ -5,7 +5,7 @@ import {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { insertUserSchema, User as SelectUser, InsertUser } from "@shared/schema";
-import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 
@@ -22,14 +22,6 @@ type LoginData = Pick<InsertUser, "username" | "password">;
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
-// Mock user for development
-const mockUser = {
-  id: 1,
-  username: 'testuser',
-  email: 'test@example.com',
-  created_at: new Date().toISOString()
-};
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -39,20 +31,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error,
     isLoading,
   } = useQuery<SelectUser | null>({
-    queryKey: ["/api/user"],
-    queryFn: () => Promise.resolve(mockUser), // Use mock user in development
+    queryKey: ["/api/auth/user"],
+    queryFn: async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      if (!user) return null;
+      return {
+        id: parseInt(user.id),
+        username: user.email || '',
+        companyName: user.user_metadata.company_name || '',
+        password: '' // Password is never returned
+      };
+    },
     retry: false,
-    staleTime: 30000, // Cache for 30 seconds
+    staleTime: 30000,
     refetchOnWindowFocus: false
   });
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
-      // In development, simulate successful login
-      return mockUser;
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: credentials.username,
+        password: credentials.password,
+      });
+      if (error) throw error;
+      if (!data.user) throw new Error("No user returned after login");
+      return {
+        id: parseInt(data.user.id),
+        username: data.user.email || '',
+        companyName: data.user.user_metadata.company_name || '',
+        password: '' // Password is never returned
+      };
     },
     onSuccess: (user: SelectUser) => {
-      queryClient.setQueryData(["/api/user"], user);
       navigate("/");
       toast({
         title: "Welcome back!",
@@ -70,11 +81,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const registerMutation = useMutation({
     mutationFn: async (credentials: InsertUser) => {
-      // In development, simulate successful registration
-      return mockUser;
+      const { data, error } = await supabase.auth.signUp({
+        email: credentials.username,
+        password: credentials.password,
+        options: {
+          data: {
+            company_name: credentials.companyName
+          }
+        }
+      });
+      if (error) throw error;
+      if (!data.user) throw new Error("No user returned after registration");
+      return {
+        id: parseInt(data.user.id),
+        username: data.user.email || '',
+        companyName: data.user.user_metadata.company_name || '',
+        password: '' // Password is never returned
+      };
     },
     onSuccess: (user: SelectUser) => {
-      queryClient.setQueryData(["/api/user"], user);
       navigate("/");
       toast({
         title: "Welcome!",
@@ -92,11 +117,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      // In development, simulate successful logout
-      return Promise.resolve();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.setQueryData(["/api/user"], null);
       navigate("/auth");
       toast({
         title: "Goodbye!",
@@ -116,7 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user: user ?? null,
-        isLoading: isLoading, //Corrected isLoading to reflect actual loading state.
+        isLoading,
         error,
         loginMutation,
         logoutMutation,
