@@ -1,10 +1,18 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import path from 'path';
+import fs from 'fs';
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // Add request logging middleware
 app.use((req, res, next) => {
@@ -36,6 +44,9 @@ app.use((req, res, next) => {
 
   next();
 });
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(uploadsDir));
 
 // Global error handler for unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
