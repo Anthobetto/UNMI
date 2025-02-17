@@ -8,6 +8,7 @@ import fs from 'fs';
 import multer from "multer";
 import { createPaymentSession } from "./services/stripe";
 import { WebSocketServer, WebSocket } from 'ws';
+import { handleIncomingCall, getTwilioCallToken } from './services/twilio';
 
 // Ensure uploads directory exists
 const uploadsDir = "./uploads";
@@ -233,57 +234,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Call Management APIs
   app.post("/api/calls/webhook", async (req, res) => {
-    if (!req.body.callSid) return res.status(400).json({ error: "Missing callSid" });
-
     try {
-      // 1. Create call record
-      const call = await storage.createCall({
-        userId: req.body.userId,
-        phoneNumberId: req.body.phoneNumberId,
-        callerNumber: req.body.from,
-        status: req.body.status,
-        duration: req.body.duration || 0,
-        createdAt: new Date(),
-        routedToLocation: req.body.locationId,
-        callType: 'direct'
+      const call = await handleIncomingCall({
+        From: req.body.From,
+        To: req.body.To,
+        CallSid: req.body.CallSid,
+        CallStatus: req.body.CallStatus
       });
 
-      // 2. Get location template
-      const templates = await storage.getLocationTemplates(req.body.locationId);
-      const missedCallTemplate = templates.find(t => t.type === 'missed_call');
+      // Broadcast call update to all connected clients
+      const update = {
+        type: 'call_received',
+        data: call
+      };
 
-      if (missedCallTemplate && req.body.status === 'missed') {
-        // 3. Send WhatsApp message using template
-        const message = await storage.createMessage({
-          userId: req.body.userId,
-          phoneNumberId: req.body.phoneNumberId,
-          type: 'WhatsApp',
-          content: missedCallTemplate.content,
-          recipient: req.body.from,
-          status: 'pending',
-          createdAt: new Date()
-        });
-
-        // 4. Broadcast update to connected clients
-        const update = {
-          type: 'call_received',
-          call,
-          message
-        };
-
-        clients.forEach(client => {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(update));
-          }
-        });
-      }
+      clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify(update));
+        }
+      });
 
       res.status(200).json({ success: true });
     } catch (error) {
-      console.error('Error processing call webhook:', error);
+      console.error('Error in call webhook:', error);
       res.status(500).json({ error: "Failed to process call" });
     }
   });
+
+  app.get("/api/calls/token", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    try {
+      const token = await getTwilioCallToken();
+      res.json(token);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to generate call token" });
+    }
+  });
+
 
   // Get call statistics
   app.get("/api/calls/stats", async (req, res) => {

@@ -1,0 +1,187 @@
+ere’s a streamlined workflow with the APIs you should use and a ready-to-use prompt for Replit AI to implement your call management system:
+
+Workflow Overview
+Call Detection & Classification:
+
+Detect incoming calls via Twilio API.
+
+Classify calls as answered or unanswered using Twilio's call status webhook.
+
+Unanswered Call Handling:
+
+If unanswered, trigger a WhatsApp/SMS message using Twilio API (for SMS) and WhatsApp Business API (for WhatsApp).
+
+Send a customizable template with dynamic fields (e.g., business name, CTA links).
+
+Data Update:
+
+Log call details (caller ID, time, status) in a database.
+
+Track message delivery status (WhatsApp/SMS) and update the dashboard.
+
+APIs to Use
+Twilio API:
+
+Call Tracking: Detect incoming calls and classify them as answered/unanswered.
+
+SMS Messaging: Send SMS to users.
+
+WhatsApp Messaging: Use Twilio's WhatsApp integration (via WhatsApp Business API).
+
+WhatsApp Business API:
+
+Send WhatsApp messages with pre-approved templates.
+
+Track delivery status and user interactions.
+
+Database API:
+
+Use Firebase Firestore or Supabase for real-time data storage and updates.
+
+Webhook Integration:
+
+Use Twilio webhooks to trigger actions (e.g., send WhatsApp/SMS) when a call is unanswered.
+
+Replit AI Prompt
+markdown
+Copy
+"Create a call management system using Twilio and WhatsApp Business API with the following workflow:
+
+1. **Call Detection & Classification:**
+   - Use Twilio's Voice API to detect incoming calls.
+   - Classify calls as `answered` or `unanswered` using Twilio's call status webhook:
+     ```javascript
+     app.post('/call-status', (req, res) => {
+       const status = req.body.CallStatus;
+       if (status === 'no-answer' || status === 'failed') {
+         triggerWhatsAppOrSMS(req.body.From, req.body.To);
+       }
+       res.status(200).end();
+     });
+     ```
+
+2. **Unanswered Call Handling:**
+   - If a call is unanswered, send a WhatsApp/SMS message:
+     - Use **WhatsApp Business API** for WhatsApp messages.
+     - Use **Twilio SMS API** for SMS fallback.
+   - Send a customizable template with dynamic fields:
+     ```json
+     {
+       "template_name": "unanswered_call",
+       "parameters": {
+         "business_name": "{{business_name}}",
+         "cta_link": "https://booking.com/{{caller_id}}"
+       }
+     }
+     ```
+
+3. **Message Sending Logic:**
+   - Decide between WhatsApp or SMS based on user preference or number validity:
+     ```python
+     def select_message_channel(phone_number):
+         if is_whatsapp_user(phone_number):
+             return "whatsapp"
+         else:
+             return "sms"
+     ```
+
+4. **Data Logging & Dashboard:**
+   - Log call details in a Firestore/Supabase database:
+     ```json
+     {
+       "caller_id": "+123456789",
+       "called_number": "+987654321",
+       "status": "unanswered",
+       "timestamp": "2024-03-01T12:00:00Z",
+       "message_sent": true,
+       "message_channel": "whatsapp"
+     }
+     ```
+   - Update the dashboard in real-time with:
+     - Call history (answered/unanswered).
+     - Message delivery status.
+
+5. **APIs & Integrations:**
+   - **Twilio API** for call tracking and SMS.
+   - **WhatsApp Business API** for WhatsApp messages.
+   - **Firestore/Supabase** for real-time data storage.
+   - **Webhooks** for triggering actions.
+
+6. **Deliverables:**
+   - Code for call detection and classification.
+   - Logic for sending WhatsApp/SMS templates.
+   - Real-time dashboard integration.
+   - Example webhook implementation.
+
+7. **Optimizations:**
+   - Use caching (Redis) for frequently accessed data.
+   - Implement rate limiting for WhatsApp/SMS sending.
+   - Add retry logic for failed message deliveries.
+
+8. **Example Code:**
+   ```javascript
+   // Twilio webhook handler
+   app.post('/incoming-call', (req, res) => {
+     const caller = req.body.From;
+     const called = req.body.To;
+     const status = req.body.CallStatus;
+
+     if (status === 'no-answer') {
+       const channel = select_message_channel(caller);
+       const template = generate_template(called, caller);
+       send_message(channel, template);
+     }
+
+     log_call(caller, called, status);
+     res.status(200).end();
+   });
+Cost Optimization:
+
+Use Twilio's pay-as-you-go pricing for calls and SMS.
+
+Use WhatsApp Business API for high-volume messaging (cheaper than SMS).
+
+Cache templates and user preferences to reduce API calls.
+
+Error Handling:
+
+Retry failed WhatsApp/SMS sends up to 3 times.
+
+Log errors for debugging and analytics.
+
+Copy
+
+---
+
+### **Key Features of the System**
+1. **Call Detection & Classification**:
+   - Real-time detection of answered/unanswered calls.
+   - Webhook-based triggers for actions.
+
+2. **Dynamic Messaging**:
+   - Customizable WhatsApp/SMS templates.
+   - Fallback to SMS if WhatsApp is unavailable.
+
+3. **Real-Time Dashboard**:
+   - Track call history and message delivery status.
+   - Monitor usage and performance.
+
+4. **Scalable & Cost-Effective**:
+   - Use Twilio's pay-as-you-go model.
+   - Optimize message delivery with caching and retries.
+
+---
+
+### **Example Workflow**
+1. A call comes in to a business number.
+2. Twilio detects the call and classifies it as **unanswered**.
+3. The system triggers a WhatsApp message with a pre-approved template:
+Hi {{name}}, we missed your call! Book an appointment here: {{cta_link}}
+
+Copy
+4. If WhatsApp is unavailable, an SMS is sent instead.
+5. The call and message details are logged in the database and displayed on the dashboard.
+
+---
+
+This prompt is ready to use in Replit AI and includes all the technical details needed to implement your system. Let me know if you need further refinements! 🚀
