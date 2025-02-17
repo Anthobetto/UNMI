@@ -6,13 +6,25 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Missing Supabase credentials. Make sure to set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.');
+  console.warn('Missing Supabase credentials. Database operations will be simulated.');
 }
 
-export const supabase = createClient<Database>(
-  supabaseUrl || 'https://your-project.supabase.co',
-  supabaseAnonKey || 'your-anon-key'
-);
+// Create a mock client for development
+const createMockClient = () => ({
+  channel: () => ({
+    on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }),
+  }),
+  from: () => ({
+    select: () => ({ data: [], error: null }),
+    insert: () => ({ data: [], error: null }),
+    update: () => ({ data: [], error: null }),
+    delete: () => ({ data: [], error: null }),
+  }),
+});
+
+export const supabase = (!supabaseUrl || !supabaseAnonKey) 
+  ? createMockClient() as any
+  : createClient<Database>(supabaseUrl, supabaseAnonKey);
 
 // Real-time subscription helpers
 export const subscribeToChannel = (
@@ -29,31 +41,62 @@ export const subscribeToChannel = (
 export type Tables = Database['public']['Tables'];
 export type Enums = Database['public']['Enums'];
 
-// Type-safe database functions
+// Type-safe database functions with error handling
 export const db = {
   calls: {
     subscribe: (callback: (payload: any) => void) => 
       subscribeToChannel('calls', callback),
-    getRecent: () => 
-      supabase.from('calls').select('*').order('created_at', { ascending: false }).limit(10)
+    getRecent: async () => {
+      try {
+        return await supabase
+          .from('calls')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(10);
+      } catch (error) {
+        console.warn('Error fetching recent calls:', error);
+        return { data: [], error: null };
+      }
+    }
   },
   messages: {
     subscribe: (callback: (payload: any) => void) => 
       subscribeToChannel('messages', callback),
-    getRecent: () => 
-      supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(10)
+    getRecent: async () => {
+      try {
+        return await supabase
+          .from('messages')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(10);
+      } catch (error) {
+        console.warn('Error fetching recent messages:', error);
+        return { data: [], error: null };
+      }
+    }
   },
   templates: {
-    getAll: () => 
-      supabase.from('templates').select('*')
+    getAll: async () => {
+      try {
+        return await supabase.from('templates').select('*');
+      } catch (error) {
+        console.warn('Error fetching templates:', error);
+        return { data: [], error: null };
+      }
+    }
   },
   locations: {
-    getAll: () => 
-      supabase.from('locations').select('*')
+    getAll: async () => {
+      try {
+        return await supabase.from('locations').select('*');
+      } catch (error) {
+        console.warn('Error fetching locations:', error);
+        return { data: [], error: null };
+      }
+    }
   }
 };
 
-// Initialize Stripe
 const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 
 if (!stripePublishableKey) {
