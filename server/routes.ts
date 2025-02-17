@@ -2,24 +2,20 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import {
-  insertLocationSchema,
-  insertTemplateSchema,
-  insertRoutingRuleSchema,
-  insertPhoneNumberSchema,
-  insertCallSchema,
-  insertGroupSchema,
-  insertContentSchema
-} from "@shared/schema";
-import multer from "multer";
-import path from "path";
-import fs from "fs";
 import express from 'express';
+import path from 'path';
+import fs from 'fs';
 
 // Ensure uploads directory exists
 const uploadsDir = "./uploads";
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir);
+}
+
+// Ensure documents directory exists
+const documentsDir = "./public/documents";
+if (!fs.existsSync(documentsDir)) {
+  fs.mkdirSync(documentsDir, { recursive: true });
 }
 
 // Configure multer for file uploads
@@ -47,6 +43,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Serve uploaded files statically
   app.use('/uploads', express.static(uploadsDir));
+
+  // Serve static documents
+  app.use('/documents', express.static(path.join(process.cwd(), 'public/documents')));
 
   // Content Management Routes
   app.get("/api/contents", async (req, res) => {
@@ -214,3 +213,4 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   return httpServer;
 }
+import multer from "multer";
