@@ -5,13 +5,14 @@ const supabaseUrl = 'https://cqkqfugenstkgwwvbwxx.supabase.co';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
 
 if (!supabaseServiceKey) {
-  console.warn('Missing Supabase service key. Database operations will be simulated.');
+  console.error('SUPABASE_SERVICE_KEY is required for database operations');
+  process.exit(1);
 }
 
 // Create a single supabase client for interacting with your database
 export const supabase = createClient<Database>(
   supabaseUrl,
-  supabaseServiceKey || 'your-service-key',
+  supabaseServiceKey,
   {
     auth: {
       persistSession: false
