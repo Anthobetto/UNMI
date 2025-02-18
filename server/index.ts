@@ -4,7 +4,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import path from 'path';
 import fs from 'fs';
 import { setupAuth } from "./auth";
-import { verifyDatabaseConnection, seedMockData } from "./services/supabase";
+import { verifyDatabaseConnection, initializeDatabaseSchema } from "./services/supabase";
 
 const app = express();
 
@@ -59,43 +59,24 @@ process.on('unhandledRejection', (reason, promise) => {
 
 (async () => {
   try {
-    // Set up authentication before registering routes
-    setupAuth(app);
-
-    // Set up vite in development
-    if (app.get("env") === "development") {
-      setupVite(app, path.join(process.cwd(), 'client'));
-    }
-
-    // Register routes and get HTTP server
-    const server = await registerRoutes(app);
-
-    // Enhanced error handling middleware
-    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-      console.error('Error:', err);
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
-
-      // Send error response
-      res.status(status).json({ 
-        message,
-        error: app.get('env') === 'development' ? err : {}
-      });
-    });
-
-    // In production, serve static files
-    if (app.get("env") !== "development") {
-      serveStatic(app);
-    }
-
     // Start the server first
     const PORT = process.env.PORT || 5000;
+    const server = await registerRoutes(app);
+
     await new Promise<void>((resolve) => {
       server.listen(PORT, () => {
         log(`Server started on port ${PORT}`);
         resolve();
       });
     });
+
+    // Set up authentication before registering routes
+    setupAuth(app);
+
+    // Set up vite in development (after server is started)
+    if (app.get("env") === "development") {
+      await setupVite(app);
+    }
 
     // After server is started, verify database connection
     log('Verifying database connection...');
@@ -105,20 +86,37 @@ process.on('unhandledRejection', (reason, promise) => {
         log('WARNING: Database connection failed, running in mock mode');
       } else {
         log('Database connection verified successfully');
+
+        // Initialize database schema
+        log('Initializing database schema...');
+        const isSchemaInitialized = await initializeDatabaseSchema();
+        if (!isSchemaInitialized) {
+          log('WARNING: Failed to initialize database schema');
+        } else {
+          log('Database schema initialized successfully');
+        }
       }
     } catch (error) {
       console.error('Database connection error:', error);
       log('WARNING: Database connection failed, running in mock mode');
     }
 
-    // Seed mock data in the background
-    if (app.get("env") === "development") {
-      log('Starting mock data seeding in the background...');
-      seedMockData().then(() => {
-        log('Mock data seeded successfully');
-      }).catch((error) => {
-        console.error('Failed to seed mock data:', error);
+    // Enhanced error handling middleware
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      console.error('Error:', err);
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
+
+      // Send error response
+      res.status(status).json({
+        message,
+        error: app.get('env') === 'development' ? err : {}
       });
+    });
+
+    // In production, serve static files
+    if (app.get("env") !== "development") {
+      serveStatic(app);
     }
 
   } catch (error) {

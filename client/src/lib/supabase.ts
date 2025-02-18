@@ -10,7 +10,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase credentials. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.');
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+// Ensure URL has proper protocol
+const formattedUrl = supabaseUrl.startsWith('http') ? supabaseUrl : `https://${supabaseUrl}`;
+
+export const supabase = createClient<Database>(formattedUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true

@@ -1,22 +1,27 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@shared/types/supabase';
 import { db } from './db';
+import 'cross-fetch';  // Changed from 'cross-fetch/polyfill'
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 
 if (!SUPABASE_URL) {
-  console.warn('Missing Supabase URL. Please set SUPABASE_URL or VITE_SUPABASE_URL environment variable.');
+  throw new Error('Missing Supabase URL. Please set SUPABASE_URL or VITE_SUPABASE_URL environment variable.');
 }
 
 if (!SUPABASE_SERVICE_KEY) {
-  console.warn('Missing Supabase service key. Please set SUPABASE_SERVICE_KEY environment variable.');
+  throw new Error('Missing Supabase service key. Please set SUPABASE_SERVICE_KEY environment variable.');
 }
+
+// Ensure URL has proper protocol
+const formattedUrl = SUPABASE_URL.startsWith('http') ? SUPABASE_URL : `https://${SUPABASE_URL}`;
+console.log('Initializing Supabase client with URL:', formattedUrl);
 
 // Create a single supabase client for interacting with your database
 export const supabase = createClient<Database>(
-  'https://cqkqfugenstkgwwvbwxx.supabase.co',
-  SUPABASE_SERVICE_KEY || '',
+  formattedUrl,
+  SUPABASE_SERVICE_KEY,
   {
     auth: {
       persistSession: false,
@@ -25,24 +30,65 @@ export const supabase = createClient<Database>(
   }
 );
 
-// Helper function to verify database connection
-export async function verifyDatabaseConnection() {
+// Helper function to verify database connection with timeout
+export async function verifyDatabaseConnection(timeoutMs: number = 5000): Promise<boolean> {
   try {
     console.log('Attempting to connect to Supabase database...');
-    const { data, error } = await supabase
-      .from('users')
-      .select('count')
-      .single();
+
+    const connectionPromise = new Promise<boolean>(async (resolve, reject) => {
+      try {
+        // Test connection by trying to access the users table
+        const { data, error } = await supabase
+          .from('users')
+          .select('count')
+          .single();
+
+        if (error) {
+          console.warn('Supabase connection check failed:', error.message);
+          resolve(false);
+        } else {
+          console.log('Successfully connected to Supabase database');
+          resolve(true);
+        }
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    // Set up timeout
+    const timeoutPromise = new Promise<boolean>((resolve) => {
+      setTimeout(() => {
+        console.warn('Database connection attempt timed out');
+        resolve(false);
+      }, timeoutMs);
+    });
+
+    return await Promise.race([connectionPromise, timeoutPromise]);
+  } catch (error) {
+    console.error('Database connection error:', error);
+    return false;
+  }
+}
+
+// Helper function to initialize database schema
+export async function initializeDatabaseSchema() {
+  try {
+    console.log('Initializing database schema...');
+
+    // Create tables based on schema.ts definitions
+    const { error } = await supabase.rpc('create_schema_if_not_exists', {
+      schema_name: 'public'
+    });
 
     if (error) {
-      console.warn('Supabase connection failed:', error.message);
+      console.error('Error creating schema:', error);
       return false;
     }
 
-    console.log('Successfully connected to Supabase database');
+    console.log('Database schema initialized successfully');
     return true;
   } catch (error) {
-    console.warn('Database connection error:', error);
+    console.error('Error initializing database schema:', error);
     return false;
   }
 }
