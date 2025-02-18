@@ -1,0 +1,103 @@
+"Help me resolve server startup issues in my Replit AI app while integrating Supabase API for login/registration and mock call/message data. Follow these steps:
+
+1. **Focus on Login/Registration First:**
+   - Set up a basic authentication system using Supabase Auth.
+   - Ensure the server can start and handle login/registration requests before adding mock data.
+
+2. **Steps for Login/Registration:**
+   - Initialize Supabase client with correct keys:
+     ```javascript
+     const { createClient } = require('@supabase/supabase-js');
+     const supabase = createClient(
+       process.env.SUPABASE_URL,
+       process.env.SUPABASE_KEY
+     );
+     ```
+   - Create endpoints for login and registration:
+     ```javascript
+     const express = require('express');
+     const app = express();
+     app.use(express.json());
+
+     // Register endpoint
+     app.post('/register', async (req, res) => {
+       const { email, password } = req.body;
+       const { user, error } = await supabase.auth.signUp({ email, password });
+
+       if (error) {
+         return res.status(400).json({ error: error.message });
+       }
+       res.status(200).json({ user });
+     });
+
+     // Login endpoint
+     app.post('/login', async (req, res) => {
+       const { email, password } = req.body;
+       const { user, error } = await supabase.auth.signIn({ email, password });
+
+       if (error) {
+         return res.status(400).json({ error: error.message });
+       }
+       res.status(200).json({ user });
+     });
+
+     app.listen(3000, () => {
+       console.log('Server running on http://localhost:3000');
+     });
+     ```
+
+3. **Test Login/Registration:**
+   - Use tools like Postman or curl to test the endpoints:
+     ```bash
+     curl -X POST http://localhost:3000/register -d '{"email":"test@example.com","password":"password"}' -H "Content-Type: application/json"
+     curl -X POST http://localhost:3000/login -d '{"email":"test@example.com","password":"password"}' -H "Content-Type: application/json"
+     ```
+
+4. **Add Mock Data After Login/Registration Works:**
+   - Once login/registration is functional, add mock data for calls/messages:
+     ```javascript
+     // Mock data table in Supabase
+     const createMockDataTable = async () => {
+       const { data, error } = await supabase
+         .from('calls')
+         .insert([
+           { caller: '+123456789', message: 'Hello', timestamp: new Date() },
+           { caller: '+987654321', message: 'Hi', timestamp: new Date() },
+         ]);
+
+       if (error) {
+         console.error('Error creating mock data:', error);
+       } else {
+         console.log('Mock data created:', data);
+       }
+     };
+     createMockDataTable();
+     ```
+
+5. **Debug Server Startup Issues:**
+   - Check for errors in the Replit console.
+   - Ensure all dependencies are installed:
+     ```bash
+     npm install @supabase/supabase-js express body-parser
+     ```
+   - Verify environment variables are set correctly in Replit:
+     ```plaintext
+     SUPABASE_URL=your-supabase-project-url
+     SUPABASE_KEY=your-anon-or-service-role-key
+     ```
+
+6. **Alternative Approach for Mock Data:**
+   - If mock data is causing issues, use a JSON file as a temporary database:
+     ```javascript
+     const fs = require('fs');
+     const mockData = JSON.parse(fs.readFileSync('mockData.json'));
+
+     app.get('/calls', (req, res) => {
+       res.status(200).json(mockData);
+     });
+     ```
+
+7. **Final Steps:**
+   - Test the server with login/registration first.
+   - Gradually add mock data functionality.
+   - Deploy the app and verify functionality in production mode.
