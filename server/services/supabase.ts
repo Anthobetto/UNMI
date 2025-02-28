@@ -98,16 +98,86 @@ export async function seedMockData() {
   try {
     console.log('Starting to seed mock data...');
 
+    // Create a mock user first
+    const mockUser = {
+      username: 'demo@example.com',
+      password: 'hashedpassword123',
+      company_name: 'Demo Company'
+    };
+
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .upsert([mockUser])
+      .select()
+      .single();
+
+    if (userError) throw userError;
+    console.log('Created mock user:', userData);
+
+    // Create mock locations
+    const mockLocations = [
+      {
+        user_id: userData.id,
+        name: 'Main Office',
+        address: '123 Main St, San Francisco, CA',
+        timezone: 'America/Los_Angeles',
+        is_first_location: true
+      },
+      {
+        user_id: userData.id,
+        name: 'Branch Office',
+        address: '456 Market St, San Francisco, CA',
+        timezone: 'America/Los_Angeles',
+        is_first_location: false
+      }
+    ];
+
+    const { data: locationData, error: locationError } = await supabase
+      .from('locations')
+      .upsert(mockLocations)
+      .select();
+
+    if (locationError) throw locationError;
+    console.log('Created mock locations:', locationData);
+
+    // Create mock phone numbers
+    const mockPhoneNumbers = [
+      {
+        user_id: userData.id,
+        location_id: locationData[0].id,
+        number: '+14155550123',
+        type: 'fixed',
+        channel: 'both',
+        active: true
+      },
+      {
+        user_id: userData.id,
+        location_id: locationData[1].id,
+        number: '+14155550124',
+        type: 'mobile',
+        channel: 'sms',
+        active: true
+      }
+    ];
+
+    const { data: phoneData, error: phoneError } = await supabase
+      .from('phone_numbers')
+      .upsert(mockPhoneNumbers)
+      .select();
+
+    if (phoneError) throw phoneError;
+    console.log('Created mock phone numbers:', phoneData);
+
     // Insert mock calls in smaller batches
-    const totalCalls = 128;
+    const totalCalls = 50;
     const batchSize = 10;
     const batches = Math.ceil(totalCalls / batchSize);
 
     for (let i = 0; i < batches; i++) {
       const size = Math.min(batchSize, totalCalls - i * batchSize);
       const mockCalls = Array.from({ length: size }, () => ({
-        user_id: 1,
-        phone_number_id: 3, // Using the known phone number ID
+        user_id: userData.id,
+        phone_number_id: phoneData[0].id,
         caller_number: `+1${Math.floor(Math.random() * 9000000000) + 1000000000}`,
         status: ['answered', 'missed', 'busy'][Math.floor(Math.random() * 3)],
         duration: Math.floor(Math.random() * 300),
@@ -115,43 +185,62 @@ export async function seedMockData() {
         call_type: ['direct', 'forwarded', 'ivr'][Math.floor(Math.random() * 3)]
       }));
 
-      try {
-        const { error } = await supabase.from('calls').insert(mockCalls);
-        if (error) throw error;
-        console.log(`Seeded calls batch ${i + 1} of ${batches}`);
-      } catch (error: any) {
-        console.error(`Error seeding calls batch ${i + 1}:`, error.message);
-        continue;
-      }
+      const { error } = await supabase.from('calls').insert(mockCalls);
+      if (error) throw error;
+      console.log(`Seeded calls batch ${i + 1} of ${batches}`);
     }
 
     // Insert mock messages in batches
-    const totalMessages = 63;
+    const totalMessages = 30;
     const messageBatches = Math.ceil(totalMessages / batchSize);
 
     for (let i = 0; i < messageBatches; i++) {
       const size = Math.min(batchSize, totalMessages - i * batchSize);
       const mockMessages = Array.from({ length: size }, () => ({
-        user_id: 1,
-        phone_number_id: 3, // Using the known phone number ID
+        user_id: userData.id,
+        phone_number_id: phoneData[0].id,
         type: Math.random() > 0.5 ? 'SMS' : 'WhatsApp',
         content: `Sample message ${i * batchSize + 1} - ${Math.random().toString(36).substring(7)}`,
         recipient: `+1${Math.floor(Math.random() * 9000000000) + 1000000000}`,
-        status: ['pending', 'sent', 'delivered', 'failed'][Math.floor(Math.random() * 4)],
+        status: 'sent',
         created_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
       }));
 
-      try {
-        const { error } = await supabase.from('messages').insert(mockMessages);
-        if (error) throw error;
-        console.log(`Seeded messages batch ${i + 1} of ${messageBatches}`);
-      } catch (error: any) {
-        console.error(`Error seeding messages batch ${i + 1}:`, error.message);
-        continue;
-      }
+      const { error } = await supabase.from('messages').insert(mockMessages);
+      if (error) throw error;
+      console.log(`Seeded messages batch ${i + 1} of ${messageBatches}`);
     }
 
-    console.log('Successfully seeded mock data');
+    // Create mock templates
+    const mockTemplates = [
+      {
+        user_id: userData.id,
+        location_id: locationData[0].id,
+        name: 'Welcome Template',
+        content: 'Welcome to {{company}}! How can we help you today?',
+        type: 'welcome',
+        channel: 'both',
+        variables: { company: 'Demo Company' }
+      },
+      {
+        user_id: userData.id,
+        location_id: locationData[0].id,
+        name: 'Missed Call Template',
+        content: 'Sorry we missed your call! Please call us back at {{phone}}',
+        type: 'missed_call',
+        channel: 'sms',
+        variables: { phone: '+14155550123' }
+      }
+    ];
+
+    const { error: templateError } = await supabase
+      .from('templates')
+      .upsert(mockTemplates);
+
+    if (templateError) throw templateError;
+    console.log('Created mock templates');
+
+    console.log('Successfully seeded all mock data');
     return true;
   } catch (error) {
     console.error('Error seeding mock data:', error);
