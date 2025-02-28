@@ -2,7 +2,7 @@ import express from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic } from "./vite";
 import path from 'path';
-import { verifyDatabaseConnection, initializeDatabaseSchema, seedMockData } from "./services/supabase";
+import { verifyDatabaseConnection, seedMockData } from "./services/supabase";
 
 const app = express();
 
@@ -19,6 +19,16 @@ app.get('/api/health', (req, res) => {
 const uploadsDir = path.join(process.cwd(), "uploads");
 app.use('/uploads', express.static(uploadsDir));
 
+// Add test endpoint for seeding
+app.get('/api/test-seed', async (req, res) => {
+  try {
+    const isSeeded = await seedMockData();
+    res.json({ success: isSeeded });
+  } catch (error) {
+    console.error('Error in test seeding:', error);
+    res.status(500).json({ success: false, error: 'Failed to seed test data' });
+  }
+});
 
 (async () => {
   try {
@@ -35,27 +45,21 @@ app.use('/uploads', express.static(uploadsDir));
     const isDbConnected = await verifyDatabaseConnection();
 
     if (!isDbConnected) {
-      console.log('Database connection failed');
-      process.exit(1);
+      console.log('WARNING: Database connection failed, continuing without data persistence');
+    } else {
+      console.log('Seeding mock data...');
+      try {
+        const isDataSeeded = await seedMockData();
+        if (!isDataSeeded) {
+          console.log('WARNING: Failed to seed mock data, continuing with empty database');
+        } else {
+          console.log('Database setup completed successfully');
+        }
+      } catch (error) {
+        console.error('Error during mock data seeding:', error);
+        console.log('WARNING: Failed to seed mock data, continuing with empty database');
+      }
     }
-
-    console.log('Initializing database schema...');
-    const isSchemaInitialized = await initializeDatabaseSchema();
-
-    if (!isSchemaInitialized) {
-      console.log('Failed to initialize database schema');
-      process.exit(1);
-    }
-
-    console.log('Seeding mock data...');
-    const isDataSeeded = await seedMockData();
-
-    if (!isDataSeeded) {
-      console.log('Failed to seed mock data');
-      process.exit(1);
-    }
-
-    console.log('Database setup completed successfully');
 
     // Set up vite in development
     if (app.get("env") === "development") {

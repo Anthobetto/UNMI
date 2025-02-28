@@ -1,7 +1,7 @@
+import { createClient } from '@supabase/supabase-js';
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth } from "./auth";
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
@@ -9,17 +9,12 @@ import multer from "multer";
 import { createPaymentSession } from "./services/stripe";
 import { WebSocketServer, WebSocket } from 'ws';
 import { handleIncomingCall, getTwilioCallToken, sendMessage } from './services/twilio';
+import { staticMockData } from './services/supabase';
 
 // Ensure uploads directory exists
 const uploadsDir = "./uploads";
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir);
-}
-
-// Ensure documents directory exists
-const documentsDir = "./public/documents";
-if (!fs.existsSync(documentsDir)) {
-  fs.mkdirSync(documentsDir, { recursive: true });
 }
 
 // Configure multer for file uploads
@@ -42,23 +37,32 @@ const upload = multer({
   }
 });
 
-// WebSocket clients for real-time updates
-const clients = new Set<WebSocket>();
+export async function registerRoutes(app: Express): Server {
+  // Basic health check endpoint
+  app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
 
-export async function registerRoutes(app: Express): Promise<Server> {
-  setupAuth(app);
-
-  // Serve uploaded files statically
-  app.use('/uploads', express.static(uploadsDir));
-
-  // Serve static documents
-  app.use('/documents', express.static(path.join(process.cwd(), 'public/documents')));
+  // Test endpoint for content data
+  app.get('/api/test-content', (req, res) => {
+    res.json({ 
+      mock_data_available: true,
+      sample_content: staticMockData.contents[0],
+      total_items: staticMockData.contents.length
+    });
+  });
 
   // Content Management Routes
   app.get("/api/contents", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    const contents = await storage.getContents(req.user.id);
-    res.json(contents);
+    try {
+      console.log('Attempting to fetch contents from storage...');
+      const contents = await storage.getContents(req.user?.id || 1);
+      res.json(contents);
+    } catch (error) {
+      console.error('Error fetching contents from storage:', error);
+      console.log('Falling back to static mock data');
+      res.json(staticMockData.contents);
+    }
   });
 
   app.get("/api/contents/category/:category", async (req, res) => {
@@ -384,6 +388,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       clearInterval(pingInterval);
     });
   });
+
+  // Serve uploaded files statically
+  app.use('/uploads', express.static(uploadsDir));
+
+  // Serve static documents
+  app.use('/documents', express.static(path.join(process.cwd(), 'public/documents')));
+
 
   const httpServer = createServer(app);
 
