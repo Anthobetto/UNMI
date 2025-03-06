@@ -20,19 +20,20 @@ export async function handleIncomingCall(callData: {
   To: string;
   CallSid: string;
   CallStatus: string;
-  ForwardedFrom?: string;
-  DialogueSid?: string;
 }) {
   try {
+    console.log('Handling incoming call:', callData);
+
     // 1. Get the phone number details to find the associated location
     const phoneNumber = await storage.getPhoneNumberByNumber(callData.To);
-
     if (!phoneNumber) {
+      console.error('Phone number not found:', callData.To);
       throw new Error('Phone number not found');
     }
 
     // 2. Classify call status
     const callStatus = classifyCallStatus(callData.CallStatus);
+    console.log('Classified call status:', callStatus);
 
     // 3. Create detailed call record
     const call = await storage.createCall({
@@ -40,14 +41,15 @@ export async function handleIncomingCall(callData: {
       phoneNumberId: phoneNumber.id,
       callerNumber: callData.From,
       status: callStatus,
-      duration: 0, // This will be updated on call completion
+      duration: 0,
       createdAt: new Date(),
       routedToLocation: phoneNumber.locationId,
-      callType: determineCallType(callData)
+      callType: 'direct'
     });
 
     // 4. Handle missed calls with notification
     if (callStatus === 'missed') {
+      console.log('Processing missed call notification for call:', call.id);
       await handleMissedCall(call, phoneNumber);
     }
 
@@ -69,14 +71,9 @@ function classifyCallStatus(twilioStatus: string): string {
   return statusMap[twilioStatus] || 'missed';
 }
 
-function determineCallType(callData: any): string {
-  if (callData.ForwardedFrom) return 'forwarded';
-  if (callData.DialogueSid) return 'ivr';
-  return 'direct';
-}
-
 async function handleMissedCall(call: any, phoneNumber: PhoneNumber) {
   try {
+    console.log('Getting template for missed call notification');
     // Get location details and template
     const template = await storage.getTemplateByType(phoneNumber.locationId, 'missed_call');
     if (!template) {
@@ -93,17 +90,23 @@ async function handleMissedCall(call: any, phoneNumber: PhoneNumber) {
 
     // Prepare template variables
     const variables = {
-      company_name: user.companyName,
+      company_name: user.companyName || user.username, // Fallback to username if companyName not set
       phone_number: phoneNumber.number,
       caller_number: call.callerNumber,
       ...template.variables
     };
 
+    console.log('Sending notification with variables:', variables);
+
+    // Determine message type based on phone number channel preference
+    const messageType = phoneNumber.channel === 'whatsapp' ? 'WhatsApp' : 'SMS';
+    console.log('Selected message type:', messageType);
+
     // Send notification using the preferred channel
     await sendMessage({
       userId: call.userId,
       phoneNumberId: call.phoneNumberId,
-      type: phoneNumber.channel === 'whatsapp' ? 'WhatsApp' : 'SMS',
+      type: messageType,
       content: processTemplate(template, variables),
       recipient: call.callerNumber,
       template
@@ -111,6 +114,7 @@ async function handleMissedCall(call: any, phoneNumber: PhoneNumber) {
 
   } catch (error) {
     console.error('Error handling missed call notification:', error);
+    throw error;
   }
 }
 
@@ -123,8 +127,14 @@ export async function sendMessage(message: {
   recipient: string;
   template?: Template;
 }) {
+  console.log('Attempting to send message:', {
+    type: message.type,
+    recipient: message.recipient,
+    contentLength: message.content.length
+  });
+
   if (!client) {
-    console.log('Simulating message:', message);
+    console.log('Simulating message in development:', message);
     return message;
   }
 
@@ -136,6 +146,7 @@ export async function sendMessage(message: {
     if (message.type === 'WhatsApp') {
       from = `whatsapp:${TWILIO_PHONE_NUMBER}`;
       to = `whatsapp:${message.recipient}`;
+      console.log('Configured WhatsApp numbers:', { from, to });
     }
 
     const result = await client.messages.create({
@@ -144,6 +155,9 @@ export async function sendMessage(message: {
       from
     });
 
+    console.log('Message sent successfully:', result.sid);
+
+    // Store message record
     return await storage.createMessage({
       userId: message.userId,
       phoneNumberId: message.phoneNumberId,
@@ -169,6 +183,7 @@ function processTemplate(template: Template, variables: Record<string, string>):
     content = content.replace(new RegExp(placeholder, 'g'), value);
   });
 
+  console.log('Processed template content:', content);
   return content;
 }
 

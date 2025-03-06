@@ -1,21 +1,18 @@
-import {
-  User, Location, Template, RoutingRule, PhoneNumber, Call,
-  InsertUser, InsertLocation, InsertTemplate, InsertRoutingRule,
-  InsertPhoneNumber, InsertCall,
-  Message, InsertMessage, messages,
-  Group, InsertGroup, groups,
-  Content, InsertContent, contents,
-  users, locations, templates, routingRules, phoneNumbers, calls,
+import { 
+  users, locations, phoneNumbers, templates, calls, messages,
+  type User, type Location, type Template, type PhoneNumber, type Call, type Message,
+  type InsertUser, type InsertLocation, type InsertTemplate, type InsertPhoneNumber, 
+  type InsertCall, type InsertMessage
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, and } from "drizzle-orm";
 import session from "express-session";
-import { db as supabaseDb } from "./services/supabase";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
-import { eq } from "drizzle-orm";
 
 const PostgresSessionStore = connectPg(session);
 
-interface IStorage {
+export interface IStorage {
   sessionStore: session.Store;
   getContents(userId: number): Promise<Content[]>;
   getContentsByCategory(userId: number, category: string): Promise<Content[]>;
@@ -31,7 +28,7 @@ interface IStorage {
   getPhoneNumbers(userId: number): Promise<PhoneNumber[]>;
   getLocationPhoneNumbers(locationId: number): Promise<PhoneNumber[]>;
   getLinkedNumbers(phoneNumber: string): Promise<PhoneNumber[]>;
-  createPhoneNumber(insertPhoneNumber: InsertPhoneNumber): Promise<PhoneNumber>;
+  createPhoneNumber(phoneNumber: InsertPhoneNumber): Promise<PhoneNumber>;
   getTemplates(userId: number): Promise<Template[]>;
   getLocationTemplates(locationId: number): Promise<Template[]>;
   getGroupTemplates(groupId: number): Promise<Template[]>;
@@ -54,274 +51,151 @@ export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
 
   constructor() {
-    this.sessionStore = new PostgresSessionStore({
-      pool,
-      createTableIfMissing: true,
+    this.sessionStore = new PostgresSessionStore({ 
+      pool, 
+      createTableIfMissing: true 
     });
-  }
-
-  // Helper method to convert camelCase to snake_case for Supabase
-  private toSnakeCase(obj: any): any {
-    if (obj === null || typeof obj !== 'object') return obj;
-    return Object.keys(obj).reduce((acc: any, key) => {
-      const newKey = key.replace(/([A-Z])/g, "_$1").toLowerCase();
-      acc[newKey] = this.toSnakeCase(obj[key]);
-      return acc;
-    }, {});
-  }
-
-  // Content management methods
-  async getContents(userId: number): Promise<Content[]> {
-    const { data, error } = await supabaseDb.contents.getByUser(userId);
-    if (error) throw error;
-    return data || [];
-  }
-
-  async getContentsByCategory(userId: number, category: string): Promise<Content[]> {
-    const { data, error } = await supabaseDb.contents.getByCategory(userId, category);
-    if (error) throw error;
-    return data || [];
-  }
-
-  async createContent(content: InsertContent): Promise<Content> {
-    const { data, error } = await supabaseDb.contents.create(this.toSnakeCase(content));
-    if (error) throw error;
-    return data;
   }
 
   // User methods
   async getUser(id: number): Promise<User | undefined> {
-    const users = await supabaseDb.from('users').select('*').eq('id', id);
-    return users.data?.[0];
+    const results = await db.select().from(users).where(eq(users.id, id));
+    return results[0];
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const users = await supabaseDb.from('users').select('*').eq('username', username);
-    return users.data?.[0];
+    const results = await db.select().from(users).where(eq(users.username, username));
+    return results[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const { data, error } = await supabaseDb.users.create(this.toSnakeCase(insertUser));
-    if (error) throw error;
-    return data;
-  }
-
-  // Group methods
-  async getGroups(userId: number): Promise<Group[]> {
-    const { data, error } = await supabaseDb.groups.getByUser(userId);
-    if (error) throw error;
-    return data || [];
-  }
-
-  async createGroup(insertGroup: InsertGroup): Promise<Group> {
-    const { data, error } = await supabaseDb.groups.create(this.toSnakeCase(insertGroup));
-    if (error) throw error;
-    return data;
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
   }
 
   // Location methods
   async getLocations(userId: number): Promise<Location[]> {
-    const locations = await supabaseDb.from('locations').select('*').eq('user_id', userId);
-    return locations.data || [];
-  }
-
-  async getGroupLocations(groupId: number): Promise<Location[]> {
-    const { data, error } = await supabaseDb.locations.getByGroup(groupId);
-    if (error) throw error;
-    return data || [];
+    return await db.select().from(locations).where(eq(locations.userId, userId));
   }
 
   async createLocation(location: InsertLocation): Promise<Location> {
-    const { data, error } = await supabaseDb.from('locations').insert([
-      this.toSnakeCase({
-        ...location,
-        created_at: new Date().toISOString()
-      })
-    ]).select().single();
-
-    if (error) throw error;
-    return data;
+    const [newLocation] = await db.insert(locations).values(location).returning();
+    return newLocation;
   }
 
   async updateLocation(id: number, updates: Partial<Location>): Promise<Location> {
-    const { data, error } = await supabaseDb.from('locations')
-      .update(this.toSnakeCase(updates))
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    const [updated] = await db.update(locations)
+      .set(updates)
+      .where(eq(locations.id, id))
+      .returning();
+    return updated;
   }
 
   async getLocationByPaymentIntent(paymentIntentId: string): Promise<Location | undefined> {
-    const { data, error } = await supabaseDb.from('locations')
-      .select('*')
-      .eq('payment_intent_id', paymentIntentId)
-      .single();
-
-    if (error) throw error;
-    return data;
+    const results = await db.select().from(locations)
+      .where(eq(locations.paymentIntentId, paymentIntentId));
+    return results[0];
   }
-
 
   // Phone number methods
   async getPhoneNumbers(userId: number): Promise<PhoneNumber[]> {
-    const { data, error } = await supabaseDb.from('phone_numbers')
-      .select('*')
-      .eq('user_id', userId);
-
-    if (error) throw error;
-    return data || [];
+    return await db.select().from(phoneNumbers).where(eq(phoneNumbers.userId, userId));
   }
 
   async getLocationPhoneNumbers(locationId: number): Promise<PhoneNumber[]> {
-    const { data, error } = await supabaseDb.phoneNumbers.getByLocation(locationId);
-    if (error) throw error;
-    return data || [];
-  }
-
-  async getLinkedNumbers(phoneNumber: string): Promise<PhoneNumber[]> {
-    const { data, error } = await supabaseDb.phoneNumbers.getLinked(phoneNumber);
-    if (error) throw error;
-    return data || [];
+    return await db.select().from(phoneNumbers).where(eq(phoneNumbers.locationId, locationId));
   }
 
   async createPhoneNumber(phoneNumber: InsertPhoneNumber): Promise<PhoneNumber> {
-    const { data, error } = await supabaseDb.from('phone_numbers').insert([
-      this.toSnakeCase({
-        ...phoneNumber,
-        created_at: new Date().toISOString()
-      })
-    ]).select().single();
-
-    if (error) throw error;
-    return data;
+    const [newNumber] = await db.insert(phoneNumbers).values(phoneNumber).returning();
+    return newNumber;
   }
 
   async getPhoneNumberByNumber(number: string): Promise<PhoneNumber | undefined> {
-    const { data, error } = await supabaseDb.from('phone_numbers')
-      .select('*')
-      .eq('number', number)
-      .single();
-
-    if (error) return undefined;
-    return data;
+    const results = await db.select().from(phoneNumbers)
+      .where(eq(phoneNumbers.number, number));
+    return results[0];
   }
 
   // Template methods
   async getTemplates(userId: number): Promise<Template[]> {
-    const { data, error } = await supabaseDb.from('templates')
-      .select('*')
-      .eq('user_id', userId);
-
-    if (error) throw error;
-    return data || [];
+    return await db.select().from(templates).where(eq(templates.userId, userId));
   }
 
   async getLocationTemplates(locationId: number): Promise<Template[]> {
-    const { data, error } = await supabaseDb.templates.getByLocation(locationId);
-    if (error) throw error;
-    return data || [];
-  }
-
-  async getGroupTemplates(groupId: number): Promise<Template[]> {
-    const { data, error } = await supabaseDb.templates.getByGroup(groupId);
-    if (error) throw error;
-    return data || [];
+    return await db.select().from(templates).where(eq(templates.locationId, locationId));
   }
 
   async createTemplate(template: InsertTemplate): Promise<Template> {
-    const { data, error } = await supabaseDb.from('templates').insert([
-      this.toSnakeCase({
-        ...template,
-        created_at: new Date().toISOString()
-      })
-    ]).select().single();
-
-    if (error) throw error;
-    return data;
+    const [newTemplate] = await db.insert(templates).values(template).returning();
+    return newTemplate;
   }
 
   async getTemplateByType(locationId: number, type: string): Promise<Template | undefined> {
-    const { data, error } = await supabaseDb.from('templates')
-      .select('*')
-      .eq('location_id', locationId)
-      .eq('type', type)
-      .single();
-
-    if (error) return undefined;
-    return data;
+    const results = await db.select().from(templates)
+      .where(and(
+        eq(templates.locationId, locationId),
+        eq(templates.type, type)
+      ));
+    return results[0];
   }
 
   // Call methods
   async getCalls(userId: number): Promise<Call[]> {
-    const { data, error } = await supabaseDb.calls.getByUser(userId);
-    if (error) throw error;
-    return data || [];
-  }
-
-  async getCallsByPhoneNumber(phoneNumberId: number): Promise<Call[]> {
-    const { data, error } = await supabaseDb.calls.getByPhoneNumber(phoneNumberId);
-    if (error) throw error;
-    return data || [];
+    return await db.select().from(calls).where(eq(calls.userId, userId));
   }
 
   async createCall(call: InsertCall): Promise<Call> {
-    const { data, error } = await supabaseDb.from('calls').insert([
-      this.toSnakeCase({
-        ...call,
-        created_at: new Date().toISOString()
-      })
-    ]).select().single();
-
-    if (error) throw error;
-    return data;
-  }
-
-  // Routing rule methods
-  async getRoutingRules(userId: number): Promise<RoutingRule[]> {
-    const { data, error } = await supabaseDb.routingRules.getByUser(userId);
-    if (error) throw error;
-    return data || [];
-  }
-
-  async createRoutingRule(rule: InsertRoutingRule): Promise<RoutingRule> {
-    const { data, error } = await supabaseDb.routingRules.create(this.toSnakeCase(rule));
-    if (error) throw error;
-    return data;
+    const [newCall] = await db.insert(calls).values(call).returning();
+    return newCall;
   }
 
   // Message methods
   async getMessages(userId: number): Promise<Message[]> {
-    const { data, error } = await supabaseDb.messages.getByUser(userId);
-    if (error) throw error;
-    return data || [];
+    return await db.select().from(messages).where(eq(messages.userId, userId));
   }
 
   async createMessage(message: InsertMessage): Promise<Message> {
-    const { data, error } = await supabaseDb.messages.create(this.toSnakeCase({
-      user_id: message.userId,
-      phone_number_id: message.phoneNumberId,
-      type: message.type,
-      content: message.content,
-      recipient: message.recipient,
-      status: message.status,
-      created_at: message.createdAt?.toISOString()
-    }));
-    if (error) throw error;
-    return data;
+    const [newMessage] = await db.insert(messages).values(message).returning();
+    return newMessage;
   }
-
+  async getContents(userId: number): Promise<Content[]> {
+    throw new Error("Method not implemented.");
+  }
+  async getContentsByCategory(userId: number, category: string): Promise<Content[]> {
+    throw new Error("Method not implemented.");
+  }
+  async createContent(content: InsertContent): Promise<Content> {
+    throw new Error("Method not implemented.");
+  }
+  async getGroups(userId: number): Promise<Group[]> {
+    throw new Error("Method not implemented.");
+  }
+  async createGroup(insertGroup: InsertGroup): Promise<Group> {
+    throw new Error("Method not implemented.");
+  }
+  async getGroupLocations(groupId: number): Promise<Location[]> {
+    throw new Error("Method not implemented.");
+  }
+  async getLinkedNumbers(phoneNumber: string): Promise<PhoneNumber[]> {
+    throw new Error("Method not implemented.");
+  }
+  async getGroupTemplates(groupId: number): Promise<Template[]> {
+    throw new Error("Method not implemented.");
+  }
+  async getCallsByPhoneNumber(phoneNumberId: number): Promise<Call[]> {
+    throw new Error("Method not implemented.");
+  }
+  async getRoutingRules(userId: number): Promise<RoutingRule[]> {
+    throw new Error("Method not implemented.");
+  }
+  async createRoutingRule(insertRule: InsertRoutingRule): Promise<RoutingRule> {
+    throw new Error("Method not implemented.");
+  }
   async getMessageStats(userId: number): Promise<{ sms: number; whatsapp: number }> {
-    const { data: messages, error } = await supabaseDb.messages.getByUser(userId);
-    if (error) throw error;
-
-    return {
-      sms: (messages || []).filter(m => m.type === 'SMS').length,
-      whatsapp: (messages || []).filter(m => m.type === 'WhatsApp').length
-    };
+    throw new Error("Method not implemented.");
   }
+
 }
 
 export const storage = new DatabaseStorage();
