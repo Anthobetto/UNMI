@@ -119,20 +119,23 @@ export async function registerRoutes(app: Express): Server {
     res.json(locations);
   });
 
+  // Location management routes with payment integration
   app.post("/api/locations", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
 
     try {
-      // Create a Stripe checkout session
+      // 1. Create a Stripe checkout session for location registration fee
       const session = await createPaymentSession(req.user.id);
 
-      // Create the location after successful payment
+      // 2. Create the location after successful payment
       const location = await storage.createLocation({
         ...req.body,
-        userId: req.user.id
+        userId: req.user.id,
+        trialStartDate: new Date(),
+        isFirstLocation: !(await storage.getLocations(req.user.id)).length
       });
 
-      // Return both the location data and the session URL
+      // 3. Return both the location data and the session URL
       res.status(201).json({
         location,
         sessionUrl: session.url
@@ -238,6 +241,7 @@ export async function registerRoutes(app: Express): Server {
   });
 
   // Call Management APIs
+  // Call management endpoint
   app.post("/api/calls/webhook", async (req, res) => {
     try {
       const call = await handleIncomingCall({
@@ -247,21 +251,27 @@ export async function registerRoutes(app: Express): Server {
         CallStatus: req.body.CallStatus
       });
 
-      // Broadcast call update to all connected clients
-      const update = {
-        type: 'call_received',
-        data: call
-      };
-
-      clients.forEach(client => {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify(update));
+      // If it's a missed call, trigger the template message
+      if (call.status === 'missed') {
+        const phoneNumber = await storage.getPhoneNumberByNumber(call.To);
+        if (phoneNumber) {
+          const template = await storage.getTemplateByType(phoneNumber.locationId, 'missed_call');
+          if (template) {
+            await sendMessage({
+              userId: phoneNumber.userId,
+              phoneNumberId: phoneNumber.id,
+              type: 'SMS',
+              content: template.content,
+              recipient: call.From,
+              template
+            });
+          }
         }
-      });
+      }
 
-      res.status(200).json({ success: true });
+      res.json({ success: true });
     } catch (error) {
-      console.error('Error in call webhook:', error);
+      console.error('Error handling call:', error);
       res.status(500).json({ error: "Failed to process call" });
     }
   });
@@ -340,6 +350,36 @@ export async function registerRoutes(app: Express): Server {
     }
   });
 
+  // Stripe webhook handler for payment confirmation
+  app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+    try {
+      const event = req.body;
+
+      switch (event.type) {
+        case 'checkout.session.completed':
+          const session = event.data.object;
+          // Handle successful payment
+          // Activate the location and set up phone number
+          const location = await storage.getLocationByPaymentIntent(session.payment_intent);
+          if (location) {
+            await storage.updateLocation(location.id, { active: true });
+          }
+          break;
+
+        case 'payment_intent.payment_failed':
+          // Handle failed payment
+          console.error('Payment failed:', event.data.object);
+          break;
+      }
+
+      res.json({ received: true });
+    } catch (error) {
+      console.error('Webhook error:', error);
+      res.status(400).send('Webhook Error');
+    }
+  });
+
+
   // WebSocket setup for real-time updates
   const wsServer = new WebSocketServer({
     noServer: true,
@@ -347,6 +387,7 @@ export async function registerRoutes(app: Express): Server {
     perMessageDeflate: false
   });
 
+  const clients = new Set<WebSocket>();
   wsServer.on('connection', (ws: WebSocket) => {
     clients.add(ws);
     console.log('New WebSocket client connected');
@@ -395,7 +436,6 @@ export async function registerRoutes(app: Express): Server {
   // Serve static documents
   app.use('/documents', express.static(path.join(process.cwd(), 'public/documents')));
 
-
   const httpServer = createServer(app);
 
   // Upgrade HTTP server to WebSocket when requested
@@ -403,6 +443,82 @@ export async function registerRoutes(app: Express): Server {
     if (request.url?.startsWith('/ws')) {
       wsServer.handleUpgrade(request, socket, head, (ws) => {
         wsServer.emit('connection', ws, request);
+      });
+    }
+  });
+
+  // Test endpoint to verify the complete flow
+  app.get("/api/test-flow", async (req, res) => {
+    try {
+      // 1. Test location creation
+      const testLocation = {
+        name: "Test Shop",
+        address: "123 Test St",
+        timezone: "UTC",
+        userId: 1, // Test user
+        businessHours: {
+          monday: { open: "09:00", close: "17:00" },
+          tuesday: { open: "09:00", close: "17:00" },
+          wednesday: { open: "09:00", close: "17:00" },
+          thursday: { open: "09:00", close: "17:00" },
+          friday: { open: "09:00", close: "17:00" }
+        }
+      };
+
+      const location = await storage.createLocation({
+        ...testLocation,
+        trialStartDate: new Date(),
+        isFirstLocation: true,
+        active: false
+      });
+
+      // 2. Test phone number association
+      const phoneNumber = await storage.createPhoneNumber({
+        userId: 1,
+        locationId: location.id,
+        number: "+1234567890",
+        type: "fixed",
+        channel: "both",
+        active: true
+      });
+
+      // 3. Test template creation
+      const template = await storage.createTemplate({
+        userId: 1,
+        locationId: location.id,
+        name: "Missed Call Template",
+        content: "Sorry we missed your call! Please call us back at {{phone_number}}",
+        type: "missed_call",
+        channel: "both",
+        variables: { phone_number: phoneNumber.number }
+      });
+
+      // 4. Simulate a missed call
+      const call = await storage.createCall({
+        userId: 1,
+        phoneNumberId: phoneNumber.id,
+        callerNumber: "+19876543210",
+        status: "missed",
+        duration: 0,
+        createdAt: new Date(),
+        routedToLocation: location.id,
+        callType: "direct"
+      });
+
+      res.json({
+        success: true,
+        flow: {
+          location,
+          phoneNumber,
+          template,
+          call
+        }
+      });
+    } catch (error) {
+      console.error('Error testing flow:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message 
       });
     }
   });
