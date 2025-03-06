@@ -36,8 +36,10 @@ export function setupAuth(app: Express) {
     store: storage.sessionStore,
     cookie: {
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    }
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: 'lax'
+    },
+    name: 'textup.sid' // Custom session cookie name
   };
 
   app.set("trust proxy", 1);
@@ -48,32 +50,55 @@ export function setupAuth(app: Express) {
   passport.use(
     new LocalStrategy(async (username, password, done) => {
       try {
+        console.log('Attempting login for user:', username);
         const user = await storage.getUserByUsername(username);
-        if (!user || !(await comparePasswords(password, user.password))) {
+        if (!user) {
+          console.log('User not found:', username);
           return done(null, false, { message: "Invalid username or password" });
         }
+
+        const isValid = await comparePasswords(password, user.password);
+        if (!isValid) {
+          console.log('Invalid password for user:', username);
+          return done(null, false, { message: "Invalid username or password" });
+        }
+
+        console.log('Login successful for user:', username);
         return done(null, user);
       } catch (error) {
+        console.error('Login error:', error);
         return done(error);
       }
     }),
   );
 
-  passport.serializeUser((user, done) => done(null, user.id));
+  passport.serializeUser((user, done) => {
+    console.log('Serializing user:', user.id);
+    done(null, user.id);
+  });
+
   passport.deserializeUser(async (id: number, done) => {
     try {
+      console.log('Deserializing user:', id);
       const user = await storage.getUser(id);
+      if (!user) {
+        console.log('User not found during deserialization:', id);
+        return done(null, false);
+      }
       done(null, user);
     } catch (error) {
+      console.error('Deserialization error:', error);
       done(error);
     }
   });
 
   app.post("/api/register", async (req, res) => {
     try {
+      console.log('Registration attempt:', req.body);
       const { username, password, companyName } = req.body;
 
       if (!username || !password || !companyName) {
+        console.log('Missing required fields');
         return res.status(400).json({ 
           error: "Username, password, and company name are required" 
         });
@@ -81,13 +106,18 @@ export function setupAuth(app: Express) {
 
       const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
+        console.log('Username already exists:', username);
         return res.status(400).json({ error: "Username already exists" });
       }
 
+      const hashedPassword = await hashPassword(password);
+      console.log('Creating new user:', username);
+
       const user = await storage.createUser({
         username,
-        password: await hashPassword(password),
-        companyName
+        password: hashedPassword,
+        companyName,
+        createdAt: new Date()
       });
 
       req.login(user, (err) => {
@@ -95,6 +125,7 @@ export function setupAuth(app: Express) {
           console.error('Login error after registration:', err);
           return res.status(500).json({ error: "Error logging in after registration" });
         }
+        console.log('Registration successful:', username);
         res.status(201).json(user);
       });
     } catch (error) {
@@ -104,12 +135,14 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
+    console.log('Login attempt:', req.body.username);
     passport.authenticate("local", (err, user, info) => {
       if (err) {
         console.error('Login error:', err);
         return res.status(500).json({ error: "Login failed" });
       }
       if (!user) {
+        console.log('Login failed:', info.message);
         return res.status(401).json({ error: info.message || "Invalid credentials" });
       }
       req.login(user, (err) => {
@@ -117,17 +150,21 @@ export function setupAuth(app: Express) {
           console.error('Session creation error:', err);
           return res.status(500).json({ error: "Error creating session" });
         }
+        console.log('Login successful:', user.username);
         res.json(user);
       });
     })(req, res, next);
   });
 
   app.post("/api/logout", (req, res) => {
+    const username = req.user?.username;
+    console.log('Logout attempt:', username);
     req.logout((err) => {
       if (err) {
         console.error('Logout error:', err);
         return res.status(500).json({ error: "Logout failed" });
       }
+      console.log('Logout successful:', username);
       res.json({ message: "Logged out successfully" });
     });
   });
