@@ -1,11 +1,5 @@
 import express from "express";
-import { registerRoutes } from "./routes";
-import { setupVite, serveStatic } from "./vite";
-import path from 'path';
-import { setupAuth } from "./auth";
-
-// In-memory data store (replace with Replit DB for production)
-const db = {};
+import { pool } from "./db";
 
 const app = express();
 
@@ -13,52 +7,41 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Enable CORS for development
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
+// Basic health check endpoint - with improved error handling
+app.get('/api/health', async (req, res) => {
+  try {
+    await pool.query('SELECT 1'); //retained database check here for more comprehensive health check.
+    res.json({ 
+      status: 'ok', 
+      timestamp: new Date().toISOString(),
+      database: 'connected'
+    });
+  } catch (error) {
+    console.error('Health check failed:', error);
+    res.status(500).json({ 
+      status: 'error',
+      timestamp: new Date().toISOString(),
+      error: 'Database connection failed'
+    });
   }
-  next();
 });
-
-// Basic health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-// Setup auth before routes (modified to use in-memory db)
-setupAuth(app, db);
-
-// Serve static files
-const uploadsDir = path.join(process.cwd(), "uploads");
-app.use('/uploads', express.static(uploadsDir));
 
 
 (async () => {
   try {
-    // Start the server first
+    console.log('Starting server initialization...');
+
     const PORT = process.env.PORT || 5000;
-    const server = await registerRoutes(app, db); // Pass db to routes
-
-    server.listen(PORT, '0.0.0.0', () => {
-      console.log(`Server started on port ${PORT}`);
+    app.listen(parseInt(PORT.toString()), '0.0.0.0', () => {
+      console.log(`Server started successfully on port ${PORT}`);
     });
-
-    // Set up vite in development
-    if (app.get("env") === "development") {
-      await setupVite(app);
-    }
-
-    // In production, serve static files
-    if (app.get("env") !== "development") {
-      serveStatic(app);
-    }
 
   } catch (error) {
     console.error('Failed to start server:', error);
+    if (error instanceof Error) {
+      console.error('Error details:', error.message);
+      console.error('Stack trace:', error.stack);
+    }
     process.exit(1);
   }
 })();

@@ -10,6 +10,8 @@ import { createPaymentSession } from "./services/stripe";
 import { WebSocketServer, WebSocket } from 'ws';
 import { handleIncomingCall, getTwilioCallToken, sendMessage } from './services/twilio';
 import { staticMockData } from './services/supabase';
+import { pool } from "./db"; // Import the shared pool instance
+
 
 // Ensure uploads directory exists
 const uploadsDir = "./uploads";
@@ -37,10 +39,26 @@ const upload = multer({
   }
 });
 
-export async function registerRoutes(app: Express): Server {
-  // Basic health check endpoint
-  app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Basic health check endpoint with database verification
+  app.get('/api/health', async (req, res) => {
+    try {
+      // Test database connection
+      await pool.query('SELECT 1');
+      res.json({ 
+        status: 'ok', 
+        timestamp: new Date().toISOString(),
+        database: 'connected'
+      });
+    } catch (error) {
+      console.error('Health check failed:', error);
+      res.status(500).json({ 
+        status: 'error',
+        timestamp: new Date().toISOString(),
+        error: 'Database connection failed'
+      });
+    }
   });
 
   // Test endpoint for content data
