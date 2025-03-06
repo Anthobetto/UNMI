@@ -1,6 +1,7 @@
+
 import session from "express-session";
 import { v4 as uuidv4 } from 'uuid';
-import { Database } from 'replit';
+import { Client } from 'replit';
 
 // Define user type
 export interface User {
@@ -47,11 +48,11 @@ export interface IStorage {
 }
 
 class ReplitDatabaseStorage implements IStorage {
-  private db: Database;
+  private db: Client;
   public sessionStore: any;
 
   constructor() {
-    this.db = new Database();
+    this.db = new Client();
     // Simple in-memory session store (can be replaced with a more robust solution later)
     this.sessionStore = new session.MemoryStore();
   }
@@ -59,15 +60,15 @@ class ReplitDatabaseStorage implements IStorage {
   // User methods
   async getUser(id: number): Promise<User | null> {
     const userKey = `user:${id}`;
-    const user = this.db.get(userKey);
+    const user = await this.db.db.get(userKey);
     return user ? JSON.parse(user as string) : null;
   }
 
   async getUserByUsername(username: string): Promise<User | null> {
-    const userIds = this.db.list("user:");
+    const userKeys = await this.db.db.list("user:");
 
-    for (const key of userIds) {
-      const user = JSON.parse(this.db.get(key) as string);
+    for (const key of userKeys) {
+      const user = JSON.parse(await this.db.db.get(key) as string);
       if (user.username === username) {
         return user;
       }
@@ -83,17 +84,17 @@ class ReplitDatabaseStorage implements IStorage {
       ...userData
     };
 
-    this.db.set(`user:${userId}`, JSON.stringify(user));
+    await this.db.db.set(`user:${userId}`, JSON.stringify(user));
     return user;
   }
 
   // Location methods
   async getLocations(userId: number) {
     const locations = [];
-    const locationKeys = this.db.list(`location:${userId}:`);
+    const locationKeys = await this.db.db.list(`location:${userId}:`);
 
     for (const key of locationKeys) {
-      locations.push(JSON.parse(this.db.get(key) as string));
+      locations.push(JSON.parse(await this.db.db.get(key) as string));
     }
 
     return locations;
@@ -107,17 +108,17 @@ class ReplitDatabaseStorage implements IStorage {
       createdAt: new Date()
     };
 
-    this.db.set(`location:${locationData.userId}:${locationId}`, JSON.stringify(location));
+    await this.db.db.set(`location:${locationData.userId}:${locationId}`, JSON.stringify(location));
     return location;
   }
 
   // Phone number methods
   async getPhoneNumbers(userId: number) {
     const phoneNumbers = [];
-    const phoneNumberKeys = this.db.list(`phoneNumber:${userId}:`);
+    const phoneNumberKeys = await this.db.db.list(`phoneNumber:${userId}:`);
 
     for (const key of phoneNumberKeys) {
-      phoneNumbers.push(JSON.parse(this.db.get(key) as string));
+      phoneNumbers.push(JSON.parse(await this.db.db.get(key) as string));
     }
 
     return phoneNumbers;
@@ -131,17 +132,17 @@ class ReplitDatabaseStorage implements IStorage {
       createdAt: new Date()
     };
 
-    this.db.set(`phoneNumber:${phoneNumberData.userId}:${phoneNumberId}`, JSON.stringify(phoneNumber));
+    await this.db.db.set(`phoneNumber:${phoneNumberData.userId}:${phoneNumberId}`, JSON.stringify(phoneNumber));
     return phoneNumber;
   }
 
   // Template methods
   async getTemplates(userId: number) {
     const templates = [];
-    const templateKeys = this.db.list(`template:${userId}:`);
+    const templateKeys = await this.db.db.list(`template:${userId}:`);
 
     for (const key of templateKeys) {
-      templates.push(JSON.parse(this.db.get(key) as string));
+      templates.push(JSON.parse(await this.db.db.get(key) as string));
     }
 
     return templates;
@@ -155,17 +156,17 @@ class ReplitDatabaseStorage implements IStorage {
       createdAt: new Date()
     };
 
-    this.db.set(`template:${templateData.userId}:${templateId}`, JSON.stringify(template));
+    await this.db.db.set(`template:${templateData.userId}:${templateId}`, JSON.stringify(template));
     return template;
   }
 
   // Call methods
   async getCalls(userId: number) {
     const calls = [];
-    const callKeys = this.db.list(`call:${userId}:`);
+    const callKeys = await this.db.db.list(`call:${userId}:`);
 
     for (const key of callKeys) {
-      calls.push(JSON.parse(this.db.get(key) as string));
+      calls.push(JSON.parse(await this.db.db.get(key) as string));
     }
 
     return calls;
@@ -179,17 +180,17 @@ class ReplitDatabaseStorage implements IStorage {
       createdAt: new Date()
     };
 
-    this.db.set(`call:${callData.userId}:${callId}`, JSON.stringify(call));
+    await this.db.db.set(`call:${callData.userId}:${callId}`, JSON.stringify(call));
     return call;
   }
 
   // Message methods
   async getMessages(userId: number) {
     const messages = [];
-    const messageKeys = this.db.list(`message:${userId}:`);
+    const messageKeys = await this.db.db.list(`message:${userId}:`);
 
     for (const key of messageKeys) {
-      messages.push(JSON.parse(this.db.get(key) as string));
+      messages.push(JSON.parse(await this.db.db.get(key) as string));
     }
 
     return messages;
@@ -203,7 +204,7 @@ class ReplitDatabaseStorage implements IStorage {
       createdAt: new Date()
     };
 
-    this.db.set(`message:${messageData.userId}:${messageId}`, JSON.stringify(message));
+    await this.db.db.set(`message:${messageData.userId}:${messageId}`, JSON.stringify(message));
     return message;
   }
   async getContents(userId: number): Promise<Content[]> {
@@ -252,6 +253,12 @@ class ReplitDatabaseStorage implements IStorage {
     throw new Error("Method not implemented.");
   }
   async getLocationByPaymentIntent(paymentIntentId: string): Promise<Location | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  async getLocationPhoneNumbers(locationId: number): Promise<PhoneNumber[]> {
+    throw new Error("Method not implemented.");
+  }
+  async getLocationTemplates(locationId: number): Promise<Template[]> {
     throw new Error("Method not implemented.");
   }
 }
