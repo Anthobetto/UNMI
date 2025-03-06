@@ -3,7 +3,9 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic } from "./vite";
 import path from 'path';
 import { setupAuth } from "./auth";
-import { create_postgresql_database_tool } from "./services/database";
+
+// In-memory data store (replace with Replit DB for production)
+const db = {};
 
 const app = express();
 
@@ -27,8 +29,8 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Setup auth before routes
-setupAuth(app);
+// Setup auth before routes (modified to use in-memory db)
+setupAuth(app, db);
 
 // Serve static files
 const uploadsDir = path.join(process.cwd(), "uploads");
@@ -39,7 +41,7 @@ app.use('/uploads', express.static(uploadsDir));
   try {
     // Start the server first
     const PORT = process.env.PORT || 5000;
-    const server = await registerRoutes(app);
+    const server = await registerRoutes(app, db); // Pass db to routes
 
     server.listen(PORT, '0.0.0.0', () => {
       console.log(`Server started on port ${PORT}`);
