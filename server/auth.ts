@@ -5,21 +5,7 @@ import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import MemoryStore from "memorystore";
-
-const SessionStore = MemoryStore(session);
-
-declare global {
-  namespace Express {
-    interface User {
-      id: number;
-      username: string;
-      password: string;
-      companyName: string;
-      createdAt: Date;
-    }
-  }
-}
+import type { User } from "@shared/schema";
 
 const scryptAsync = promisify(scrypt);
 
@@ -40,17 +26,14 @@ export function setupAuth(app: Express) {
   try {
     console.log('Setting up authentication...');
 
-    // Simple session configuration with in-memory store
+    // Use in-memory session store for debugging
     app.use(session({
-      secret: "your-secret-key",
+      secret: 'your-secret-key',
       resave: false,
       saveUninitialized: false,
-      store: new SessionStore({
-        checkPeriod: 86400000 // prune expired entries every 24h
-      }),
-      cookie: {
-        secure: false, // set to true in production
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      cookie: { 
+        secure: false,
+        maxAge: 24 * 60 * 60 * 1000 
       }
     }));
 
@@ -67,7 +50,7 @@ export function setupAuth(app: Express) {
           return done(null, false, { message: "Invalid credentials" });
         }
 
-        const isValid = await comparePasswords(password, user.password);
+        const isValid = await comparePasswords(password, user.password_hash);
         if (!isValid) {
           console.log('Invalid password for:', username);
           return done(null, false, { message: "Invalid credentials" });
@@ -104,9 +87,9 @@ export function setupAuth(app: Express) {
     app.post("/api/register", async (req, res) => {
       try {
         console.log('Registration attempt:', { ...req.body, password: '[REDACTED]' });
-        const { username, password, companyName } = req.body;
+        const { username, email, password, company_name } = req.body;
 
-        if (!username || !password || !companyName) {
+        if (!username || !email || !password || !company_name) {
           return res.status(400).json({ error: "All fields are required" });
         }
 
@@ -118,9 +101,10 @@ export function setupAuth(app: Express) {
         const hashedPassword = await hashPassword(password);
         const user = await storage.createUser({
           username,
-          password: hashedPassword,
-          companyName,
-          createdAt: new Date()
+          email,
+          password_hash: hashedPassword,
+          company_name,
+          created_at: new Date()
         });
 
         console.log('User created successfully:', user.id);
@@ -158,6 +142,7 @@ export function setupAuth(app: Express) {
       })(req, res, next);
     });
 
+    // Get current user
     app.get("/api/user", (req, res) => {
       if (!req.isAuthenticated()) {
         return res.status(401).json({ error: "Not authenticated" });
@@ -165,6 +150,7 @@ export function setupAuth(app: Express) {
       res.json(req.user);
     });
 
+    // Logout endpoint
     app.post("/api/logout", (req, res) => {
       req.logout((err) => {
         if (err) {

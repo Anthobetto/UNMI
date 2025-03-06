@@ -1,5 +1,6 @@
 import express from "express";
-import { pool } from "./db";
+import { setupAuth } from "./auth";
+import { verifyDatabaseConnection } from "./db";
 
 const app = express();
 
@@ -7,29 +8,33 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Basic health check endpoint - with improved error handling
+// Basic health check endpoint
 app.get('/api/health', async (req, res) => {
   try {
-    await pool.query('SELECT 1'); //retained database check here for more comprehensive health check.
+    const dbConnected = await verifyDatabaseConnection();
     res.json({ 
       status: 'ok', 
       timestamp: new Date().toISOString(),
-      database: 'connected'
+      database: dbConnected ? 'connected' : 'disconnected'
     });
   } catch (error) {
     console.error('Health check failed:', error);
     res.status(500).json({ 
       status: 'error',
       timestamp: new Date().toISOString(),
-      error: 'Database connection failed'
+      error: 'Service check failed'
     });
   }
 });
 
-
 (async () => {
   try {
     console.log('Starting server initialization...');
+
+    // Setup authentication with enhanced error handling
+    console.log('Setting up authentication...');
+    setupAuth(app);
+    console.log('Authentication setup completed');
 
     const PORT = process.env.PORT || 5000;
     app.listen(parseInt(PORT.toString()), '0.0.0.0', () => {

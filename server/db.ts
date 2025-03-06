@@ -26,34 +26,16 @@ pool.on('error', (err) => {
 // Export the drizzle instance
 export const db = drizzle(pool, { schema });
 
-// Verify database connection
+// Helper function for database connection verification
 export async function verifyDatabaseConnection() {
   try {
     const client = await pool.connect();
-    await client.query('SELECT 1'); // Test query
+    await client.query('SELECT 1');
     console.log('Successfully connected to database');
     client.release();
     return true;
   } catch (error) {
     console.error('Failed to connect to database:', error);
     return false;
-  }
-}
-
-// Helper function for transactions
-export async function withTransaction<T>(
-  callback: (client: any) => Promise<T>
-): Promise<T> {
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
-    const result = await callback(client);
-    await client.query('COMMIT');
-    return result;
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    client.release();
   }
 }
