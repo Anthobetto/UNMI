@@ -22,19 +22,14 @@ async function comparePasswords(supplied: string, stored: string) {
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
-export function setupAuth(app: Express) {
+export async function setupAuth(app: Express) {
   try {
-    console.log('Setting up authentication...');
-
-    // Use in-memory session store for debugging
+    // Basic session configuration with in-memory store
     app.use(session({
-      secret: 'your-secret-key',
+      secret: process.env.SESSION_SECRET || 'dev-secret-key',
       resave: false,
       saveUninitialized: false,
-      cookie: { 
-        secure: false,
-        maxAge: 24 * 60 * 60 * 1000 
-      }
+      cookie: { secure: false }
     }));
 
     app.use(passport.initialize());
@@ -42,43 +37,31 @@ export function setupAuth(app: Express) {
 
     passport.use(new LocalStrategy(async (username, password, done) => {
       try {
-        console.log('Login attempt for:', username);
         const user = await storage.getUserByUsername(username);
-
         if (!user) {
-          console.log('User not found:', username);
           return done(null, false, { message: "Invalid credentials" });
         }
 
         const isValid = await comparePasswords(password, user.password_hash);
         if (!isValid) {
-          console.log('Invalid password for:', username);
           return done(null, false, { message: "Invalid credentials" });
         }
 
-        console.log('Login successful for:', username);
         return done(null, user);
       } catch (error) {
-        console.error('Login error:', error);
         return done(error);
       }
     }));
 
-    passport.serializeUser((user, done) => {
-      console.log('Serializing user:', user.id);
+    passport.serializeUser((user: User, done) => {
       done(null, user.id);
     });
 
     passport.deserializeUser(async (id: number, done) => {
       try {
-        console.log('Deserializing user:', id);
         const user = await storage.getUser(id);
-        if (!user) {
-          return done(null, false);
-        }
-        done(null, user);
+        done(null, user || false);
       } catch (error) {
-        console.error('Deserialization error:', error);
         done(error);
       }
     });
@@ -86,7 +69,6 @@ export function setupAuth(app: Express) {
     // Registration endpoint
     app.post("/api/register", async (req, res) => {
       try {
-        console.log('Registration attempt:', { ...req.body, password: '[REDACTED]' });
         const { username, email, password, company_name } = req.body;
 
         if (!username || !email || !password || !company_name) {
@@ -98,20 +80,16 @@ export function setupAuth(app: Express) {
           return res.status(400).json({ error: "Username already exists" });
         }
 
-        const hashedPassword = await hashPassword(password);
         const user = await storage.createUser({
           username,
           email,
-          password_hash: hashedPassword,
+          password_hash: await hashPassword(password),
           company_name,
           created_at: new Date()
         });
 
-        console.log('User created successfully:', user.id);
-
         req.login(user, (err) => {
           if (err) {
-            console.error('Auto-login error after registration:', err);
             return res.status(500).json({ error: "Error during auto-login" });
           }
           res.status(201).json(user);
@@ -126,7 +104,6 @@ export function setupAuth(app: Express) {
     app.post("/api/login", (req, res, next) => {
       passport.authenticate("local", (err, user, info) => {
         if (err) {
-          console.error('Authentication error:', err);
           return res.status(500).json({ error: "Authentication failed" });
         }
         if (!user) {
@@ -134,7 +111,6 @@ export function setupAuth(app: Express) {
         }
         req.login(user, (err) => {
           if (err) {
-            console.error('Session creation error:', err);
             return res.status(500).json({ error: "Login failed" });
           }
           res.json(user);
@@ -154,16 +130,14 @@ export function setupAuth(app: Express) {
     app.post("/api/logout", (req, res) => {
       req.logout((err) => {
         if (err) {
-          console.error('Logout error:', err);
           return res.status(500).json({ error: "Logout failed" });
         }
         res.json({ message: "Logged out successfully" });
       });
     });
 
-    console.log('Authentication setup completed');
   } catch (error) {
-    console.error('Fatal error during auth setup:', error);
+    console.error('Error setting up authentication:', error);
     throw error;
   }
 }
