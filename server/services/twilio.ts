@@ -1,6 +1,6 @@
 import twilio from 'twilio';
 import { storage } from '../storage';
-import { Message, Template, InsertMessage } from "@shared/schema";
+import { Message, Template, InsertMessage, PhoneNumber } from "@shared/schema";
 
 const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
 const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
@@ -25,8 +25,7 @@ export async function handleIncomingCall(callData: {
 }) {
   try {
     // 1. Get the phone number details to find the associated location
-    const phoneNumbers = await storage.getPhoneNumbers(1); // Replace with actual user ID
-    const phoneNumber = phoneNumbers.find(pn => pn.number === callData.To);
+    const phoneNumber = await storage.getPhoneNumberByNumber(callData.To);
 
     if (!phoneNumber) {
       throw new Error('Phone number not found');
@@ -49,7 +48,7 @@ export async function handleIncomingCall(callData: {
 
     // 4. Handle missed calls with notification
     if (callStatus === 'missed') {
-      await handleMissedCall(call);
+      await handleMissedCall(call, phoneNumber);
     }
 
     return call;
@@ -76,47 +75,43 @@ function determineCallType(callData: any): string {
   return 'direct';
 }
 
-async function handleMissedCall(call: any) {
-  if (!client) {
-    console.log('Simulating message for missed call:', call);
-    return;
-  }
-
+async function handleMissedCall(call: any, phoneNumber: PhoneNumber) {
   try {
-    // Send notification for missed call
-    const message = await sendMessage({
+    // Get location details and template
+    const template = await storage.getTemplateByType(phoneNumber.locationId, 'missed_call');
+    if (!template) {
+      console.log('No template found for missed call notification');
+      return;
+    }
+
+    // Get user/company details
+    const user = await storage.getUser(phoneNumber.userId);
+    if (!user) {
+      console.log('User not found for missed call notification');
+      return;
+    }
+
+    // Prepare template variables
+    const variables = {
+      company_name: user.companyName,
+      phone_number: phoneNumber.number,
+      caller_number: call.callerNumber,
+      ...template.variables
+    };
+
+    // Send notification using the preferred channel
+    await sendMessage({
       userId: call.userId,
       phoneNumberId: call.phoneNumberId,
-      type: 'SMS', // Default to SMS for missed calls
-      content: `You missed a call from ${call.callerNumber}. Please call back when available.`,
-      recipient: call.callerNumber
+      type: phoneNumber.channel === 'whatsapp' ? 'WhatsApp' : 'SMS',
+      content: processTemplate(template, variables),
+      recipient: call.callerNumber,
+      template
     });
 
-    return message;
   } catch (error) {
     console.error('Error handling missed call notification:', error);
   }
-}
-
-export async function getTwilioCallToken() {
-  if (!client) {
-    return { token: 'simulated-token' };
-  }
-
-  const capability = new twilio.jwt.ClientCapability({
-    accountSid: TWILIO_ACCOUNT_SID!,
-    authToken: TWILIO_AUTH_TOKEN!
-  });
-
-  capability.addScope(new twilio.jwt.ClientCapability.IncomingClientScope('test'));
-  capability.addScope(new twilio.jwt.ClientCapability.OutgoingClientScope({
-    applicationSid: TWILIO_ACCOUNT_SID!,
-    clientName: 'test'
-  }));
-
-  return {
-    token: capability.toJwt()
-  };
 }
 
 // Send message (SMS or WhatsApp)
@@ -143,14 +138,8 @@ export async function sendMessage(message: {
       to = `whatsapp:${message.recipient}`;
     }
 
-    // Process template if provided
-    let content = message.content;
-    if (message.template && message.template.variables) {
-      content = processTemplate(message.template, content);
-    }
-
     const result = await client.messages.create({
-      body: content,
+      body: message.content,
       to,
       from
     });
@@ -159,7 +148,7 @@ export async function sendMessage(message: {
       userId: message.userId,
       phoneNumberId: message.phoneNumberId,
       type: message.type,
-      content: content,
+      content: message.content,
       recipient: message.recipient,
       status: 'sent',
       createdAt: new Date(),
@@ -171,8 +160,8 @@ export async function sendMessage(message: {
   }
 }
 
-function processTemplate(template: Template, content: string): string {
-  const variables = template.variables as Record<string, string>;
+function processTemplate(template: Template, variables: Record<string, string>): string {
+  let content = template.content;
 
   // Replace template variables with actual values
   Object.entries(variables).forEach(([key, value]) => {
@@ -181,4 +170,25 @@ function processTemplate(template: Template, content: string): string {
   });
 
   return content;
+}
+
+export async function getTwilioCallToken() {
+  if (!client) {
+    return { token: 'simulated-token' };
+  }
+
+  const capability = new twilio.jwt.ClientCapability({
+    accountSid: TWILIO_ACCOUNT_SID!,
+    authToken: TWILIO_AUTH_TOKEN!
+  });
+
+  capability.addScope(new twilio.jwt.ClientCapability.IncomingClientScope('test'));
+  capability.addScope(new twilio.jwt.ClientCapability.OutgoingClientScope({
+    applicationSid: TWILIO_ACCOUNT_SID!,
+    clientName: 'test'
+  }));
+
+  return {
+    token: capability.toJwt()
+  };
 }

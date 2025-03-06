@@ -11,6 +11,7 @@ import session from "express-session";
 import { db as supabaseDb } from "./services/supabase";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
+import { eq } from "drizzle-orm";
 
 const PostgresSessionStore = connectPg(session);
 
@@ -43,6 +44,10 @@ interface IStorage {
   getMessages(userId: number): Promise<Message[]>;
   createMessage(insertMessage: InsertMessage): Promise<Message>;
   getMessageStats(userId: number): Promise<{ sms: number; whatsapp: number }>;
+  getPhoneNumberByNumber(number: string): Promise<PhoneNumber | undefined>;
+  getTemplateByType(locationId: number, type: string): Promise<Template | undefined>;
+  updateLocation(id: number, updates: Partial<Location>): Promise<Location>;
+  getLocationByPaymentIntent(paymentIntentId: string): Promise<Location | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -86,15 +91,13 @@ export class DatabaseStorage implements IStorage {
 
   // User methods
   async getUser(id: number): Promise<User | undefined> {
-    const { data, error } = await supabaseDb.users.getById(id);
-    if (error) throw error;
-    return data || undefined;
+    const users = await supabaseDb.from('users').select('*').eq('id', id);
+    return users.data?.[0];
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const { data, error } = await supabaseDb.users.getByUsername(username);
-    if (error) throw error;
-    return data || undefined;
+    const users = await supabaseDb.from('users').select('*').eq('username', username);
+    return users.data?.[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -118,9 +121,8 @@ export class DatabaseStorage implements IStorage {
 
   // Location methods
   async getLocations(userId: number): Promise<Location[]> {
-    const { data, error } = await supabaseDb.locations.getByUser(userId);
-    if (error) throw error;
-    return data || [];
+    const locations = await supabaseDb.from('locations').select('*').eq('user_id', userId);
+    return locations.data || [];
   }
 
   async getGroupLocations(groupId: number): Promise<Location[]> {
@@ -130,21 +132,45 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createLocation(location: InsertLocation): Promise<Location> {
-    const { data: existingLocations } = await supabaseDb.locations.getByUser(location.userId);
-    const isFirstLocation = !existingLocations || existingLocations.length === 0;
+    const { data, error } = await supabaseDb.from('locations').insert([
+      this.toSnakeCase({
+        ...location,
+        created_at: new Date().toISOString()
+      })
+    ]).select().single();
 
-    const { data, error } = await supabaseDb.locations.create(this.toSnakeCase({
-      ...location,
-      is_first_location: isFirstLocation,
-      trial_start_date: isFirstLocation ? new Date().toISOString() : null,
-    }));
     if (error) throw error;
     return data;
   }
 
+  async updateLocation(id: number, updates: Partial<Location>): Promise<Location> {
+    const { data, error } = await supabaseDb.from('locations')
+      .update(this.toSnakeCase(updates))
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async getLocationByPaymentIntent(paymentIntentId: string): Promise<Location | undefined> {
+    const { data, error } = await supabaseDb.from('locations')
+      .select('*')
+      .eq('payment_intent_id', paymentIntentId)
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+
   // Phone number methods
   async getPhoneNumbers(userId: number): Promise<PhoneNumber[]> {
-    const { data, error } = await supabaseDb.phoneNumbers.getByUser(userId);
+    const { data, error } = await supabaseDb.from('phone_numbers')
+      .select('*')
+      .eq('user_id', userId);
+
     if (error) throw error;
     return data || [];
   }
@@ -162,21 +188,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPhoneNumber(phoneNumber: InsertPhoneNumber): Promise<PhoneNumber> {
-    const { data, error } = await supabaseDb.phoneNumbers.create(this.toSnakeCase({
-      user_id: phoneNumber.userId,
-      location_id: phoneNumber.locationId,
-      number: phoneNumber.number,
-      type: phoneNumber.type,
-      active: phoneNumber.active,
-      linked_number: phoneNumber.linkedNumber
-    }));
+    const { data, error } = await supabaseDb.from('phone_numbers').insert([
+      this.toSnakeCase({
+        ...phoneNumber,
+        created_at: new Date().toISOString()
+      })
+    ]).select().single();
+
     if (error) throw error;
+    return data;
+  }
+
+  async getPhoneNumberByNumber(number: string): Promise<PhoneNumber | undefined> {
+    const { data, error } = await supabaseDb.from('phone_numbers')
+      .select('*')
+      .eq('number', number)
+      .single();
+
+    if (error) return undefined;
     return data;
   }
 
   // Template methods
   async getTemplates(userId: number): Promise<Template[]> {
-    const { data, error } = await supabaseDb.templates.getByUser(userId);
+    const { data, error } = await supabaseDb.from('templates')
+      .select('*')
+      .eq('user_id', userId);
+
     if (error) throw error;
     return data || [];
   }
@@ -194,16 +232,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTemplate(template: InsertTemplate): Promise<Template> {
-    const { data, error } = await supabaseDb.templates.create(this.toSnakeCase({
-      user_id: template.userId,
-      location_id: template.locationId,
-      group_id: template.groupId,
-      name: template.name,
-      content: template.content,
-      type: template.type,
-      variables: template.variables
-    }));
+    const { data, error } = await supabaseDb.from('templates').insert([
+      this.toSnakeCase({
+        ...template,
+        created_at: new Date().toISOString()
+      })
+    ]).select().single();
+
     if (error) throw error;
+    return data;
+  }
+
+  async getTemplateByType(locationId: number, type: string): Promise<Template | undefined> {
+    const { data, error } = await supabaseDb.from('templates')
+      .select('*')
+      .eq('location_id', locationId)
+      .eq('type', type)
+      .single();
+
+    if (error) return undefined;
     return data;
   }
 
@@ -221,16 +268,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCall(call: InsertCall): Promise<Call> {
-    const { data, error } = await supabaseDb.calls.create(this.toSnakeCase({
-      user_id: call.userId,
-      phone_number_id: call.phoneNumberId,
-      caller_number: call.callerNumber,
-      status: call.status,
-      duration: call.duration,
-      created_at: call.createdAt?.toISOString(),
-      routed_to_location: call.routedToLocation,
-      call_type: call.callType
-    }));
+    const { data, error } = await supabaseDb.from('calls').insert([
+      this.toSnakeCase({
+        ...call,
+        created_at: new Date().toISOString()
+      })
+    ]).select().single();
+
     if (error) throw error;
     return data;
   }
