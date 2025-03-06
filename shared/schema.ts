@@ -7,6 +7,7 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   companyName: text("company_name").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull()
 });
 
 export const groups = pgTable("groups", {
@@ -108,7 +109,11 @@ export const contents = pgTable("contents", {
 });
 
 // Create schemas
-export const insertUserSchema = createInsertSchema(users);
+export const insertUserSchema = createInsertSchema(users).extend({
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  companyName: z.string().min(2, "Company name is required")
+});
 export const insertGroupSchema = createInsertSchema(groups);
 export const insertLocationSchema = createInsertSchema(locations);
 export const insertTemplateSchema = createInsertSchema(templates);
