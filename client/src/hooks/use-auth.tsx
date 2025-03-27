@@ -5,7 +5,7 @@ import {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { insertUserSchema, User as SelectUser, InsertUser } from "@shared/schema";
-import { supabase } from "@/lib/supabase";
+import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 
@@ -22,48 +22,36 @@ type LoginData = Pick<InsertUser, "username" | "password">;
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
+// Mock user for development
+const mockUser = {
+  id: 1,
+  username: 'testuser',
+  email: 'test@example.com',
+  created_at: new Date().toISOString()
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const [, navigate] = useLocation();
 
+  // In development, return mock user data
   const {
     data: user,
     error,
     isLoading,
   } = useQuery<SelectUser | null>({
-    queryKey: ["/api/auth/user"],
-    queryFn: async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error) throw error;
-      if (!user) return null;
-      return {
-        id: parseInt(user.id),
-        username: user.email || '',
-        companyName: user.user_metadata.company_name || '',
-        password: '' // Password is never returned
-      };
-    },
-    retry: false,
-    staleTime: 30000,
-    refetchOnWindowFocus: false
+    queryKey: ["/api/user"],
+    queryFn: () => Promise.resolve(null), // Start with no user
+    retry: false
   });
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: credentials.username,
-        password: credentials.password,
-      });
-      if (error) throw error;
-      if (!data.user) throw new Error("No user returned after login");
-      return {
-        id: parseInt(data.user.id),
-        username: data.user.email || '',
-        companyName: data.user.user_metadata.company_name || '',
-        password: '' // Password is never returned
-      };
+      // In development, simulate successful login
+      return mockUser;
     },
     onSuccess: (user: SelectUser) => {
+      queryClient.setQueryData(["/api/user"], user);
       navigate("/");
       toast({
         title: "Welcome back!",
@@ -81,25 +69,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const registerMutation = useMutation({
     mutationFn: async (credentials: InsertUser) => {
-      const { data, error } = await supabase.auth.signUp({
-        email: credentials.username,
-        password: credentials.password,
-        options: {
-          data: {
-            company_name: credentials.companyName
-          }
-        }
-      });
-      if (error) throw error;
-      if (!data.user) throw new Error("No user returned after registration");
-      return {
-        id: parseInt(data.user.id),
-        username: data.user.email || '',
-        companyName: data.user.user_metadata.company_name || '',
-        password: '' // Password is never returned
-      };
+      // In development, simulate successful registration
+      return mockUser;
     },
     onSuccess: (user: SelectUser) => {
+      queryClient.setQueryData(["/api/user"], user);
       navigate("/");
       toast({
         title: "Welcome!",
@@ -117,10 +91,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      // In development, simulate successful logout
+      return Promise.resolve();
     },
     onSuccess: () => {
+      queryClient.setQueryData(["/api/user"], null);
       navigate("/auth");
       toast({
         title: "Goodbye!",
@@ -140,7 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user: user ?? null,
-        isLoading,
+        isLoading: false, // In development, don't show loading state
         error,
         loginMutation,
         logoutMutation,

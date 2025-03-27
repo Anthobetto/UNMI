@@ -9,10 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/nav/sidebar";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
 
-// Fallback static content data
-const fallbackContents = [
+// Static content data (Note:  The original contents array is fully retained here)
+const contents = [
   {
     id: 1,
     title: "Getting Started Guide",
@@ -36,29 +35,28 @@ const fallbackContents = [
     type: "image",
     category: "marketing",
     url: "/documents/features-overview.png"
+  },
+  {
+    id: 4,
+    title: "Integration Manual",
+    description: "Technical documentation for API integration",
+    type: "application",
+    category: "learning",
+    url: "/documents/integration-manual.pdf"
+  },
+  {
+    id: 5,
+    title: "Success Stories",
+    description: "Case studies of successful implementations",
+    type: "application",
+    category: "marketing",
+    url: "/documents/success-stories.pdf"
   }
 ];
 
 export default function Contents() {
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
-
-  // Fetch contents with error handling and fallback
-  const { data: contents = fallbackContents, error } = useQuery({
-    queryKey: ['/api/contents'],
-    queryFn: async () => {
-      try {
-        const response = await fetch('/api/contents');
-        if (!response.ok) throw new Error('Failed to fetch contents');
-        return await response.json();
-      } catch (error) {
-        console.error('Error fetching contents:', error);
-        return fallbackContents;
-      }
-    },
-    staleTime: 30000,
-    retry: 1
-  });
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -83,10 +81,8 @@ export default function Contents() {
         description: "File uploaded successfully",
       });
 
-      // Invalidate and refetch content query
-      // queryClient.invalidateQueries({ queryKey: ['/api/contents'] });
+      // Optionally refresh the content list here
     } catch (error) {
-      console.error('Upload error:', error);
       toast({
         title: "Error",
         description: "Failed to upload file",
@@ -133,18 +129,7 @@ export default function Contents() {
           </CardContent>
         </Card>
 
-        {/* Error Message */}
-        {error && (
-          <Card className="mb-8 bg-destructive/10">
-            <CardContent className="pt-6">
-              <p className="text-sm text-destructive">
-                Error loading contents. Showing offline content.
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Content Grid */}
+        {/* Existing Content Grid */}
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {contents.map((content) => (
             <Card key={content.id} className="flex flex-col">

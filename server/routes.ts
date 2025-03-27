@@ -1,20 +1,25 @@
-import { createClient } from '@supabase/supabase-js';
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { setupAuth } from "./auth";
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import multer from "multer";
 import { createPaymentSession } from "./services/stripe";
 import { WebSocketServer, WebSocket } from 'ws';
-import { handleIncomingCall, getTwilioCallToken, sendMessage } from './services/twilio';
-import { staticMockData } from './services/mockData';
+import { handleIncomingCall, getTwilioCallToken } from './services/twilio';
 
 // Ensure uploads directory exists
 const uploadsDir = "./uploads";
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir);
+}
+
+// Ensure documents directory exists
+const documentsDir = "./public/documents";
+if (!fs.existsSync(documentsDir)) {
+  fs.mkdirSync(documentsDir, { recursive: true });
 }
 
 // Configure multer for file uploads
@@ -37,32 +42,23 @@ const upload = multer({
   }
 });
 
-export async function registerRoutes(app: Express): Server {
-  // Basic health check endpoint
-  app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
-  });
+// WebSocket clients for real-time updates
+const clients = new Set<WebSocket>();
 
-  // Test endpoint for content data
-  app.get('/api/test-content', (req, res) => {
-    res.json({ 
-      mock_data_available: true,
-      sample_content: staticMockData.contents[0],
-      total_items: staticMockData.contents.length
-    });
-  });
+export async function registerRoutes(app: Express): Promise<Server> {
+  setupAuth(app);
+
+  // Serve uploaded files statically
+  app.use('/uploads', express.static(uploadsDir));
+
+  // Serve static documents
+  app.use('/documents', express.static(path.join(process.cwd(), 'public/documents')));
 
   // Content Management Routes
   app.get("/api/contents", async (req, res) => {
-    try {
-      console.log('Attempting to fetch contents from storage...');
-      const contents = await storage.getContents(req.user?.id || 1);
-      res.json(contents);
-    } catch (error) {
-      console.error('Error fetching contents from storage:', error);
-      console.log('Falling back to static mock data');
-      res.json(staticMockData.contents);
-    }
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const contents = await storage.getContents(req.user.id);
+    res.json(contents);
   });
 
   app.get("/api/contents/category/:category", async (req, res) => {
@@ -119,23 +115,20 @@ export async function registerRoutes(app: Express): Server {
     res.json(locations);
   });
 
-  // Location management routes with payment integration
   app.post("/api/locations", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
 
     try {
-      // 1. Create a Stripe checkout session for location registration fee
+      // Create a Stripe checkout session
       const session = await createPaymentSession(req.user.id);
 
-      // 2. Create the location after successful payment
+      // Create the location after successful payment
       const location = await storage.createLocation({
         ...req.body,
-        userId: req.user.id,
-        trialStartDate: new Date(),
-        isFirstLocation: !(await storage.getLocations(req.user.id)).length
+        userId: req.user.id
       });
 
-      // 3. Return both the location data and the session URL
+      // Return both the location data and the session URL
       res.status(201).json({
         location,
         sessionUrl: session.url
@@ -241,7 +234,6 @@ export async function registerRoutes(app: Express): Server {
   });
 
   // Call Management APIs
-  // Call management endpoint
   app.post("/api/calls/webhook", async (req, res) => {
     try {
       const call = await handleIncomingCall({
@@ -251,27 +243,21 @@ export async function registerRoutes(app: Express): Server {
         CallStatus: req.body.CallStatus
       });
 
-      // If it's a missed call, trigger the template message
-      if (call.status === 'missed') {
-        const phoneNumber = await storage.getPhoneNumberByNumber(call.To);
-        if (phoneNumber) {
-          const template = await storage.getTemplateByType(phoneNumber.locationId, 'missed_call');
-          if (template) {
-            await sendMessage({
-              userId: phoneNumber.userId,
-              phoneNumberId: phoneNumber.id,
-              type: 'SMS',
-              content: template.content,
-              recipient: call.From,
-              template
-            });
-          }
-        }
-      }
+      // Broadcast call update to all connected clients
+      const update = {
+        type: 'call_received',
+        data: call
+      };
 
-      res.json({ success: true });
+      clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify(update));
+        }
+      });
+
+      res.status(200).json({ success: true });
     } catch (error) {
-      console.error('Error handling call:', error);
+      console.error('Error in call webhook:', error);
       res.status(500).json({ error: "Failed to process call" });
     }
   });
@@ -306,18 +292,22 @@ export async function registerRoutes(app: Express): Server {
     }
   });
 
-  // Message Management APIs section update
-  app.post("/api/messages", async (req, res) => {
+
+  // Message Management APIs
+
+  // Send WhatsApp message
+  app.post("/api/messages/whatsapp", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
 
     try {
-      const message = await sendMessage({
+      const message = await storage.createMessage({
         userId: req.user.id,
         phoneNumberId: req.body.phoneNumberId,
-        type: req.body.type, // 'SMS' or 'WhatsApp'
+        type: 'WhatsApp',
         content: req.body.content,
         recipient: req.body.recipient,
-        template: req.body.template // Optional template
+        status: 'pending',
+        createdAt: new Date()
       });
 
       // Broadcast message to connected clients
@@ -334,7 +324,7 @@ export async function registerRoutes(app: Express): Server {
 
       res.status(201).json(message);
     } catch (error) {
-      res.status(500).json({ error: "Failed to send message" });
+      res.status(500).json({ error: "Failed to send WhatsApp message" });
     }
   });
 
@@ -350,36 +340,6 @@ export async function registerRoutes(app: Express): Server {
     }
   });
 
-  // Stripe webhook handler for payment confirmation
-  app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-    try {
-      const event = req.body;
-
-      switch (event.type) {
-        case 'checkout.session.completed':
-          const session = event.data.object;
-          // Handle successful payment
-          // Activate the location and set up phone number
-          const location = await storage.getLocationByPaymentIntent(session.payment_intent);
-          if (location) {
-            await storage.updateLocation(location.id, { active: true });
-          }
-          break;
-
-        case 'payment_intent.payment_failed':
-          // Handle failed payment
-          console.error('Payment failed:', event.data.object);
-          break;
-      }
-
-      res.json({ received: true });
-    } catch (error) {
-      console.error('Webhook error:', error);
-      res.status(400).send('Webhook Error');
-    }
-  });
-
-
   // WebSocket setup for real-time updates
   const wsServer = new WebSocketServer({
     noServer: true,
@@ -387,7 +347,6 @@ export async function registerRoutes(app: Express): Server {
     perMessageDeflate: false
   });
 
-  const clients = new Set<WebSocket>();
   wsServer.on('connection', (ws: WebSocket) => {
     clients.add(ws);
     console.log('New WebSocket client connected');
@@ -430,12 +389,6 @@ export async function registerRoutes(app: Express): Server {
     });
   });
 
-  // Serve uploaded files statically
-  app.use('/uploads', express.static(uploadsDir));
-
-  // Serve static documents
-  app.use('/documents', express.static(path.join(process.cwd(), 'public/documents')));
-
   const httpServer = createServer(app);
 
   // Upgrade HTTP server to WebSocket when requested
@@ -443,108 +396,6 @@ export async function registerRoutes(app: Express): Server {
     if (request.url?.startsWith('/ws')) {
       wsServer.handleUpgrade(request, socket, head, (ws) => {
         wsServer.emit('connection', ws, request);
-      });
-    }
-  });
-
-  // Test endpoint to verify the complete flow
-  app.get("/api/test-flow", async (req, res) => {
-    try {
-      // 1. Test location creation
-      const testLocation = {
-        name: "Test Shop",
-        address: "123 Test St",
-        timezone: "UTC",
-        userId: 1, // Test user
-        businessHours: {
-          monday: { open: "09:00", close: "17:00" },
-          tuesday: { open: "09:00", close: "17:00" },
-          wednesday: { open: "09:00", close: "17:00" },
-          thursday: { open: "09:00", close: "17:00" },
-          friday: { open: "09:00", close: "17:00" }
-        }
-      };
-
-      const location = await storage.createLocation({
-        ...testLocation,
-        trialStartDate: new Date(),
-        isFirstLocation: true,
-        active: false
-      });
-
-      // 2. Test phone number association
-      const phoneNumber = await storage.createPhoneNumber({
-        userId: 1,
-        locationId: location.id,
-        number: "+1234567890",
-        type: "fixed",
-        channel: "both",
-        active: true
-      });
-
-      // 3. Test template creation
-      const template = await storage.createTemplate({
-        userId: 1,
-        locationId: location.id,
-        name: "Missed Call Template",
-        content: "Sorry we missed your call! Please call us back at {{phone_number}}",
-        type: "missed_call",
-        channel: "both",
-        variables: { phone_number: phoneNumber.number }
-      });
-
-      // 4. Simulate a missed call
-      const call = await storage.createCall({
-        userId: 1,
-        phoneNumberId: phoneNumber.id,
-        callerNumber: "+19876543210",
-        status: "missed",
-        duration: 0,
-        createdAt: new Date(),
-        routedToLocation: location.id,
-        callType: "direct"
-      });
-
-      res.json({
-        success: true,
-        flow: {
-          location,
-          phoneNumber,
-          template,
-          call
-        }
-      });
-    } catch (error) {
-      console.error('Error testing flow:', error);
-      res.status(500).json({ 
-        success: false, 
-        error: error.message 
-      });
-    }
-  });
-
-  // Add this test endpoint at the end of the registerRoutes function
-  app.get("/api/test-twilio", async (req, res) => {
-    try {
-      // Test sending a message
-      const message = await sendMessage({
-        userId: 1, // Test user ID
-        phoneNumberId: 1, // Test phone number ID
-        type: 'SMS',
-        content: 'This is a test message from TextUp',
-        recipient: process.env.TWILIO_PHONE_NUMBER // Send to our own number for testing
-      });
-
-      res.json({
-        success: true,
-        message: "Test message sent successfully",
-        messageDetails: message
-      });
-    } catch (error) {
-      console.error('Error in Twilio test:', error);
-      res.status(500).json({ 
-        success: false,
-        error: error.message 
       });
     }
   });
