@@ -1,31 +1,18 @@
-
-import pkg from 'pg';
-const { Pool } = pkg;
-import { drizzle } from "drizzle-orm/postgres-js";
+import pg from 'pg';
+import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "@shared/schema";
 
-// Initialize the database pool with proper error handling
-export const pool = new Pool({
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required');
+}
+
+// Create PostgreSQL pool
+export const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  },
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
+  max: 20
 });
 
-// Add event listeners for connection management
-pool.on('connect', () => {
-  console.log('Connected to PostgreSQL database');
-});
-
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
-  process.exit(-1);
-});
-
-// Export the drizzle instance
+// Create drizzle database instance
 export const db = drizzle(pool, { schema });
 
 // Helper function for database connection verification
@@ -33,8 +20,8 @@ export async function verifyDatabaseConnection() {
   try {
     const client = await pool.connect();
     await client.query('SELECT 1');
-    console.log('Successfully connected to database');
     client.release();
+    console.log('Successfully connected to database');
     return true;
   } catch (error) {
     console.error('Failed to connect to database:', error);
