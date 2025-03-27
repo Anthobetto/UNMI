@@ -10,8 +10,6 @@ import { createPaymentSession } from "./services/stripe";
 import { WebSocketServer, WebSocket } from 'ws';
 import { handleIncomingCall, getTwilioCallToken, sendMessage } from './services/twilio';
 import { staticMockData } from './services/supabase';
-import { pool } from "./db"; // Import the shared pool instance
-
 
 // Ensure uploads directory exists
 const uploadsDir = "./uploads";
@@ -39,26 +37,10 @@ const upload = multer({
   }
 });
 
-
-export async function registerRoutes(app: Express): Promise<Server> {
-  // Basic health check endpoint with database verification
-  app.get('/api/health', async (req, res) => {
-    try {
-      // Test database connection
-      await pool.query('SELECT 1');
-      res.json({ 
-        status: 'ok', 
-        timestamp: new Date().toISOString(),
-        database: 'connected'
-      });
-    } catch (error) {
-      console.error('Health check failed:', error);
-      res.status(500).json({ 
-        status: 'error',
-        timestamp: new Date().toISOString(),
-        error: 'Database connection failed'
-      });
-    }
+export async function registerRoutes(app: Express): Server {
+  // Basic health check endpoint
+  app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
   // Test endpoint for content data
@@ -184,20 +166,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/phone-numbers", async (req, res) => {
-    try {
-      // Temporarily disable auth check for testing
-      const userId = req.user?.id || 1; // Default to test user if not authenticated
-
-      const phoneNumber = await storage.createPhoneNumber({
-        ...req.body,
-        userId,
-        createdAt: new Date()
-      });
-      res.status(201).json(phoneNumber);
-    } catch (error) {
-      console.error('Error creating phone number:', error);
-      res.status(500).json({ message: "Failed to create phone number" });
-    }
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const phoneNumber = await storage.createPhoneNumber({
+      ...req.body,
+      userId: req.user.id
+    });
+    res.status(201).json(phoneNumber);
   });
 
   // Templates with group and location support
@@ -267,10 +241,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Call Management APIs
-  // Call management endpoint - disable auth for webhook testing
+  // Call management endpoint
   app.post("/api/calls/webhook", async (req, res) => {
     try {
-      console.log('Received webhook call:', req.body);
       const call = await handleIncomingCall({
         From: req.body.From,
         To: req.body.To,
@@ -282,14 +255,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (call.status === 'missed') {
         const phoneNumber = await storage.getPhoneNumberByNumber(call.To);
         if (phoneNumber) {
-          console.log('Found phone number:', phoneNumber);
           const template = await storage.getTemplateByType(phoneNumber.locationId, 'missed_call');
           if (template) {
-            console.log('Found template:', template);
             await sendMessage({
               userId: phoneNumber.userId,
               phoneNumberId: phoneNumber.id,
-              type: phoneNumber.channel === 'whatsapp' ? 'WhatsApp' : 'SMS',
+              type: 'SMS',
               content: template.content,
               recipient: call.From,
               template

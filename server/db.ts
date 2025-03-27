@@ -1,30 +1,15 @@
-import pg from 'pg';
-import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import ws from "ws";
 import * as schema from "@shared/schema";
 
+neonConfig.webSocketConstructor = ws;
+
 if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL environment variable is required');
+  throw new Error(
+    "DATABASE_URL must be set. Did you forget to provision a database?",
+  );
 }
 
-// Create PostgreSQL pool
-export const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 20
-});
-
-// Create drizzle database instance
-export const db = drizzle(pool, { schema });
-
-// Helper function for database connection verification
-export async function verifyDatabaseConnection() {
-  try {
-    const client = await pool.connect();
-    await client.query('SELECT 1');
-    client.release();
-    console.log('Successfully connected to database');
-    return true;
-  } catch (error) {
-    console.error('Failed to connect to database:', error);
-    return false;
-  }
-}
+export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const db = drizzle({ client: pool, schema });
