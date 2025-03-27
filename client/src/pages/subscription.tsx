@@ -75,7 +75,7 @@ export default function SubscriptionPage() {
   });
 
   const onSubmitPromo = (data: z.infer<typeof promoSchema>) => {
-    if (data.code === "textup123") {
+    if (data.code === "unmi123") {
       setIsPromoValid(true);
       toast({
         title: "Success!",
@@ -108,7 +108,7 @@ export default function SubscriptionPage() {
             Choose Your Plan
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Get started with TextUp today. Choose the plan that best fits your business needs.
+            Get started with Unmi today. Choose the plan that best fits your business needs.
           </p>
         </div>
 
