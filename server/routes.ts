@@ -9,7 +9,7 @@ import multer from "multer";
 import { createPaymentSession } from "./services/stripe";
 import { WebSocketServer, WebSocket } from 'ws';
 import { handleIncomingCall, getTwilioCallToken, sendMessage } from './services/twilio';
-import { staticMockData } from './services/supabase';
+import { staticMockData } from './services/mockData';
 
 // Ensure uploads directory exists
 const uploadsDir = "./uploads";
