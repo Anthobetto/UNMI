@@ -523,5 +523,31 @@ export async function registerRoutes(app: Express): Server {
     }
   });
 
+  // Add this test endpoint at the end of the registerRoutes function
+  app.get("/api/test-twilio", async (req, res) => {
+    try {
+      // Test sending a message
+      const message = await sendMessage({
+        userId: 1, // Test user ID
+        phoneNumberId: 1, // Test phone number ID
+        type: 'SMS',
+        content: 'This is a test message from TextUp',
+        recipient: process.env.TWILIO_PHONE_NUMBER // Send to our own number for testing
+      });
+
+      res.json({
+        success: true,
+        message: "Test message sent successfully",
+        messageDetails: message
+      });
+    } catch (error) {
+      console.error('Error in Twilio test:', error);
+      res.status(500).json({ 
+        success: false,
+        error: error.message 
+      });
+    }
+  });
+
   return httpServer;
 }

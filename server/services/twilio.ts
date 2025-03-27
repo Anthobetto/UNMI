@@ -7,12 +7,10 @@ const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
 const TWILIO_PHONE_NUMBER = process.env.TWILIO_PHONE_NUMBER;
 
 if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
-  console.warn('Twilio credentials not configured. SMS, WhatsApp and call functionality will be simulated.');
+  throw new Error('Twilio credentials not configured correctly. Please check your environment variables.');
 }
 
-const client = TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN 
-  ? twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-  : null;
+const client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 
 // Enhanced call handling with better classification
 export async function handleIncomingCall(callData: {
@@ -24,12 +22,14 @@ export async function handleIncomingCall(callData: {
   DialogueSid?: string;
 }) {
   try {
+    console.log('Processing incoming call:', callData);
+
     // 1. Get the phone number details to find the associated location
     const phoneNumbers = await storage.getPhoneNumbers(1); // Replace with actual user ID
     const phoneNumber = phoneNumbers.find(pn => pn.number === callData.To);
 
     if (!phoneNumber) {
-      throw new Error('Phone number not found');
+      throw new Error(`Phone number not found: ${callData.To}`);
     }
 
     // 2. Classify call status
@@ -49,13 +49,14 @@ export async function handleIncomingCall(callData: {
 
     // 4. Handle missed calls with notification
     if (callStatus === 'missed') {
+      console.log('Handling missed call notification');
       await handleMissedCall(call);
     }
 
     return call;
   } catch (error) {
     console.error('Error handling incoming call:', error);
-    throw new Error('Failed to process incoming call');
+    throw new Error(`Failed to process incoming call: ${error.message}`);
   }
 }
 
@@ -77,46 +78,41 @@ function determineCallType(callData: any): string {
 }
 
 async function handleMissedCall(call: any) {
-  if (!client) {
-    console.log('Simulating message for missed call:', call);
-    return;
-  }
-
   try {
-    // Send notification for missed call
-    const message = await sendMessage({
+    console.log('Processing missed call:', call);
+
+    // Get the phone number details
+    const phoneNumber = await storage.getPhoneNumberById(call.phoneNumberId);
+    if (!phoneNumber) {
+      throw new Error('Phone number not found for missed call');
+    }
+
+    // Get the template for missed calls
+    const template = await storage.getTemplateByType(phoneNumber.locationId, 'missed_call');
+    if (!template) {
+      console.log('No missed call template found, using default message');
+      return await sendMessage({
+        userId: call.userId,
+        phoneNumberId: call.phoneNumberId,
+        type: 'SMS',
+        content: `You missed a call from ${call.callerNumber}. Please call back when available.`,
+        recipient: call.callerNumber
+      });
+    }
+
+    // Send templated message
+    return await sendMessage({
       userId: call.userId,
       phoneNumberId: call.phoneNumberId,
-      type: 'SMS', // Default to SMS for missed calls
-      content: `You missed a call from ${call.callerNumber}. Please call back when available.`,
-      recipient: call.callerNumber
+      type: 'SMS',
+      content: template.content,
+      recipient: call.callerNumber,
+      template
     });
-
-    return message;
   } catch (error) {
     console.error('Error handling missed call notification:', error);
+    throw error;
   }
-}
-
-export async function getTwilioCallToken() {
-  if (!client) {
-    return { token: 'simulated-token' };
-  }
-
-  const capability = new twilio.jwt.ClientCapability({
-    accountSid: TWILIO_ACCOUNT_SID!,
-    authToken: TWILIO_AUTH_TOKEN!
-  });
-
-  capability.addScope(new twilio.jwt.ClientCapability.IncomingClientScope('test'));
-  capability.addScope(new twilio.jwt.ClientCapability.OutgoingClientScope({
-    applicationSid: TWILIO_ACCOUNT_SID!,
-    clientName: 'test'
-  }));
-
-  return {
-    token: capability.toJwt()
-  };
 }
 
 // Send message (SMS or WhatsApp)
@@ -128,12 +124,9 @@ export async function sendMessage(message: {
   recipient: string;
   template?: Template;
 }) {
-  if (!client) {
-    console.log('Simulating message:', message);
-    return message;
-  }
-
   try {
+    console.log('Sending message:', message);
+
     let from = TWILIO_PHONE_NUMBER;
     let to = message.recipient;
 
@@ -155,6 +148,7 @@ export async function sendMessage(message: {
       from
     });
 
+    // Store the message in our database
     return await storage.createMessage({
       userId: message.userId,
       phoneNumberId: message.phoneNumberId,
@@ -163,11 +157,10 @@ export async function sendMessage(message: {
       recipient: message.recipient,
       status: 'sent',
       createdAt: new Date(),
-      metadata: result
     });
   } catch (error) {
     console.error('Error sending message:', error);
-    throw new Error(`Failed to send ${message.type} message`);
+    throw new Error(`Failed to send ${message.type} message: ${error.message}`);
   }
 }
 
@@ -181,4 +174,25 @@ function processTemplate(template: Template, content: string): string {
   });
 
   return content;
+}
+
+export async function getTwilioCallToken() {
+  if (!client) {
+    return { token: 'simulated-token' };
+  }
+
+  const capability = new twilio.jwt.ClientCapability({
+    accountSid: TWILIO_ACCOUNT_SID!,
+    authToken: TWILIO_AUTH_TOKEN!
+  });
+
+  capability.addScope(new twilio.jwt.ClientCapability.IncomingClientScope('test'));
+  capability.addScope(new twilio.jwt.ClientCapability.OutgoingClientScope({
+    applicationSid: TWILIO_ACCOUNT_SID!,
+    clientName: 'test'
+  }));
+
+  return {
+    token: capability.toJwt()
+  };
 }

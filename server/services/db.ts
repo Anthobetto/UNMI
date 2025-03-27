@@ -1,18 +1,26 @@
-import { supabase } from './supabase';
-import type { Database } from '@shared/types/supabase';
+import pg from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import * as schema from '@shared/schema';
+
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is not defined');
+}
+
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+export const db = drizzle(pool, { schema });
 
 // Strongly typed database access layer
-export const db = {
+export const dbService = {
   users: {
     async getById(id: number) {
       try {
-        const { data, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', id)
-          .single();
-        if (error) throw error;
-        return data;
+        const result = await db.query.users.findFirst({
+          where: (users, { eq }) => eq(users.id, id)
+        });
+        return result;
       } catch (error) {
         console.error('Error in users.getById:', error);
         return null;
@@ -21,13 +29,10 @@ export const db = {
 
     async getByEmail(email: string) {
       try {
-        const { data, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('email', email)
-          .single();
-        if (error) throw error;
-        return data;
+        const result = await db.query.users.findFirst({
+          where: (users, { eq }) => eq(users.username, email)
+        });
+        return result;
       } catch (error) {
         console.error('Error in users.getByEmail:', error);
         return null;
@@ -37,74 +42,49 @@ export const db = {
 
   calls: {
     async getByUser(userId: number) {
-      const { data, error } = await supabase
-        .from('calls')
-        .select('*')
-        .eq('user_id', userId);
-      if (error) throw error;
-      return data;
+      return await db.query.calls.findMany({
+        where: (calls, { eq }) => eq(calls.userId, userId)
+      });
     },
 
-    async create(data: Database['public']['Tables']['calls']['Insert']) {
-      const { data: newCall, error } = await supabase
-        .from('calls')
-        .insert(data)
-        .select()
-        .single();
-      if (error) throw error;
-      return newCall;
+    async create(data: typeof schema.calls.$inferInsert) {
+      const [result] = await db.insert(schema.calls).values(data).returning();
+      return result;
     }
   },
 
   messages: {
     async getByUser(userId: number) {
-      const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('user_id', userId);
-      if (error) throw error;
-      return data;
+      return await db.query.messages.findMany({
+        where: (messages, { eq }) => eq(messages.userId, userId)
+      });
     },
 
-    async create(data: Database['public']['Tables']['messages']['Insert']) {
-      const { data: newMessage, error } = await supabase
-        .from('messages')
-        .insert(data)
-        .select()
-        .single();
-      if (error) throw error;
-      return newMessage;
+    async create(data: typeof schema.messages.$inferInsert) {
+      const [result] = await db.insert(schema.messages).values(data).returning();
+      return result;
     }
   },
-  
+
   contents: {
     async getAll(userId: number) {
-      const { data, error } = await supabase
-        .from('contents')
-        .select('*')
-        .eq('user_id', userId);
-      if (error) throw error;
-      return data;
+      return await db.query.contents.findMany({
+        where: (contents, { eq }) => eq(contents.userId, userId)
+      });
     },
 
     async getByCategory(userId: number, category: string) {
-      const { data, error } = await supabase
-        .from('contents')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('category', category);
-      if (error) throw error;
-      return data;
+      return await db.query.contents.findMany({
+        where: (contents, { and, eq }) => and(
+          eq(contents.userId, userId),
+          eq(contents.category, category)
+        )
+      });
     },
 
-    async create(data: any) {
-      const { data: newContent, error } = await supabase
-        .from('contents')
-        .insert(data)
-        .select()
-        .single();
-      if (error) throw error;
-      return newContent;
+    async create(data: typeof schema.contents.$inferInsert) {
+      const [result] = await db.insert(schema.contents).values(data).returning();
+      return result;
     }
   }
 };
