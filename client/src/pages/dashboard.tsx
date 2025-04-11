@@ -148,14 +148,14 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          {/* 3. Calculadora de ingresos potenciales */}
+          {/* 3. Income Calculator */}
           <div className="grid gap-6 mb-8">
             <Card className="bg-white border border-gray-100 rounded-lg shadow-sm">
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <div>
-                    <CardTitle className="text-xl text-[#0A1930]">Calculadora de Ingresos Potenciales</CardTitle>
-                    <CardDescription className="text-gray-600">Conversión de mensajes a ventas</CardDescription>
+                    <CardTitle className="text-xl text-[#0A1930]">Income Calculator</CardTitle>
+                    <CardDescription className="text-gray-600">Message to sales conversion</CardDescription>
                   </div>
                   <Calculator className="h-6 w-6 text-[#E53935]" />
                 </div>
@@ -164,7 +164,7 @@ export default function Dashboard() {
                 <div className="space-y-4">
                   <div>
                     <Label className="block text-sm font-medium mb-2" htmlFor="average-price">
-                      Valor promedio de una reserva (€)
+                      Average booking value (€)
                     </Label>
                     <Input
                       id="average-price"
@@ -177,16 +177,16 @@ export default function Dashboard() {
                   </div>
                   <div className="grid grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
                     <div>
-                      <h4 className="text-sm font-medium">Mensajes enviados</h4>
+                      <h4 className="text-sm font-medium">Messages sent</h4>
                       <p className="text-2xl font-bold mt-1">{totalMessagesSent}</p>
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium">Ganancia potencial</h4>
+                      <h4 className="text-sm font-medium">Potential revenue</h4>
                       <p className="text-2xl font-bold mt-1 text-[#003366]">{expectedGains}€</p>
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Basado en una tasa de conversión promedio del 18% y el valor de reserva indicado.
+                    Based on an average conversion rate of 18% and the indicated booking value.
                   </p>
                 </div>
               </CardContent>
