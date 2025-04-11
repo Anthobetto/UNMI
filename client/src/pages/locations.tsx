@@ -268,42 +268,7 @@ export default function Locations() {
             </Dialog>
           </div>
 
-          {/* Calculadora de ingresos potenciales */}
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="text-lg">Calculadora de Ingresos Potenciales</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2" htmlFor="average-price">
-                    Valor promedio de una reserva (€)
-                  </label>
-                  <Input
-                    id="average-price"
-                    type="number"
-                    min="0"
-                    value={averagePrice}
-                    onChange={(e) => setAveragePrice(e.target.value)}
-                    className="max-w-xs"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
-                  <div>
-                    <h4 className="text-sm font-medium">Mensajes enviados</h4>
-                    <p className="text-2xl font-bold mt-1">{totalMessagesSent}</p>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium">Ganancia potencial</h4>
-                    <p className="text-2xl font-bold mt-1 text-[#003366]">{expectedGains}€</p>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Basado en una tasa de conversión promedio del 18% y el valor de reserva indicado.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {locations?.map((location) => (

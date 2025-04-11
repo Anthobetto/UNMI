@@ -218,6 +218,51 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
+          <div className="grid gap-6 mb-8">
+            {/* Calculadora de ingresos potenciales */}
+            <Card className="bg-white border border-gray-100 rounded-lg shadow-sm">
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle className="text-xl text-[#0A1930]">Calculadora de Ingresos Potenciales</CardTitle>
+                    <CardDescription className="text-gray-600">Conversión de mensajes a ventas</CardDescription>
+                  </div>
+                  <Calculator className="h-6 w-6 text-[#E53935]" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <Label className="block text-sm font-medium mb-2" htmlFor="average-price">
+                      Valor promedio de una reserva (€)
+                    </Label>
+                    <Input
+                      id="average-price"
+                      type="number"
+                      min="0"
+                      value={averagePrice}
+                      onChange={(e) => setAveragePrice(e.target.value)}
+                      className="max-w-xs"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
+                    <div>
+                      <h4 className="text-sm font-medium">Mensajes enviados</h4>
+                      <p className="text-2xl font-bold mt-1">{totalMessagesSent}</p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium">Ganancia potencial</h4>
+                      <p className="text-2xl font-bold mt-1 text-[#003366]">{expectedGains}€</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Basado en una tasa de conversión promedio del 18% y el valor de reserva indicado.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+            
           <div className="grid gap-6 md:grid-cols-2">
             <Card className="bg-white border border-gray-100 rounded-lg shadow-sm">
               <CardHeader>
