@@ -1,8 +1,8 @@
+@import './styles/unmi-theme.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import './styles/unmi-theme.css';
 
 @layer base {
   * {

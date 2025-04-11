@@ -21,7 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { OfficialLogo } from "@/components/logo/official-logo";
+import { UnmiSvgLogo } from "@/components/logo/unmi-svg-logo";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -36,10 +36,10 @@ export function Sidebar() {
   const { user, logoutMutation } = useAuth();
 
   return (
-    <div className="flex h-full flex-col bg-[#f8f7f4]">
+    <div className="flex h-full flex-col unmi-container border-r border-gray-100">
       <div className="flex flex-1 flex-col gap-y-6 px-6 py-4">
-        <div className="flex h-16 shrink-0 items-center justify-between">
-          <OfficialLogo width={150} />
+        <div className="flex h-20 shrink-0 items-center justify-between">
+          <UnmiSvgLogo width={150} />
         </div>
         <nav className="flex flex-1 flex-col gap-y-2">
           {navigation.map((item) => (
@@ -47,10 +47,10 @@ export function Sidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                "group flex gap-x-3 rounded-md p-3 text-sm font-semibold leading-6 transition-all",
+                "group flex gap-x-3 rounded-md p-3 text-sm font-semibold leading-6 transition-all unmi-nav-link",
                 location === item.href
-                  ? "bg-[#E53935] text-white"
-                  : "text-[#0A1930] hover:bg-gray-100"
+                  ? "unmi-nav-active"
+                  : "text-[#0A1930]"
               )}
             >
               <item.icon className={cn(
