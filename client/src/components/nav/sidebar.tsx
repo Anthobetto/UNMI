@@ -50,12 +50,12 @@ export function Sidebar() {
                 "group flex gap-x-3 rounded-md p-3 text-sm font-semibold leading-6 transition-all unmi-nav-link",
                 location === item.href
                   ? "unmi-nav-active"
-                  : "text-[#0A1930]"
+                  : "text-[#003366]"
               )}
             >
               <item.icon className={cn(
                 "h-6 w-6 shrink-0",
-                location === item.href ? "text-white" : "text-[#0A1930]"
+                location === item.href ? "text-white" : "text-[#003366]"
               )} />
               {item.name}
             </Link>
@@ -66,7 +66,7 @@ export function Sidebar() {
       <div className="border-t border-gray-200 p-6">
         <div className="flex items-center gap-x-4">
           <div className="flex-1">
-            <p className="text-sm font-semibold leading-6 text-[#0A1930]">
+            <p className="text-sm font-semibold leading-6 text-[#003366]">
               {user?.username}
             </p>
           </div>
@@ -76,7 +76,7 @@ export function Sidebar() {
             className="rounded-full"
             onClick={() => logoutMutation.mutate()}
           >
-            <LogOut className="h-5 w-5 text-[#0A1930]" />
+            <LogOut className="h-5 w-5 text-[#003366]" />
           </Button>
         </div>
       </div>

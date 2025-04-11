@@ -1,31 +1,14 @@
+/* Unmi Theme Styles */
+
 :root {
-  --unmi-primary: #FF0000; /* Rojo del logo */
-  --unmi-secondary: #003366; /* Azul marino del logo */
-  --unmi-background: #f8f7f4; /* Fondo claro */
-  --unmi-text: #333333; /* Texto oscuro */
-  --unmi-light-gray: #f5f5f5; /* Gris claro para fondos alternativos */
-  --unmi-border: #e2e2e2; /* Bordes sutiles */
-  --unmi-highlight: #f0f8ff; /* Resaltado */
-  --unmi-success: #4caf50; /* Verde para éxito */
-  --unmi-warning: #ff9800; /* Naranja para advertencias */
-  --unmi-error: #f44336; /* Rojo para errores */
+  --unmi-primary: #FF0000;
+  --unmi-secondary: #003366;
+  --unmi-text-dark: #0A1930;
+  --unmi-light-bg: #f8f7f4;
 }
 
-.unmi-card {
+.unmi-container {
   background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04);
-  border: 1px solid var(--unmi-border);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.unmi-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.06);
-}
-
-.unmi-gradient-bg {
-  background: linear-gradient(135deg, var(--unmi-primary) 0%, #f05545 100%);
 }
 
 .unmi-nav-active {
@@ -33,103 +16,71 @@
   color: white;
 }
 
-.unmi-nav-link {
-  transition: all 0.3s ease;
+.unmi-nav-link:hover {
+  background-color: rgba(255, 0, 0, 0.05);
 }
 
-.unmi-nav-link:hover:not(.unmi-nav-active) {
-  background-color: rgba(229, 57, 53, 0.1);
+.unmi-nav-active:hover {
+  background-color: var(--unmi-primary);
 }
 
 .unmi-button-primary {
   background-color: var(--unmi-primary);
-  color: white;
-  border-radius: 999px;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .unmi-button-primary:hover {
   background-color: #D32F2F;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 0, 0, 0.2);
 }
 
 .unmi-button-secondary {
   background-color: var(--unmi-secondary);
   color: white;
-  border-radius: 999px;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .unmi-button-secondary:hover {
-  background-color: #172b4d;
+  background-color: #002244;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 51, 102, 0.2);
 }
 
-.unmi-header {
-  font-weight: 600;
-  color: var(--unmi-secondary);
-}
-
-.unmi-subheader {
-  font-weight: 500;
-  color: #475569;
-}
-
-.unmi-text {
-  color: var(--unmi-text);
-}
-
-.unmi-container {
-  background-color: var(--unmi-background);
-}
-
-.unmi-input {
-  border-radius: 8px;
-  border: 1px solid var(--unmi-border);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.unmi-input:focus {
-  border-color: var(--unmi-primary);
-  box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.1);
-}
-
-.unmi-table {
-  border-collapse: separate;
-  border-spacing: 0;
-  width: 100%;
-}
-
-.unmi-table th {
-  background-color: var(--unmi-light-gray);
+.unmi-section-title {
   color: var(--unmi-secondary);
   font-weight: 600;
-  text-align: left;
-  padding: 12px 16px;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
 }
 
-.unmi-table td {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--unmi-border);
-}
-
-.unmi-table tr:hover {
-  background-color: var(--unmi-highlight);
-}
-
-.unmi-badge {
-  border-radius: 999px;
-  padding: 2px 8px;
-  font-size: 0.875rem;
+.unmi-section-subtitle {
+  color: var(--unmi-text-dark);
   font-weight: 500;
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
 }
 
-.unmi-badge-primary {
-  background-color: rgba(229, 57, 53, 0.1);
-  color: var(--unmi-primary);
+.unmi-logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
 }
 
-.unmi-badge-secondary {
-  background-color: rgba(10, 25, 48, 0.1);
-  color: var(--unmi-secondary);
+/* Animation for active elements */
+@keyframes pulse-unmi {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 0, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+  }
+}
+
+.unmi-pulse {
+  animation: pulse-unmi 2s infinite;
 }

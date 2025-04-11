@@ -113,7 +113,7 @@ export default function AuthPage() {
                   />
                   <Button
                     type="submit"
-                    className="w-full h-14 rounded-full mt-6 bg-[#E53935] hover:bg-[#D32F2F] text-white font-medium text-lg"
+                    className="w-full h-14 rounded-full mt-6 bg-[#FF0000] hover:bg-[#D32F2F] text-white font-medium text-lg unmi-button-primary"
                     disabled={loginMutation.isPending}
                   >
                     Login
@@ -171,7 +171,7 @@ export default function AuthPage() {
                   />
                   <Button
                     type="submit"
-                    className="w-full h-14 rounded-full mt-6 bg-[#E53935] hover:bg-[#D32F2F] text-white font-medium text-lg"
+                    className="w-full h-14 rounded-full mt-6 bg-[#FF0000] hover:bg-[#D32F2F] text-white font-medium text-lg unmi-button-primary"
                     disabled={registerMutation.isPending}
                   >
                     Register
