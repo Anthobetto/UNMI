@@ -1,5 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Sidebar } from "@/components/nav/sidebar";
+import { Header } from "@/components/nav/header";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,6 +9,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import {
   Dialog,
@@ -54,6 +57,7 @@ type LocationFormData = z.infer<typeof locationFormSchema>;
 export default function Locations() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const [averagePrice, setAveragePrice] = useState("50");
 
   const { data: locations } = useQuery<Location[]>({
     queryKey: ["/api/locations"],
@@ -62,6 +66,10 @@ export default function Locations() {
   const { data: phoneNumbers } = useQuery<PhoneNumber[]>({
     queryKey: ["/api/phone-numbers"],
   });
+  
+  // Estimador de ingresos potenciales
+  const totalMessagesSent = 63; 
+  const expectedGains = totalMessagesSent * Number(averagePrice);
 
   const locationForm = useForm<LocationFormData>({
     resolver: zodResolver(locationFormSchema),
@@ -155,10 +163,15 @@ export default function Locations() {
   return (
     <div className="flex h-screen">
       <Sidebar />
-      <div className="flex-1 overflow-y-auto">
-        <main className="p-8">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold">Locations</h1>
+      <div className="flex-1 overflow-y-auto bg-white">
+        <Header pageName="Locations" />
+        <main className="px-8 pb-8">
+          <div className="flex justify-between items-center mb-6">
+            <div className="w-1/2">
+              <div className="flex items-center">
+                <div className="text-sm text-muted-foreground mb-2">Añade y gestiona todas tus ubicaciones</div>
+              </div>
+            </div>
             <Dialog>
               <DialogTrigger asChild>
                 <Button>
@@ -254,6 +267,43 @@ export default function Locations() {
               </DialogContent>
             </Dialog>
           </div>
+
+          {/* Calculadora de ingresos potenciales */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="text-lg">Calculadora de Ingresos Potenciales</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2" htmlFor="average-price">
+                    Valor promedio de una reserva (€)
+                  </label>
+                  <Input
+                    id="average-price"
+                    type="number"
+                    min="0"
+                    value={averagePrice}
+                    onChange={(e) => setAveragePrice(e.target.value)}
+                    className="max-w-xs"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
+                  <div>
+                    <h4 className="text-sm font-medium">Mensajes enviados</h4>
+                    <p className="text-2xl font-bold mt-1">{totalMessagesSent}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium">Ganancia potencial</h4>
+                    <p className="text-2xl font-bold mt-1 text-[#003366]">{expectedGains}€</p>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Basado en una tasa de conversión promedio del 18% y el valor de reserva indicado.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {locations?.map((location) => (
