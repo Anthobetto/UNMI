@@ -6,8 +6,8 @@ export const OfficialLogo: React.FC<{
   height?: number;
 }> = ({
   className = "",
-  width = 150,
-  height = 50,
+  width = 250,
+  height = 80,
 }) => {
   return (
     <div className={`${className} unmi-logo-wrapper`}>

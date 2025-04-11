@@ -38,8 +38,8 @@ export function Sidebar() {
   return (
     <div className="flex h-full flex-col unmi-container border-r border-gray-100 w-[35%]">
       <div className="flex flex-1 flex-col gap-y-3 px-4 py-3">
-        <div className="flex h-20 shrink-0 items-center py-1 pl-10">
-          <OfficialLogo width={150} />
+        <div className="flex h-32 shrink-0 items-center py-1 justify-end pr-5">
+          <OfficialLogo width={250} />
         </div>
         <nav className="flex flex-1 flex-col gap-y-2">
           {navigation.map((item) => (
