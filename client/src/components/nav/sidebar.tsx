@@ -36,25 +36,25 @@ export function Sidebar() {
   const { user, logoutMutation } = useAuth();
 
   return (
-    <div className="flex h-full flex-col unmi-container border-r border-gray-100">
-      <div className="flex flex-1 flex-col gap-y-6 px-6 py-4">
-        <div className="flex h-20 shrink-0 justify-center items-center">
-          <OfficialLogo width={220} />
+    <div className="flex h-full flex-col unmi-container border-r border-gray-100 w-1/4">
+      <div className="flex flex-1 flex-col gap-y-3 px-4 py-4">
+        <div className="flex h-16 shrink-0 justify-center items-center">
+          <OfficialLogo width={140} />
         </div>
-        <nav className="flex flex-1 flex-col gap-y-2">
+        <nav className="flex flex-1 flex-col gap-y-1">
           {navigation.map((item) => (
             <Link
               key={item.name}
               href={item.href}
               className={cn(
-                "group flex gap-x-3 rounded-md p-3 text-sm font-semibold leading-6 transition-all unmi-nav-link",
+                "group flex gap-x-2 rounded-md p-2 text-sm font-semibold leading-6 transition-all unmi-nav-link",
                 location === item.href
                   ? "unmi-nav-active"
                   : "text-[#003366]"
               )}
             >
               <item.icon className={cn(
-                "h-6 w-6 shrink-0",
+                "h-5 w-5 shrink-0",
                 location === item.href ? "text-white" : "text-[#003366]"
               )} />
               {item.name}
@@ -63,20 +63,20 @@ export function Sidebar() {
         </nav>
       </div>
 
-      <div className="border-t border-gray-200 p-6">
-        <div className="flex items-center gap-x-4">
+      <div className="border-t border-gray-200 py-3 px-3">
+        <div className="flex items-center gap-x-2">
           <div className="flex-1">
-            <p className="text-sm font-semibold leading-6 text-[#003366]">
+            <p className="text-xs font-semibold leading-6 text-[#003366]">
               {user?.username}
             </p>
           </div>
           <Button 
             variant="ghost" 
             size="icon" 
-            className="rounded-full"
+            className="rounded-full h-8 w-8"
             onClick={() => logoutMutation.mutate()}
           >
-            <LogOut className="h-5 w-5 text-[#003366]" />
+            <LogOut className="h-4 w-4 text-[#003366]" />
           </Button>
         </div>
       </div>
