@@ -36,10 +36,10 @@ export function Sidebar() {
   const { user, logoutMutation } = useAuth();
 
   return (
-    <div className="flex h-full flex-col unmi-container border-r border-gray-100 w-[30%]">
-      <div className="flex flex-1 flex-col gap-y-4 px-5 py-4">
-        <div className="flex h-32 shrink-0 justify-center items-center py-1">
-          <OfficialLogo width={300} />
+    <div className="flex h-full flex-col unmi-container border-r border-gray-100 w-[35%]">
+      <div className="flex flex-1 flex-col gap-y-3 px-4 py-3">
+        <div className="flex h-20 shrink-0 justify-center items-center py-1">
+          <OfficialLogo width={150} />
         </div>
         <nav className="flex flex-1 flex-col gap-y-2">
           {navigation.map((item) => (
@@ -47,7 +47,7 @@ export function Sidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                "group flex gap-x-3 rounded-md p-4 text-sm font-semibold leading-6 transition-all unmi-nav-link w-full pr-12",
+                "group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 transition-all unmi-nav-link w-full pr-8",
                 location === item.href
                   ? "unmi-nav-active"
                   : "text-[#003366]"
