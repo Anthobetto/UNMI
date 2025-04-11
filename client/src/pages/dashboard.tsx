@@ -104,6 +104,7 @@ export default function Dashboard() {
           <Header pageName="Dashboard" />
 
           <div className="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-2">
+            {/* 1. Total Calls Today */}
             <Card className="bg-white border border-gray-100 rounded-lg shadow-sm">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-lg font-medium text-[#0A1930]">
@@ -123,40 +124,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white border border-gray-100 rounded-lg shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-lg font-medium text-[#0A1930]">
-                  Active Locations
-                </CardTitle>
-                <MapPin className="h-6 w-6 text-[#E53935]" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-5xl font-bold text-[#0A1930]">
-                  {locations?.length ?? 0}
-                </div>
-                <p className="text-sm text-gray-600 mt-2">
-                  Across your organization
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white border border-gray-100 rounded-lg shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-lg font-medium text-[#0A1930]">
-                  Active Templates
-                </CardTitle>
-                <FileText className="h-6 w-6 text-[#0A1930]" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-5xl font-bold text-[#0A1930]">
-                  {templates?.length ?? 0}
-                </div>
-                <p className="text-sm text-gray-600 mt-2">
-                  Ready to use
-                </p>
-              </CardContent>
-            </Card>
-
+            {/* 2. Messages Sent Today */}
             <Card className="bg-white border border-gray-100 rounded-lg shadow-sm">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-lg font-medium text-[#0A1930]">
@@ -180,46 +148,8 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          <Card className="mb-8 bg-white border border-gray-100 rounded-lg shadow-sm">
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle className="text-xl text-[#0A1930]">Recent Calls</CardTitle>
-                  <CardDescription className="text-gray-600">
-                    Last 5 incoming calls across all locations
-                  </CardDescription>
-                </div>
-                <PhoneCall className="h-6 w-6 text-[#E53935]" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Number</TableHead>
-                    <TableHead>Shop</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Time</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentCalls.map((call) => (
-                    <TableRow key={call.id}>
-                      <TableCell className="font-medium">
-                        {call.number}
-                      </TableCell>
-                      <TableCell>{call.shop}</TableCell>
-                      <TableCell>{call.location}</TableCell>
-                      <TableCell>{call.timestamp}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-
+          {/* 3. Calculadora de ingresos potenciales */}
           <div className="grid gap-6 mb-8">
-            {/* Calculadora de ingresos potenciales */}
             <Card className="bg-white border border-gray-100 rounded-lg shadow-sm">
               <CardHeader>
                 <div className="flex justify-between items-center">
@@ -262,6 +192,83 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           </div>
+
+          <div className="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-2">
+            {/* 4. Active Locations */}
+            <Card className="bg-white border border-gray-100 rounded-lg shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-lg font-medium text-[#0A1930]">
+                  Active Locations
+                </CardTitle>
+                <MapPin className="h-6 w-6 text-[#E53935]" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-5xl font-bold text-[#0A1930]">
+                  {locations?.length ?? 0}
+                </div>
+                <p className="text-sm text-gray-600 mt-2">
+                  Across your organization
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* 5. Active Templates */}
+            <Card className="bg-white border border-gray-100 rounded-lg shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-lg font-medium text-[#0A1930]">
+                  Active Templates
+                </CardTitle>
+                <FileText className="h-6 w-6 text-[#0A1930]" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-5xl font-bold text-[#0A1930]">
+                  {templates?.length ?? 0}
+                </div>
+                <p className="text-sm text-gray-600 mt-2">
+                  Ready to use
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Recent Calls Table */}
+          <Card className="mb-8 bg-white border border-gray-100 rounded-lg shadow-sm">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle className="text-xl text-[#0A1930]">Recent Calls</CardTitle>
+                  <CardDescription className="text-gray-600">
+                    Last 5 incoming calls across all locations
+                  </CardDescription>
+                </div>
+                <PhoneCall className="h-6 w-6 text-[#E53935]" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Number</TableHead>
+                    <TableHead>Shop</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Time</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recentCalls.map((call) => (
+                    <TableRow key={call.id}>
+                      <TableCell className="font-medium">
+                        {call.number}
+                      </TableCell>
+                      <TableCell>{call.shop}</TableCell>
+                      <TableCell>{call.location}</TableCell>
+                      <TableCell>{call.timestamp}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
             
           <div className="grid gap-6 md:grid-cols-2">
             <Card className="bg-white border border-gray-100 rounded-lg shadow-sm">
