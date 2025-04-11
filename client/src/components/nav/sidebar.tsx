@@ -21,7 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { UnmiSvgLogo } from "@/components/logo/unmi-svg-logo";
+import { OfficialLogo } from "@/components/logo/official-logo";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -39,7 +39,7 @@ export function Sidebar() {
     <div className="flex h-full flex-col unmi-container border-r border-gray-100">
       <div className="flex flex-1 flex-col gap-y-6 px-6 py-4">
         <div className="flex h-20 shrink-0 items-center justify-between">
-          <UnmiSvgLogo width={150} />
+          <OfficialLogo width={150} />
         </div>
         <nav className="flex flex-1 flex-col gap-y-2">
           {navigation.map((item) => (

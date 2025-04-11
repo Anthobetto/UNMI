@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UnmiSvgLogo } from "@/components/logo/unmi-svg-logo";
+import { OfficialLogo } from "@/components/logo/official-logo";
 
 type LoginData = Pick<InsertUser, "username" | "password">;
 
@@ -54,7 +54,7 @@ export default function AuthPage() {
         <CardContent className="p-8">
           <div className="flex flex-col items-center mb-6">
             <div className="mb-3">
-              <UnmiSvgLogo width={180} />
+              <OfficialLogo width={180} />
             </div>
             <p className="text-[#333333] text-center mt-2">
               Transform your business communications

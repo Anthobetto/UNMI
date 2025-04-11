@@ -12,7 +12,7 @@ export const OfficialLogo: React.FC<{
   return (
     <div className={`${className}`}>
       <img 
-        src="/assets/logo-unmi.png" 
+        src="/assets/logo-unmi-transparent.png" 
         alt="Unmi Logo" 
         width={width} 
         height={height}
