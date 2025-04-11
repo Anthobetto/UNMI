@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Sidebar } from "@/components/nav/sidebar";
+import { Header } from "@/components/nav/header";
 import {
   Card,
   CardContent,
@@ -33,7 +34,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-3))"];
+const COLORS = ["#E53935", "#32a852"];
 
 const recentCalls = [
   {
@@ -98,27 +99,23 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen">
       <Sidebar />
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto bg-[#f8f7f4]">
         <main className="p-8">
-          <div className="text-center mb-12">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-              Dashboard
-            </h1>
-          </div>
+          <Header pageName="Dashboard" />
 
-          <div className="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
-            <Card className="bg-gradient-to-br from-background to-primary/5">
+          <div className="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-2">
+            <Card className="bg-white border border-gray-100 rounded-lg shadow-sm">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-lg font-medium text-[#0A1930]">
                   Total Calls Today
                 </CardTitle>
-                <PhoneCall className="h-4 w-4 text-muted-foreground" />
+                <PhoneCall className="h-6 w-6 text-[#E53935]" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">128</div>
-                <p className="text-xs text-muted-foreground">
-                  <span className="text-green-500 inline-flex items-center">
-                    <ArrowUpRight className="h-3 w-3" />
+                <div className="text-5xl font-bold text-[#0A1930]">128</div>
+                <p className="text-sm text-gray-600 mt-2">
+                  <span className="text-green-600 inline-flex items-center">
+                    <ArrowUpRight className="h-4 w-4" />
                     12%
                   </span>{" "}
                   vs yesterday
@@ -126,116 +123,74 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-background to-primary/5">
+            <Card className="bg-white border border-gray-100 rounded-lg shadow-sm">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-lg font-medium text-[#0A1930]">
                   Active Locations
                 </CardTitle>
-                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <MapPin className="h-6 w-6 text-[#E53935]" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-5xl font-bold text-[#0A1930]">
                   {locations?.length ?? 0}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-gray-600 mt-2">
                   Across your organization
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-background to-primary/5">
+            <Card className="bg-white border border-gray-100 rounded-lg shadow-sm">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-lg font-medium text-[#0A1930]">
                   Active Templates
                 </CardTitle>
-                <FileText className="h-4 w-4 text-muted-foreground" />
+                <FileText className="h-6 w-6 text-[#0A1930]" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-5xl font-bold text-[#0A1930]">
                   {templates?.length ?? 0}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-gray-600 mt-2">
                   Ready to use
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-background to-primary/5">
+            <Card className="bg-white border border-gray-100 rounded-lg shadow-sm">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">
+                <CardTitle className="text-lg font-medium text-[#0A1930]">
                   Messages Sent Today
                 </CardTitle>
-                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                <MessageSquare className="h-6 w-6 text-[#0A1930]" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{totalMessagesSent}</div>
-                <div className="flex gap-2 text-xs text-muted-foreground">
+                <div className="text-5xl font-bold text-[#0A1930]">{totalMessagesSent}</div>
+                <div className="flex gap-4 text-sm text-gray-600 mt-2">
                   <span className="flex items-center">
-                    <Phone className="h-3 w-3 mr-1" />
+                    <Phone className="h-4 w-4 mr-1" />
                     SMS: 42
                   </span>
                   <span className="flex items-center">
-                    <MessageCircle className="h-3 w-3 mr-1" />
+                    <MessageCircle className="h-4 w-4 mr-1" />
                     WhatsApp: 21
                   </span>
                 </div>
               </CardContent>
             </Card>
-
-            <Card className="md:col-span-2 bg-gradient-to-br from-primary/20 to-primary/5 border-primary/10">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <div>
-                  <CardTitle className="text-lg font-medium">
-                    Expected Revenue Calculator
-                  </CardTitle>
-                  <CardDescription>
-                    Potential revenue from today's message engagements
-                  </CardDescription>
-                </div>
-                <Calculator className="h-5 w-5 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="averagePrice">Average Sale Value</Label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="averagePrice"
-                        type="number"
-                        value={averagePrice}
-                        onChange={(e) => setAveragePrice(e.target.value)}
-                        className="pl-8"
-                        min="0"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 p-4 bg-background/50 rounded-lg">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Messages Sent Today</p>
-                      <p className="text-2xl font-bold text-primary">
-                        {totalMessagesSent}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Potential Revenue</p>
-                      <p className="text-2xl font-bold text-primary">
-                        ${expectedGains.toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
-          <Card className="mb-8 bg-gradient-to-br from-background to-primary/5">
+          <Card className="mb-8 bg-white border border-gray-100 rounded-lg shadow-sm">
             <CardHeader>
-              <CardTitle>Recent Calls</CardTitle>
-              <CardDescription>
-                Last 5 incoming calls across all locations
-              </CardDescription>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle className="text-xl text-[#0A1930]">Recent Calls</CardTitle>
+                  <CardDescription className="text-gray-600">
+                    Last 5 incoming calls across all locations
+                  </CardDescription>
+                </div>
+                <PhoneCall className="h-6 w-6 text-[#E53935]" />
+              </div>
             </CardHeader>
             <CardContent>
               <Table>
@@ -264,10 +219,15 @@ export default function Dashboard() {
           </Card>
 
           <div className="grid gap-6 md:grid-cols-2">
-            <Card className="bg-gradient-to-br from-background to-primary/5">
+            <Card className="bg-white border border-gray-100 rounded-lg shadow-sm">
               <CardHeader>
-                <CardTitle>Call Distribution</CardTitle>
-                <CardDescription>Today's call statistics</CardDescription>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle className="text-xl text-[#0A1930]">Call Distribution</CardTitle>
+                    <CardDescription className="text-gray-600">Today's call statistics</CardDescription>
+                  </div>
+                  <PhoneCall className="h-6 w-6 text-[#E53935]" />
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="h-[200px]">
@@ -306,10 +266,15 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-background to-primary/5">
+            <Card className="bg-white border border-gray-100 rounded-lg shadow-sm">
               <CardHeader>
-                <CardTitle>Message Type Distribution</CardTitle>
-                <CardDescription>Last 30 days</CardDescription>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle className="text-xl text-[#0A1930]">Message Type Distribution</CardTitle>
+                    <CardDescription className="text-gray-600">Last 30 days</CardDescription>
+                  </div>
+                  <MessageSquare className="h-6 w-6 text-[#0A1930]" />
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="h-[200px]">
@@ -325,19 +290,19 @@ export default function Dashboard() {
                         paddingAngle={5}
                         dataKey="value"
                       >
-                        <Cell fill="hsl(var(--chart-1))" />
-                        <Cell fill="hsl(var(--chart-2))" />
+                        <Cell fill="#0A1930" />
+                        <Cell fill="#32a852" />
                       </Pie>
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
                 <div className="flex justify-center gap-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-[hsl(var(--chart-1))]" />
+                    <div className="w-3 h-3 rounded-full bg-[#0A1930]" />
                     <span className="text-sm">SMS: 65%</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-[hsl(var(--chart-2))]" />
+                    <div className="w-3 h-3 rounded-full bg-[#32a852]" />
                     <span className="text-sm">WhatsApp: 35%</span>
                   </div>
                 </div>
@@ -346,27 +311,32 @@ export default function Dashboard() {
           </div>
 
 
-          <Card className="bg-gradient-to-br from-background to-primary/5">
+          <Card className="mt-6 bg-white border border-gray-100 rounded-lg shadow-sm">
             <CardHeader>
-              <CardTitle>Active Routing Rules</CardTitle>
-              <CardDescription>
-                Currently applied routing configurations
-              </CardDescription>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle className="text-xl text-[#0A1930]">Active Routing Rules</CardTitle>
+                  <CardDescription className="text-gray-600">
+                    Currently applied routing configurations
+                  </CardDescription>
+                </div>
+                <MapPin className="h-6 w-6 text-[#E53935]" />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {rules?.map((rule) => (
                   <div
                     key={rule.id}
-                    className="flex items-center justify-between p-2 rounded-lg bg-muted"
+                    className="flex items-center justify-between p-3 rounded-lg bg-gray-50"
                   >
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
-                      <span className="text-sm font-medium">
+                      <MapPin className="h-4 w-4 text-[#E53935]" />
+                      <span className="text-[#0A1930] font-medium">
                         Location #{rule.locationId}
                       </span>
                     </div>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-sm text-gray-600">
                       Priority: {rule.priority}
                     </span>
                   </div>

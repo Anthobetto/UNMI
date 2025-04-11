@@ -21,6 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { UnmiLogo } from "@/components/logo/unmi-logo";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -35,68 +36,48 @@ export function Sidebar() {
   const { user, logoutMutation } = useAuth();
 
   return (
-    <div className="flex h-full flex-col bg-primary/5">
-      <div className="flex flex-1 flex-col gap-y-4 px-6 py-4">
+    <div className="flex h-full flex-col bg-[#f8f7f4]">
+      <div className="flex flex-1 flex-col gap-y-6 px-6 py-4">
         <div className="flex h-16 shrink-0 items-center justify-between">
-          <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-            Unmi
-          </span>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <User className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                <span>Mi Perfil</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Billing className="mr-2 h-4 w-4" />
-                <span>Facturación</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <HelpCircle className="mr-2 h-4 w-4" />
-                <span>Servicio al Cliente</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => logoutMutation.mutate()}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Cerrar Sesión</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <UnmiLogo size={40} />
         </div>
-        <nav className="flex flex-1 flex-col gap-y-4">
+        <nav className="flex flex-1 flex-col gap-y-2">
           {navigation.map((item) => (
             <Link
               key={item.name}
               href={item.href}
               className={cn(
-                "group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 transition-all",
+                "group flex gap-x-3 rounded-md p-3 text-sm font-semibold leading-6 transition-all",
                 location === item.href
-                  ? "bg-primary text-white"
-                  : "text-gray-700 hover:bg-primary/10"
+                  ? "bg-[#E53935] text-white"
+                  : "text-[#0A1930] hover:bg-gray-100"
               )}
             >
-              <item.icon className="h-6 w-6 shrink-0" />
+              <item.icon className={cn(
+                "h-6 w-6 shrink-0",
+                location === item.href ? "text-white" : "text-[#0A1930]"
+              )} />
               {item.name}
             </Link>
           ))}
         </nav>
       </div>
 
-      <div className="border-t border-primary/10 p-6">
+      <div className="border-t border-gray-200 p-6">
         <div className="flex items-center gap-x-4">
           <div className="flex-1">
-            <p className="text-sm font-semibold leading-6 text-gray-900">
-              {user?.companyName}
-            </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-sm font-semibold leading-6 text-[#0A1930]">
               {user?.username}
             </p>
           </div>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="rounded-full"
+            onClick={() => logoutMutation.mutate()}
+          >
+            <LogOut className="h-5 w-5 text-[#0A1930]" />
+          </Button>
         </div>
       </div>
     </div>
