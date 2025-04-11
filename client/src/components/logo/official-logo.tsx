@@ -6,17 +6,17 @@ export const OfficialLogo: React.FC<{
   height?: number;
 }> = ({
   className = "",
-  width = 180,
-  height = 60,
+  width = 220,
+  height = 75,
 }) => {
   return (
-    <div className={`${className}`}>
+    <div className={`${className} unmi-logo-wrapper`}>
       <img 
         src="/assets/logo-unmi-transparent.png" 
         alt="Unmi Logo" 
         width={width} 
         height={height}
-        className="object-contain"
+        className="object-contain unmi-logo-image"
       />
     </div>
   );
