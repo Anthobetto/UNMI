@@ -13,7 +13,7 @@
 
 .unmi-main-content {
   background-color: white;
-  width: 75%;
+  width: 70%;
   height: 100%;
   padding: 1.5rem;
 }
@@ -63,10 +63,12 @@
 
 .unmi-client-name {
   color: var(--unmi-secondary);
-  font-weight: 400;
-  font-size: 1.5rem;
+  font-weight: 700;
+  font-size: 1.8rem;
   letter-spacing: 0.03em;
   white-space: nowrap;
+  border-bottom: 1px solid rgba(0, 51, 102, 0.1);
+  padding-bottom: 0.5rem;
 }
 
 .unmi-section-subtitle {
