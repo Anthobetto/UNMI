@@ -99,8 +99,8 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen">
       <Sidebar />
-      <div className="flex-1 overflow-y-auto bg-[#f8f7f4]">
-        <main className="unmi-main-content">
+      <div className="flex-1 overflow-y-auto unmi-main-content">
+        <main>
           <Header pageName="Dashboard" />
 
           <div className="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-2">
