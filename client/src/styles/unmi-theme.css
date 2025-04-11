@@ -8,7 +8,15 @@
 }
 
 .unmi-container {
+  background-color: #f8f7f4;
+}
+
+.unmi-main-content {
   background-color: white;
+  border-radius: 1rem;
+  margin: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 .unmi-nav-active {

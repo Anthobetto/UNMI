@@ -38,8 +38,11 @@ export function Sidebar() {
   return (
     <div className="flex h-full flex-col unmi-container border-r border-gray-100">
       <div className="flex flex-1 flex-col gap-y-6 px-6 py-4">
-        <div className="flex h-20 shrink-0 items-center justify-between">
-          <OfficialLogo width={150} />
+        <div className="flex h-20 shrink-0 flex-col items-start justify-center">
+          <OfficialLogo width={180} />
+          <div className="mt-3">
+            <h2 className="text-lg font-bold text-[#003366]">{user?.companyName || "Cliente Unmi"}</h2>
+          </div>
         </div>
         <nav className="flex flex-1 flex-col gap-y-2">
           {navigation.map((item) => (

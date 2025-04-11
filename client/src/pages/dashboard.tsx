@@ -100,7 +100,7 @@ export default function Dashboard() {
     <div className="flex h-screen">
       <Sidebar />
       <div className="flex-1 overflow-y-auto bg-[#f8f7f4]">
-        <main className="p-8">
+        <main className="unmi-main-content">
           <Header pageName="Dashboard" />
 
           <div className="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-2">

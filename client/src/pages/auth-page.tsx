@@ -54,7 +54,7 @@ export default function AuthPage() {
         <CardContent className="p-8">
           <div className="flex flex-col items-center mb-6">
             <div className="mb-3">
-              <OfficialLogo width={180} />
+              <OfficialLogo width={220} />
             </div>
             <p className="text-[#333333] text-center mt-2">
               Transform your business communications
