@@ -38,7 +38,7 @@ export function Sidebar() {
   return (
     <div className="flex h-full flex-col unmi-container border-r border-gray-100 w-[35%]">
       <div className="flex flex-1 flex-col gap-y-3 px-4 py-3">
-        <div className="flex h-20 shrink-0 justify-center items-center py-1">
+        <div className="flex h-20 shrink-0 items-center py-1 pl-3">
           <OfficialLogo width={150} />
         </div>
         <nav className="flex flex-1 flex-col gap-y-2">
