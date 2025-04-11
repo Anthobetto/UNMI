@@ -39,7 +39,7 @@ export function Sidebar() {
     <div className="flex h-full flex-col bg-[#f8f7f4]">
       <div className="flex flex-1 flex-col gap-y-6 px-6 py-4">
         <div className="flex h-16 shrink-0 items-center justify-between">
-          <UnmiLogo size={40} />
+          <UnmiLogo size={50} textSize="text-2xl" />
         </div>
         <nav className="flex flex-1 flex-col gap-y-2">
           {navigation.map((item) => (
