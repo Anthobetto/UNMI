@@ -1,0 +1,135 @@
+:root {
+  --unmi-primary: #E53935; /* Rojo del logo */
+  --unmi-secondary: #0A1930; /* Azul marino del logo */
+  --unmi-background: #f8f7f4; /* Fondo claro */
+  --unmi-text: #333333; /* Texto oscuro */
+  --unmi-light-gray: #f5f5f5; /* Gris claro para fondos alternativos */
+  --unmi-border: #e2e2e2; /* Bordes sutiles */
+  --unmi-highlight: #f0f8ff; /* Resaltado */
+  --unmi-success: #4caf50; /* Verde para éxito */
+  --unmi-warning: #ff9800; /* Naranja para advertencias */
+  --unmi-error: #f44336; /* Rojo para errores */
+}
+
+.unmi-card {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--unmi-border);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.unmi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.06);
+}
+
+.unmi-gradient-bg {
+  background: linear-gradient(135deg, var(--unmi-primary) 0%, #f05545 100%);
+}
+
+.unmi-nav-active {
+  background-color: var(--unmi-primary);
+  color: white;
+}
+
+.unmi-nav-link {
+  transition: all 0.3s ease;
+}
+
+.unmi-nav-link:hover:not(.unmi-nav-active) {
+  background-color: rgba(229, 57, 53, 0.1);
+}
+
+.unmi-button-primary {
+  background-color: var(--unmi-primary);
+  color: white;
+  border-radius: 999px;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.unmi-button-primary:hover {
+  background-color: #D32F2F;
+}
+
+.unmi-button-secondary {
+  background-color: var(--unmi-secondary);
+  color: white;
+  border-radius: 999px;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.unmi-button-secondary:hover {
+  background-color: #172b4d;
+}
+
+.unmi-header {
+  font-weight: 600;
+  color: var(--unmi-secondary);
+}
+
+.unmi-subheader {
+  font-weight: 500;
+  color: #475569;
+}
+
+.unmi-text {
+  color: var(--unmi-text);
+}
+
+.unmi-container {
+  background-color: var(--unmi-background);
+}
+
+.unmi-input {
+  border-radius: 8px;
+  border: 1px solid var(--unmi-border);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.unmi-input:focus {
+  border-color: var(--unmi-primary);
+  box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.1);
+}
+
+.unmi-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+
+.unmi-table th {
+  background-color: var(--unmi-light-gray);
+  color: var(--unmi-secondary);
+  font-weight: 600;
+  text-align: left;
+  padding: 12px 16px;
+}
+
+.unmi-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--unmi-border);
+}
+
+.unmi-table tr:hover {
+  background-color: var(--unmi-highlight);
+}
+
+.unmi-badge {
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.unmi-badge-primary {
+  background-color: rgba(229, 57, 53, 0.1);
+  color: var(--unmi-primary);
+}
+
+.unmi-badge-secondary {
+  background-color: rgba(10, 25, 48, 0.1);
+  color: var(--unmi-secondary);
+}
