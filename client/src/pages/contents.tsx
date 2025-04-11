@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/nav/sidebar";
+import { Header } from "@/components/nav/header";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -96,66 +97,73 @@ export default function Contents() {
   return (
     <div className="flex h-screen">
       <Sidebar />
-      <div className="flex-1 overflow-y-auto p-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Resource Library</h1>
-        </div>
-
-        {/* Upload Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Upload className="h-5 w-5" />
-              Upload New Document
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4">
-              <input
-                type="file"
-                id="file-upload"
-                className="hidden"
-                onChange={handleFileUpload}
-                accept="image/*,video/*,application/pdf"
-              />
-              <Button
-                variant="outline"
-                onClick={() => document.getElementById('file-upload')?.click()}
-                disabled={uploading}
-              >
-                {uploading ? 'Uploading...' : 'Choose File'}
-              </Button>
+      <div className="flex-1 overflow-y-auto bg-white">
+        <Header pageName="Resource Library" />
+        <main className="px-8 pb-8">
+          <div className="flex items-center mb-6">
+            <div className="w-full">
+              <div className="flex items-center">
+                <div className="text-sm text-muted-foreground mb-2">Accede a todos los recursos y documentos del sistema</div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Existing Content Grid */}
-        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {contents.map((content) => (
-            <Card key={content.id} className="flex flex-col">
-              <CardHeader className="flex flex-row items-start gap-2">
-                {content.type === 'video' && <Video className="h-5 w-5 mt-1" />}
-                {content.type === 'image' && <Image className="h-5 w-5 mt-1" />}
-                {content.type === 'application' && <FileArchive className="h-5 w-5 mt-1" />}
-                <div>
-                  <CardTitle className="text-lg">{content.title}</CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {content.description}
-                  </p>
-                </div>
-              </CardHeader>
-              <CardContent className="mt-auto pt-6">
+          {/* Upload Section */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                Upload New Document
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4">
+                <input
+                  type="file"
+                  id="file-upload"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                  accept="image/*,video/*,application/pdf"
+                />
                 <Button
                   variant="outline"
-                  className="w-full"
-                  onClick={() => window.open(content.url, '_blank')}
+                  onClick={() => document.getElementById('file-upload')?.click()}
+                  disabled={uploading}
                 >
-                  View Document
+                  {uploading ? 'Uploading...' : 'Choose File'}
                 </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Existing Content Grid */}
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            {contents.map((content) => (
+              <Card key={content.id} className="flex flex-col">
+                <CardHeader className="flex flex-row items-start gap-2">
+                  {content.type === 'video' && <Video className="h-5 w-5 mt-1" />}
+                  {content.type === 'image' && <Image className="h-5 w-5 mt-1" />}
+                  {content.type === 'application' && <FileArchive className="h-5 w-5 mt-1" />}
+                  <div>
+                    <CardTitle className="text-lg">{content.title}</CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {content.description}
+                    </p>
+                  </div>
+                </CardHeader>
+                <CardContent className="mt-auto pt-6">
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => window.open(content.url, '_blank')}
+                  >
+                    View Document
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </main>
       </div>
     </div>
   );

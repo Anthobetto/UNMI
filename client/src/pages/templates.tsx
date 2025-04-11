@@ -1,5 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Sidebar } from "@/components/nav/sidebar";
+import { Header } from "@/components/nav/header";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -50,6 +51,9 @@ export default function Templates() {
       content: "",
       type: "missed_call",
       channel: "both",
+      locationId: null,
+      groupId: null,
+      variables: null
     },
   });
 
@@ -66,10 +70,15 @@ export default function Templates() {
   return (
     <div className="flex h-screen">
       <Sidebar />
-      <div className="flex-1 overflow-y-auto">
-        <main className="p-8">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold">Message Templates</h1>
+      <div className="flex-1 overflow-y-auto bg-white">
+        <Header pageName="Templates" />
+        <main className="px-8 pb-8">
+          <div className="flex justify-between items-center mb-6">
+            <div className="w-1/2">
+              <div className="flex items-center">
+                <div className="text-sm text-muted-foreground mb-2">Crea y administra mensajes predefinidos para diversas situaciones</div>
+              </div>
+            </div>
             <Dialog>
               <DialogTrigger asChild>
                 <Button>
