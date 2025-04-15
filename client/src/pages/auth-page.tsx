@@ -19,12 +19,23 @@ import {
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OfficialLogo } from "@/components/logo/official-logo";
+import { useEffect, useState } from "react";
 
 type LoginData = Pick<InsertUser, "username" | "password">;
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
+  const [activeTab, setActiveTab] = useState<string>("login");
+
+  // Parse URL parameters to check if there's a tab parameter
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const tabParam = url.searchParams.get("tab");
+    if (tabParam === "register") {
+      setActiveTab("register");
+    }
+  }, [location]);
 
   if (user) {
     setLocation("/");
@@ -61,7 +72,7 @@ export default function AuthPage() {
             </p>
           </div>
 
-          <Tabs defaultValue="login" className="mt-8">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-8">
             <TabsList className="grid w-full grid-cols-2 mb-8 bg-gray-100 p-1 rounded-full">
               <TabsTrigger 
                 value="login" 

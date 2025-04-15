@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 
 import AuthPage from "@/pages/auth-page";
+import LandingPage from "@/pages/landing-page";
 import Dashboard from "@/pages/dashboard";
 import Locations from "@/pages/locations";
 import Templates from "@/pages/templates";
@@ -25,13 +26,14 @@ function Router() {
     );
   }
 
-  // If no user is logged in, only show auth page and redirect all other routes to it
+  // If no user is logged in, show landing page and auth page
   if (!user) {
     return (
       <Switch>
+        <Route path="/" component={LandingPage} />
         <Route path="/auth" component={AuthPage} />
         <Route>
-          <Redirect to="/auth" />
+          <Redirect to="/" />
         </Route>
       </Switch>
     );
