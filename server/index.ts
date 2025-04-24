@@ -67,7 +67,7 @@ process.on('unhandledRejection', (reason, promise) => {
       const message = err.message || "Internal Server Error";
 
       // Send error response
-      res.status(status).json({ 
+      res.status(status).json({
         message,
         error: app.get('env') === 'development' ? err : {}
       });
@@ -86,7 +86,7 @@ process.on('unhandledRejection', (reason, promise) => {
     // this serves both the API and the client
     const PORT = 3000;
     server.listen(PORT, "0.0.0.0", () => {
-      log(`serving on port ${PORT}`);
+      log(`Server running on http://localhost:${PORT}`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
