@@ -6,7 +6,7 @@ export function toLostCall(call: Call): LostCall {
     id: call.id,
     clientID: call.callerNumber,
     date: new Date(call.createdAt),
-    storeId: call.routedToLocation!,
+    storeId: call.routedToLocation ?? 0,
     messageSent: false
   };
 }

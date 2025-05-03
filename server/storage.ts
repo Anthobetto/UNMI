@@ -7,6 +7,8 @@ import {
   Content, InsertContent, contents,
   users, locations, templates, routingRules, phoneNumbers, calls,
 } from "@shared/schema";
+import { toLostCall } from "client/src/utils/mappers.ts"
+import { LostCall } from "@/lib/lostCall";
 import session from "express-session";
 import { db as supabaseDb } from "./services/supabase";
 import connectPg from "connect-pg-simple";
@@ -233,6 +235,11 @@ export class DatabaseStorage implements IStorage {
     }));
     if (error) throw error;
     return data;
+  }
+
+  async getLostCalls(userId: number): Promise<LostCall[]> {
+    const calls = await this.getCalls(userId);
+    return calls.filter(c => c.status === 'missed').map(toLostCall);
   }
 
   // Routing rule methods
