@@ -2,10 +2,10 @@ import { createClient } from '@supabase/supabase-js';
 import { Database } from '@shared/types/supabase';
 
 // Initialize Supabase client with environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!supabaseUrl || !supabaseServiceKey) {
   console.warn('Missing Supabase credentials. Database operations will be simulated.');
 }
 
@@ -22,9 +22,9 @@ const createMockClient = () => ({
   }),
 });
 
-export const supabase = (!supabaseUrl || !supabaseAnonKey) 
+export const supabase = (!supabaseUrl || !supabaseServiceKey) 
   ? createMockClient() as any
-  : createClient<Database>(supabaseUrl, supabaseAnonKey);
+  : createClient<Database>(supabaseUrl, supabaseServiceKey);
 
 // Real-time subscription helpers
 export const subscribeToChannel = (
