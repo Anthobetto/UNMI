@@ -57,6 +57,17 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
+  // Helper method to convert snake_case to camelCase for our models
+  private toCamelCase(obj: any): any {
+    if (obj === null || typeof obj !== 'object') return obj;
+    return Object.keys(obj).reduce((acc: any, key) => {
+      const newKey = key.replace(/([-_][a-z])/g, (group) =>
+        group.toUpperCase().replace('_', '')
+      );
+      acc[newKey] = this.toCamelCase(obj[key]);
+      return acc;
+    }, {});
+  }
   // Helper method to convert camelCase to snake_case for Supabase
   private toSnakeCase(obj: any): any {
     if (obj === null || typeof obj !== 'object') return obj;
@@ -67,68 +78,70 @@ export class DatabaseStorage implements IStorage {
     }, {});
   }
 
-  // Content management methods
+
   async getContents(userId: number): Promise<Content[]> {
     const { data, error } = await supabaseDb.contents.getByUser(userId);
     if (error) throw error;
-    return data || [];
+    // Transformar cada objeto de snake_case a camelCase
+    return (data || []).map(this.toCamelCase);
   }
+
 
   async getContentsByCategory(userId: number, category: string): Promise<Content[]> {
     const { data, error } = await supabaseDb.contents.getByCategory(userId, category);
     if (error) throw error;
-    return data || [];
+    return (data || []).map(this.toCamelCase);
   }
 
   async createContent(content: InsertContent): Promise<Content> {
     const { data, error } = await supabaseDb.contents.create(this.toSnakeCase(content));
     if (error) throw error;
-    return data;
+    return this.toCamelCase(data);
   }
 
   // User methods
   async getUser(id: number): Promise<User | undefined> {
     const { data, error } = await supabaseDb.users.getById(id);
     if (error) throw error;
-    return data || undefined;
+    return data ? this.toCamelCase(data) : undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     const { data, error } = await supabaseDb.users.getByUsername(username);
     if (error) throw error;
-    return data || undefined;
+    return data ? this.toCamelCase(data) : undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const { data, error } = await supabaseDb.users.create(this.toSnakeCase(insertUser));
     if (error) throw error;
-    return data;
+    return this.toCamelCase(data);
   }
 
   // Group methods
   async getGroups(userId: number): Promise<Group[]> {
     const { data, error } = await supabaseDb.groups.getByUser(userId);
     if (error) throw error;
-    return data || [];
+    return (data || []).map(this.toCamelCase);
   }
 
   async createGroup(insertGroup: InsertGroup): Promise<Group> {
     const { data, error } = await supabaseDb.groups.create(this.toSnakeCase(insertGroup));
     if (error) throw error;
-    return data;
+    return this.toCamelCase(data);
   }
 
   // Location methods
   async getLocations(userId: number): Promise<Location[]> {
     const { data, error } = await supabaseDb.locations.getByUser(userId);
     if (error) throw error;
-    return data || [];
+    return (data || []).map(this.toCamelCase);
   }
 
   async getGroupLocations(groupId: number): Promise<Location[]> {
     const { data, error } = await supabaseDb.locations.getByGroup(groupId);
     if (error) throw error;
-    return data || [];
+    return (data || []).map(this.toCamelCase);
   }
 
   async createLocation(location: InsertLocation): Promise<Location> {
@@ -141,26 +154,26 @@ export class DatabaseStorage implements IStorage {
       trial_start_date: isFirstLocation ? new Date().toISOString() : null,
     }));
     if (error) throw error;
-    return data;
+    return this.toCamelCase(data);
   }
 
   // Phone number methods
   async getPhoneNumbers(userId: number): Promise<PhoneNumber[]> {
     const { data, error } = await supabaseDb.phoneNumbers.getByUser(userId);
     if (error) throw error;
-    return data || [];
+    return (data || []).map(this.toCamelCase);
   }
 
   async getLocationPhoneNumbers(locationId: number): Promise<PhoneNumber[]> {
     const { data, error } = await supabaseDb.phoneNumbers.getByLocation(locationId);
     if (error) throw error;
-    return data || [];
+    return (data || []).map(this.toCamelCase);
   }
 
   async getLinkedNumbers(phoneNumber: string): Promise<PhoneNumber[]> {
     const { data, error } = await supabaseDb.phoneNumbers.getLinked(phoneNumber);
     if (error) throw error;
-    return data || [];
+    return (data || []).map(this.toCamelCase);
   }
 
   async createPhoneNumber(phoneNumber: InsertPhoneNumber): Promise<PhoneNumber> {
@@ -173,26 +186,26 @@ export class DatabaseStorage implements IStorage {
       linked_number: phoneNumber.linkedNumber
     }));
     if (error) throw error;
-    return data;
+    return this.toCamelCase(data);
   }
 
   // Template methods
   async getTemplates(userId: number): Promise<Template[]> {
     const { data, error } = await supabaseDb.templates.getByUser(userId);
     if (error) throw error;
-    return data || [];
+    return (data || []).map(this.toCamelCase);
   }
 
   async getLocationTemplates(locationId: number): Promise<Template[]> {
     const { data, error } = await supabaseDb.templates.getByLocation(locationId);
     if (error) throw error;
-    return data || [];
+    return (data || []).map(this.toCamelCase);
   }
 
   async getGroupTemplates(groupId: number): Promise<Template[]> {
     const { data, error } = await supabaseDb.templates.getByGroup(groupId);
     if (error) throw error;
-    return data || [];
+    return (data || []).map(this.toCamelCase);
   }
 
   async createTemplate(template: InsertTemplate): Promise<Template> {
@@ -206,20 +219,20 @@ export class DatabaseStorage implements IStorage {
       variables: template.variables
     }));
     if (error) throw error;
-    return data;
+    return this.toCamelCase(data);
   }
 
   // Call methods
   async getCalls(userId: number): Promise<Call[]> {
     const { data, error } = await supabaseDb.calls.getByUser(userId);
     if (error) throw error;
-    return data || [];
+    return (data || []).map(this.toCamelCase);
   }
 
   async getCallsByPhoneNumber(phoneNumberId: number): Promise<Call[]> {
     const { data, error } = await supabaseDb.calls.getByPhoneNumber(phoneNumberId);
     if (error) throw error;
-    return data || [];
+    return (data || []).map(this.toCamelCase);
   }
 
   async createCall(call: InsertCall): Promise<Call> {
@@ -234,7 +247,7 @@ export class DatabaseStorage implements IStorage {
       call_type: call.callType
     }));
     if (error) throw error;
-    return data;
+    return this.toCamelCase(data);
   }
 
   async getLostCalls(userId: number): Promise<LostCall[]> {
@@ -246,20 +259,20 @@ export class DatabaseStorage implements IStorage {
   async getRoutingRules(userId: number): Promise<RoutingRule[]> {
     const { data, error } = await supabaseDb.routingRules.getByUser(userId);
     if (error) throw error;
-    return data || [];
+    return (data || []).map(this.toCamelCase);
   }
 
   async createRoutingRule(rule: InsertRoutingRule): Promise<RoutingRule> {
     const { data, error } = await supabaseDb.routingRules.create(this.toSnakeCase(rule));
     if (error) throw error;
-    return data;
+    return this.toCamelCase(data);
   }
 
   // Message methods
   async getMessages(userId: number): Promise<Message[]> {
     const { data, error } = await supabaseDb.messages.getByUser(userId);
     if (error) throw error;
-    return data || [];
+    return (data || []).map(this.toCamelCase);
   }
 
   async createMessage(message: InsertMessage): Promise<Message> {
@@ -273,7 +286,7 @@ export class DatabaseStorage implements IStorage {
       created_at: message.createdAt?.toISOString()
     }));
     if (error) throw error;
-    return data;
+    return this.toCamelCase(data);
   }
 
   async getMessageStats(userId: number): Promise<{ sms: number; whatsapp: number }> {
