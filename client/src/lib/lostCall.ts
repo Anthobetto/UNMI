@@ -1,7 +1,7 @@
 export interface LostCall {
-    id: string;
+    id: number;
     clientID: string;
     date: Date;
-    storeId: string;
+    storeId: number;
     messageSent: boolean;
   }

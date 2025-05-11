@@ -217,6 +217,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(201).json(call);
   });
 
+  app.get("/api/calls/missed", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const missedCalls = await storage.getLostCalls(req.user.id); //  uso getLostCalls directamente
+    res.json(missedCalls);
+  });
   // Routing Rules
   app.get("/api/routing-rules", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
