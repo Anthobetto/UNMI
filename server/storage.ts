@@ -7,14 +7,11 @@ import {
   Content, InsertContent, contents,
   users, locations, templates, routingRules, phoneNumbers, calls,
 } from "@shared/schema";
-import { toLostCall } from "client/src/utils/mappers.ts"
+import { toLostCall } from "client/src/utils/mappers.ts";
 import { LostCall } from "@/lib/lostCall";
 import session from "express-session";
-import { db as supabaseDb } from "./services/supabase";
-import connectPg from "connect-pg-simple";
-import { pool } from "./db";
-
-const PostgresSessionStore = connectPg(session);
+import { db as supabaseDb } from "./services/supabase";  // Aquí importas el cliente de Supabase
+import connectPg from 'connect-pg-simple';
 
 interface IStorage {
   sessionStore: session.Store;
@@ -51,10 +48,11 @@ export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
 
   constructor() {
-    this.sessionStore = new PostgresSessionStore({
-      pool,
-      createTableIfMissing: true,
-    });
+    // Here we configure PostgresSessionStore to handle the sessions, but we do not use `pool` or direct connections.
+    const PostgresStore = connectPg(session); // Usamos `connect-pg-simple` como el store para las sesiones
+    this.sessionStore = new PostgresStore({
+      createTableIfMissing: true, // Asegura que se cree la tabla de sesión si no existe
+    });// Ensures that the session table is created if it does not exist.
   }
 
   // Helper method to convert snake_case to camelCase for our models
@@ -68,6 +66,7 @@ export class DatabaseStorage implements IStorage {
       return acc;
     }, {});
   }
+
   // Helper method to convert camelCase to snake_case for Supabase
   private toSnakeCase(obj: any): any {
     if (obj === null || typeof obj !== 'object') return obj;
@@ -78,14 +77,11 @@ export class DatabaseStorage implements IStorage {
     }, {});
   }
 
-
   async getContents(userId: number): Promise<Content[]> {
     const { data, error } = await supabaseDb.contents.getByUser(userId);
     if (error) throw error;
-    // Transformar cada objeto de snake_case a camelCase
     return (data || []).map(this.toCamelCase);
   }
-
 
   async getContentsByCategory(userId: number, category: string): Promise<Content[]> {
     const { data, error } = await supabaseDb.contents.getByCategory(userId, category);

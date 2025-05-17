@@ -154,6 +154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/phone-numbers/:number/linked", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
+    console.log("Authenticated:", req.isAuthenticated());
     const numbers = await storage.getLinkedNumbers(req.params.number);
     res.json(numbers);
   });

@@ -4,12 +4,15 @@ dotenv.config();
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { setupAuth } from "./auth"; 
 import path from 'path';
 import fs from 'fs';
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+setupAuth(app);
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(process.cwd(), "uploads");

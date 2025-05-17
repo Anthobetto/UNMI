@@ -4,12 +4,12 @@ import { Express } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
-import { storage } from "./storage";
+import { supabase } from "./db";
 import { User as SelectUser } from "@shared/schema";
 
 declare global {
   namespace Express {
-    interface User extends SelectUser {}
+    interface User extends SelectUser { }
   }
 }
 
@@ -33,7 +33,6 @@ export function setupAuth(app: Express) {
     secret: "your-secret-key",
     resave: false,
     saveUninitialized: false,
-    store: storage.sessionStore,
   };
 
   app.set("trust proxy", 1);
@@ -43,10 +42,18 @@ export function setupAuth(app: Express) {
 
   passport.use(
     new LocalStrategy(async (username, password, done) => {
-      const user = await storage.getUserByUsername(username);
-      if (!user || !(await comparePasswords(password, user.password))) {
+      const { data: user, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', username)
+        .single();
+
+
+      if (error || !user || !(await comparePasswords(password, user.password_hash))) {
         return done(null, false);
       } else {
+        console.log("📩 Email recibido:", username);
+        console.log("🔑 Password recibido:", password);
         return done(null, user);
       }
     }),
@@ -54,34 +61,57 @@ export function setupAuth(app: Express) {
 
   passport.serializeUser((user, done) => done(null, user.id));
   passport.deserializeUser(async (id: number, done) => {
-    const user = await storage.getUser(id);
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', id)
+      .single();
+
     done(null, user);
   });
 
   app.post("/api/register", async (req, res, next) => {
-    const existingUser = await storage.getUserByUsername(req.body.username);
+    console.log("Se alcanzó la ruta de registro");
+    const { data: existingUser, error: getUserError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', req.body.email)
+      .single();
+
     if (existingUser) {
-      return res.status(400).send("Username already exists");
+      return res.status(400).send("Email already exists.");
     }
 
-    const user = await storage.createUser({
-      ...req.body,
-      password: await hashPassword(req.body.password),
-    });
+    const hashedPassword = await hashPassword(req.body.password);
 
-    req.login(user, (err) => {
-      if (err) return next(err);
-      res.status(201).json(user);
-    });
+    const { data, error } = await supabase
+      .from('users')
+      .insert([
+        { username: req.body.username, email: req.body.email, password_hash: hashedPassword }
+      ]);
+
+    if (error) {
+      console.error('Error al insertar usuario:', error);
+      return res.status(500).send(error.message);
+    }
+    console.log('Registing user:', req.body.username, req.body.email);
+    res.status(204).end()
   });
 
-  app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    res.status(200).json(req.user);
+  app.post("/api/login", (req, res, next) => {
+    console.log("Se alcanzó la ruta de login 🔌");
+    req.logout((err) => {
+      if (err) return next(err);
+      console.log('User successfully connected ✅:', req.body.username);
+      res.sendStatus(200);
+    });
   });
 
   app.post("/api/logout", (req, res, next) => {
+    console.log("Se alcanzó la ruta de logout 🚀");
     req.logout((err) => {
       if (err) return next(err);
+      console.log('User logged out successfully 🚪:', req.body.username);
       res.sendStatus(200);
     });
   });

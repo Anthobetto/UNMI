@@ -23,7 +23,8 @@ export async function handleIncomingCall(callData: {
 }) {
   try {
     // 1. Get the phone number details to find the associated location
-    const phoneNumbers = await storage.getPhoneNumbers(1); // Replace with actual user ID
+    const phoneNumbers = await storage.getPhoneNumbers(22); // Replace with actual user ID
+    console.log("📞 Números de teléfono obtenidos:", phoneNumbers)
     const phoneNumber = phoneNumbers.find(pn => pn.number === callData.To);
 
     if (!phoneNumber) {
