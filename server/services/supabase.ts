@@ -12,8 +12,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 // Create a single supabase client for interacting with your database
 export const supabase = createClient<Database>(
-  supabaseUrl || 'https://your-project.supabase.co',
-  supabaseAnonKey || 'your-service-key',
+  supabaseUrl || 'process.env.SUPABASE_URL',
+  supabaseAnonKey || 'process.env.SUPABASE_ANON_KEY',
   {
     auth: {
       persistSession: false
