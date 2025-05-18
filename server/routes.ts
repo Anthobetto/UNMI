@@ -159,14 +159,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(numbers);
   });
 
-  app.post("/api/phone-numbers", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    const phoneNumber = await storage.createPhoneNumber({
-      ...req.body,
-      userId: req.user.id
-    });
-    res.status(201).json(phoneNumber);
+app.post("/api/phone-numbers", async (req, res) => {
+  console.log("Authenticated:", req.isAuthenticated());
+  console.log("User:", req.user);
+
+  if (!req.isAuthenticated()) return res.sendStatus(401);
+
+  const phoneNumber = await storage.createPhoneNumber({
+    ...req.body,
+    userId: req.user.id
   });
+  res.status(201).json(phoneNumber);
+});
+
 
   // Templates with group and location support
   app.get("/api/templates", async (req, res) => {
