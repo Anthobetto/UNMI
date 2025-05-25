@@ -1,16 +1,17 @@
+import 'dotenv/config';
 import twilio from 'twilio';
 import { storage } from '../storage';
 import { sendWhatsAppMessage } from './whatsapp';
 import { sendCallNotification } from './slack';
 
-const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
-const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
 
-if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN) {
+if (!accountSid || !authToken) {
   console.warn('Twilio credentials not configured. Call functionality will be simulated.');
 }
 
-const client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+const client = twilio(accountSid, authToken);
 
 // Enhanced call handling with better classification
 export async function handleIncomingCall(callData: {
@@ -24,7 +25,7 @@ export async function handleIncomingCall(callData: {
   try {
     // 1. Get the phone number details to find the associated location
     const phoneNumbers = await storage.getPhoneNumbers(22); // Replace with actual user ID
-    console.log("📞 Números de teléfono obtenidos:", phoneNumbers)
+    console.log("📞 Números de teléfono obtenidos:", phoneNumbers);
     const phoneNumber = phoneNumbers.find(pn => pn.number === callData.To);
 
     if (!phoneNumber) {
@@ -62,7 +63,6 @@ export async function handleIncomingCall(callData: {
 }
 
 function classifyCallStatus(twilioStatus: string): string {
-  // Map Twilio call statuses to our system statuses
   const statusMap: Record<string, string> = {
     'completed': 'answered',
     'no-answer': 'missed',
@@ -74,7 +74,6 @@ function classifyCallStatus(twilioStatus: string): string {
 }
 
 function determineCallType(callData: any): string {
-  // Determine if call is direct, forwarded, or IVR based
   if (callData.ForwardedFrom) return 'forwarded';
   if (callData.DialogueSid) return 'ivr';
   return 'direct';
@@ -82,23 +81,20 @@ function determineCallType(callData: any): string {
 
 async function handleMissedCall(locationId: number, phoneNumberId: number, call: any) {
   try {
-    // 1. Get location templates
     const templates = await storage.getLocationTemplates(locationId);
     const missedCallTemplate = templates.find(t => t.type === 'missed_call');
 
     if (missedCallTemplate) {
-      // 2. Create message with template
       const message = await storage.createMessage({
         userId: call.userId,
         phoneNumberId: phoneNumberId,
-        type: 'WhatsApp', // Will fallback to SMS if WhatsApp fails
+        type: 'WhatsApp',
         content: missedCallTemplate.content,
         recipient: call.callerNumber,
         status: 'pending',
         createdAt: new Date()
       });
 
-      // 3. Send message with template
       await sendWhatsAppMessage(message, missedCallTemplate);
     }
   } catch (error) {
@@ -108,22 +104,42 @@ async function handleMissedCall(locationId: number, phoneNumberId: number, call:
 }
 
 export async function getTwilioCallToken() {
-  if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN) {
+  if (!accountSid || !authToken) {
     return { token: 'simulated-token' };
   }
 
   const capability = new twilio.jwt.ClientCapability({
-    accountSid: TWILIO_ACCOUNT_SID,
-    authToken: TWILIO_AUTH_TOKEN
+    accountSid: accountSid,
+    authToken: authToken
   });
 
   capability.addScope(new twilio.jwt.ClientCapability.IncomingClientScope('test'));
   capability.addScope(new twilio.jwt.ClientCapability.OutgoingClientScope({
-    applicationSid: TWILIO_ACCOUNT_SID,
+    applicationSid: accountSid,
     clientName: 'test'
   }));
 
   return {
     token: capability.toJwt()
   };
+}
+
+export async function makeOutgoingCall(to: string, from: string, url: string) {
+  if (!accountSid || !authToken) {
+    console.warn('Twilio credentials not configured. Simulating outgoing call.');
+    return { sid: 'simulated-call-sid' };
+  }
+
+  try {
+    const call = await client.calls.create({
+      from,
+      to,
+      url,
+    });
+    console.log('Outgoing call SID:', call.sid);
+    return call;
+  } catch (error) {
+    console.error('Error creating outgoing call:', error);
+    throw error;
+  }
 }
