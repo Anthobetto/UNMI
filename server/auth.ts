@@ -49,26 +49,22 @@ export function setupAuth(app: Express) {
       console.error("❌ Usuario no encontrado o error en la búsqueda");
       return res.status(400).json({ message: "Usuario no encontrado", error, user });
     }
-
+    console.log('Usuario logueado correctamente:', email);
     res.status(200).json({ message: "Login exitoso", user });
   });
 
   // 🔎 Obtener usuario
   app.get("/api/user", async (req, res) => {
-    const token = req.cookies.accessToken;
+    const { email, password } = req.body;
 
-    if (!token) {
-      return res.status(401).json({ message: "No autenticado" });
+    const { data: user, error } = await supabase.auth.signInWithPassword({email, password})
+
+    if (error || !user) {
+      console.error("❌ Usuario no encontrado o error en la búsqueda");
+      return res.status(400).json({ message: "Usuario no encontrado", error, user });
     }
-
-    const { data, error } = await supabase.auth.getUser(token);
-
-    if (error) {
-      console.error("Error obteniendo el usuario:", error.message);
-      return res.status(400).json({ message: error.message });
-    }
-
-    res.status(200).json({ user: data.user });
+    console.log('Usuario encontrado correctamente:', email);
+    res.status(200).json({ message: "Búsqueda exitosa", user });
   });
 
   // 🔐 Logout
