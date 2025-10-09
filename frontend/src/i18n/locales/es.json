@@ -1,0 +1,522 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "download": "Descargar",
+    "back": "Volver",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "close": "Cerrar",
+    "yes": "Sí",
+    "no": "No",
+    "or": "o",
+    "and": "y"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "profitability": "Rentabilidad UNMI",
+    "telephony": "Telefonía",
+    "templates": "Templates",
+    "chatbots": "Chatbots",
+    "locations": "Ubicaciones",
+    "plan": "Mi Plan",
+    "logout": "Cerrar Sesión"
+  },
+  "landing": {
+    "hero": {
+      "badge": "Transforma tu Negocio",
+      "title": "Transforma tu Estrategia de Comunicación Empresarial",
+      "subtitle": "UNMI integra WhatsApp, SMS y gestión de llamadas en una plataforma potente, ayudando a empresas a convertir más consultas en reservas con enrutamiento inteligente y respuestas personalizadas.",
+      "cta": "Prueba de 14 días",
+      "trial": "14 días de prueba",
+      "cancel": "Cancela en cualquier momento"
+    },
+    "features": {
+      "title": "Compara UNMI vs Chatbot",
+      "subtitle": "Alterna entre las automatizaciones basadas en llamadas de UNMI y un chatbot con IA completo.",
+      "unmi": {
+        "title": "UNMI",
+        "omnichannel": {
+          "title": "Mensajería Omnicanal",
+          "desc": "Gestiona WhatsApp, SMS y llamadas de voz desde un dashboard unificado."
+        },
+        "routing": {
+          "title": "Enrutamiento Inteligente",
+          "desc": "Nuestro sistema asegura que las llamadas lleguen a la ubicación o departamento correcto."
+        },
+        "automated": {
+          "title": "Respuestas Automáticas",
+          "desc": "Interactúa con clientes incluso fuera del horario comercial con plantillas inteligentes."
+        },
+        "analytics": {
+          "title": "Análisis de Rendimiento",
+          "desc": "Obtén información valiosa sobre volúmenes de llamadas, tiempos de respuesta y tasas de conversión."
+        },
+        "multilocation": {
+          "title": "Soporte Multi-ubicación",
+          "desc": "Gestiona múltiples ubicaciones desde un solo dashboard con configuraciones personalizadas."
+        },
+        "calculator": {
+          "title": "Calculadora de Ingresos",
+          "desc": "Nuestra calculadora integrada te ayuda a rastrear el impacto financiero directo de UNMI."
+        }
+      },
+      "chatbot": {
+        "title": "Chatbot",
+        "engagement": {
+          "title": "Interacción Omnicanal",
+          "desc": "Gestiona conversaciones en WhatsApp y llamadas de voz desde una interfaz unificada."
+        },
+        "availability": {
+          "title": "Disponibilidad 24/7",
+          "desc": "Maneja consultas de clientes en cualquier momento sin intervención manual."
+        },
+        "personalization": {
+          "title": "Personalización con IA",
+          "desc": "Aprovecha la IA para entregar respuestas personalizadas basadas en contexto e historial."
+        },
+        "scalable": {
+          "title": "Arquitectura Escalable",
+          "desc": "Escala automáticamente para manejar volúmenes crecientes de chat sin impactar el rendimiento."
+        },
+        "realtime": {
+          "title": "Análisis en Tiempo Real",
+          "desc": "Obtén insights instantáneos sobre tiempos de respuesta, satisfacción y tasas de resolución."
+        },
+        "efficiency": {
+          "title": "Calculadora de Eficiencia de Costos",
+          "desc": "Estima tu ROI y ahorros automatizando flujos de trabajo de chat."
+        }
+      }
+    },
+    "pricing": {
+      "title": "Precios Simples y Transparentes",
+      "subtitle": "Elige el plan adecuado para tu negocio. Todos los planes incluyen una prueba gratuita de 14 días.",
+      "monthly": "Mensual",
+      "annually": "Anual (Ahorra 20%)",
+      "starter": {
+        "name": "Starter",
+        "price": "€49",
+        "desc": "Perfecto para pequeñas empresas y ubicaciones individuales",
+        "cta": "Prueba de 14 días"
+      },
+      "professional": {
+        "name": "Professional",
+        "price": "€129",
+        "desc": "Ideal para empresas en crecimiento con múltiples canales",
+        "cta": "Prueba de 14 días",
+        "popular": "Más Popular"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "price": "€299",
+        "desc": "Para grandes organizaciones con necesidades complejas",
+        "cta": "Contactar Ventas"
+      }
+    },
+    "faq": {
+      "title": "Preguntas Frecuentes",
+      "subtitle": "Encuentra respuestas a preguntas comunes sobre nuestra plataforma.",
+      "q1": {
+        "q": "¿Qué tan rápido puedo configurar UNMI para mi negocio?",
+        "a": "La mayoría de las empresas están operativas en 30 minutos. Nuestro asistente de configuración te guía en la conexión de WhatsApp Business, configuración de SMS y enrutamiento de llamadas."
+      },
+      "q2": {
+        "q": "¿Puedo integrar UNMI con mi sistema telefónico existente?",
+        "a": "Sí, UNMI se integra con la mayoría de sistemas VoIP y líneas telefónicas tradicionales. Soportamos proveedores populares como Twilio, RingCentral y muchos otros."
+      },
+      "q3": {
+        "q": "¿Qué pasa si excedo mi límite de mensajes?",
+        "a": "Te notificaremos cuando te acerques a tu límite. Puedes actualizar tu plan o comprar créditos adicionales. Nunca cortamos tu servicio a mitad de conversación."
+      }
+    },
+    "cta": {
+      "title": "¿Listo para Transformar tu Comunicación Empresarial?",
+      "subtitle": "Comienza tu prueba gratuita hoy y experimenta cómo UNMI puede ayudar a tu negocio a convertir más consultas en reservas.",
+      "trial": "Comenzar Prueba Gratuita de 14 Días",
+      "demo": "Agendar una Demo"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Iniciar Sesión",
+      "email": "Email",
+      "password": "Contraseña",
+      "submit": "Iniciar Sesión",
+      "loading": "Iniciando sesión..."
+    },
+    "register": {
+      "title": "Registrarse",
+      "fullName": "Nombre Completo",
+      "email": "Email",
+      "password": "Contraseña",
+      "companyName": "Nombre de la Empresa",
+      "terms": "Acepto los",
+      "termsLink": "Términos de uso",
+      "privacy": "Aviso de privacidad",
+      "submit": "Registrarse",
+      "loading": "Registrando...",
+      "tagline": "Transforma tu comunicación empresarial"
+    },
+    "choosePlan": {
+      "title": "Selecciona el Plan Perfecto para tu Negocio",
+      "subtitle": "Comienza con una prueba gratuita de 14 días. Sin tarjeta de crédito requerida. Cancela en cualquier momento.",
+      "trial": "Comenzar Prueba Gratuita",
+      "contactSales": "Contactar Ventas",
+      "features": {
+        "noCard": "Sin tarjeta de crédito",
+        "cancel": "Cancela en cualquier momento",
+        "noSetup": "Sin cargos de configuración",
+        "support": "Soporte 24/7"
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Bienvenido",
+    "metrics": {
+      "callsToday": "Llamadas Hoy",
+      "missed": "Llamadas Perdidas",
+      "messagesSent": "Mensajes Enviados",
+      "revenue": "Ingresos Estimados",
+      "vsYesterday": "vs ayer",
+      "ofTotal": "del total",
+      "delivered": "entregados",
+      "conversions": "conversiones este mes"
+    },
+    "charts": {
+      "distribution": "Distribución de Llamadas",
+      "total": "Total",
+      "answered": "Contestadas",
+      "missed": "Perdidas",
+      "recentCalls": "Llamadas Recientes",
+      "lastCalls": "Últimas 5 llamadas recibidas"
+    },
+    "calculator": {
+      "title": "Calculadora de Rentabilidad",
+      "subtitle": "Conversión de mensaje a ventas",
+      "avgTicket": "Valor promedio de reserva (€)",
+      "messagesSent": "Mensajes enviados",
+      "potential": "Ingresos potenciales",
+      "disclaimer": "Basado en una tasa de conversión promedio del 18% y el valor de reserva indicado."
+    },
+    "quickActions": {
+      "locations": "Ubicaciones",
+      "manageLocations": "Gestionar ubicaciones",
+      "templates": "Templates",
+      "manageTemplates": "Gestionar plantillas",
+      "plan": "Tu Plan",
+      "upgradePlan": "Mejorar plan"
+    }
+  },
+  "profitability": {
+    "title": "Rentabilidad UNMI",
+    "subtitle": "Análisis de ROI y proyección de ingresos generados",
+    "kpis": {
+      "roi": "ROI",
+      "profitable": "Rentable",
+      "adjust": "Ajustar estrategia",
+      "revenue": "Ingresos Generados",
+      "costs": "Costos Totales",
+      "profit": "Beneficio Neto",
+      "margin": "Margen"
+    },
+    "calculator": {
+      "title": "Calculadora de Rentabilidad",
+      "subtitle": "Ajusta los parámetros para proyectar tu ROI",
+      "avgTicket": "Ticket Promedio (€)",
+      "avgValue": "Valor promedio de cada venta/reserva",
+      "conversionRate": "Tasa de Conversión (%)",
+      "conversionDesc": "% de llamadas perdidas que se convierten en ventas",
+      "monthlyGrowth": "Crecimiento Mensual Esperado (%)",
+      "growthDesc": "Proyección de crecimiento para próximo mes",
+      "missedCalls": "Llamadas perdidas",
+      "recovered": "Llamadas recuperadas",
+      "monthlyCost": "Costo mensual UNMI",
+      "expectedProfit": "Beneficio esperado",
+      "recommendation": "Con UNMI, las empresas recuperan en promedio 30-40% de llamadas perdidas, generando un ROI positivo desde el primer mes."
+    },
+    "trends": {
+      "title": "Tendencia de Rentabilidad",
+      "subtitle": "Evolución mensual de ingresos vs. costos",
+      "revenue": "Ingresos",
+      "costs": "Costos",
+      "profit": "Beneficio"
+    },
+    "comparison": {
+      "title": "Impacto de UNMI en tu Negocio",
+      "subtitle": "Comparativa antes y después de implementar UNMI",
+      "beforeUNMI": "Antes de UNMI",
+      "withUNMI": "Con UNMI",
+      "improvement": "mejora"
+    },
+    "cta": {
+      "title": "¿Quieres mejorar aún más tu rentabilidad?",
+      "subtitle": "Optimiza tus conversiones con estrategias avanzadas",
+      "upgrade": "Mejorar mi Plan",
+      "consult": "Agendar Consultoría Gratuita"
+    }
+  },
+  "telephony": {
+    "title": "Telefonía",
+    "subtitle": "Análisis de llamadas y tasas de recuperación",
+    "filters": {
+      "last7days": "Últimos 7 días",
+      "last30days": "Últimos 30 días",
+      "last90days": "Últimos 90 días",
+      "allLocations": "Todas las ubicaciones"
+    },
+    "metrics": {
+      "callsToday": "Llamadas Hoy",
+      "answered": "Contestadas",
+      "missed": "Perdidas",
+      "avgDuration": "Duración Promedio"
+    },
+    "charts": {
+      "trend": "Tendencia de Llamadas",
+      "evolution": "Evolución diaria en los últimos",
+      "days": "días",
+      "distribution": "Distribución de Llamadas"
+    },
+    "performance": {
+      "title": "Rendimiento por Ubicación",
+      "subtitle": "Ubicaciones ordenadas por llamadas perdidas",
+      "noLocations": "No hay ubicaciones configuradas",
+      "addLocations": "Agrega ubicaciones para ver estadísticas detalladas"
+    },
+    "history": {
+      "title": "Historial de Llamadas",
+      "subtitle": "Últimas llamadas registradas",
+      "number": "Número",
+      "status": "Estado",
+      "duration": "Duración",
+      "location": "Ubicación",
+      "datetime": "Fecha/Hora",
+      "noCalls": "No hay llamadas registradas"
+    }
+  },
+  "templates": {
+    "title": "Templates",
+    "subtitle": "Crea y administra mensajes predefinidos para diversas situaciones",
+    "new": "Nuevo Template",
+    "create": "Crear Template",
+    "edit": "Editar Template",
+    "noTemplates": "No hay templates aún",
+    "firstTemplate": "Crea tu primer template para comenzar a automatizar respuestas",
+    "form": {
+      "name": "Nombre del Template",
+      "namePlaceholder": "Ej: Respuesta llamada perdida",
+      "type": "Tipo de Template",
+      "channel": "Canal de Envío",
+      "location": "Ubicación (Opcional)",
+      "allLocations": "Todas las ubicaciones",
+      "content": "Contenido del Mensaje",
+      "contentPlaceholder": "Hola! Vimos que nos llamaste pero no pudimos atenderte...",
+      "variables": "Puedes usar variables como {nombre}, {empresa}, {fecha}",
+      "tip": "Incluye un call-to-action claro y un enlace para reservar o contactar"
+    },
+    "types": {
+      "missedCall": "Llamada Perdida",
+      "afterHours": "Fuera de Horario",
+      "welcome": "Bienvenida",
+      "followUp": "Seguimiento",
+      "appointment": "Cita"
+    },
+    "channels": {
+      "sms": "Solo SMS",
+      "whatsapp": "Solo WhatsApp",
+      "both": "SMS & WhatsApp"
+    },
+    "actions": {
+      "copy": "Copiar",
+      "copied": "Copiado al portapapeles",
+      "delete": "Eliminar",
+      "confirmDelete": "¿Estás seguro?",
+      "deleteWarning": "Esta acción no se puede deshacer. El template será eliminado permanentemente."
+    },
+    "restrictedAccess": {
+      "title": "Acceso Restringido",
+      "subtitle": "Esta función está disponible solo en el plan Templates",
+      "currentPlan": "Tu plan actual no incluye acceso a la gestión de templates.",
+      "upgrade": "Actualiza a Templates para crear plantillas personalizadas de WhatsApp y SMS.",
+      "viewPlans": "Ver Planes Disponibles"
+    }
+  },
+  "chatbots": {
+    "title": "Chatbots",
+    "subtitle": "Configura chatbots con IA para respuestas automáticas 24/7",
+    "howItWorks": {
+      "title": "¿Cómo funciona?",
+      "desc": "Selecciona un proveedor de chatbot, configura la API key, y UNMI redirigirá automáticamente las conversaciones. Si el chatbot falla, se usará el sistema de Templates como respaldo."
+    },
+    "chooseProvider": "Elige tu Proveedor de Chatbot",
+    "difficulty": {
+      "easy": "Fácil",
+      "medium": "Medio",
+      "advanced": "Avanzado"
+    },
+    "configure": "Configurar",
+    "price": "Precio",
+    "preview": {
+      "title": "Vista Previa de Chatbot",
+      "subtitle": "Así se verá tu chatbot integrado en las conversaciones",
+      "placeholder": "Aquí se mostrará la interfaz de tu chatbot una vez configurado",
+      "test": "Probar Chatbot (Demo)",
+      "stop": "Detener Prueba"
+    },
+    "fallback": {
+      "title": "Sistema de Respaldo (Fallback)",
+      "subtitle": "Si el chatbot falla o no está disponible, se utilizará este sistema",
+      "conditions": "UNMI usará automáticamente tus Templates como respaldo si:",
+      "condition1": "El chatbot no responde en 5 segundos",
+      "condition2": "Hay un error de API",
+      "condition3": "Se excede el límite de requests",
+      "configureTemplates": "Configurar Templates de Respaldo"
+    },
+    "config": {
+      "title": "Configurar",
+      "subtitle": "Conecta tu cuenta con UNMI",
+      "apiKey": "API Key",
+      "apiKeyPlaceholder": "sk-xxxxxxxxxxxxxxxxxxxxxxxx",
+      "apiKeyHelp": "Obtén tu API key desde el panel. Ver documentación →",
+      "webhook": "Webhook URL (Opcional)",
+      "webhookPlaceholder": "https://tu-chatbot.com/webhook",
+      "webhookHelp": "URL donde UNMI enviará las conversaciones para que tu chatbot responda",
+      "fallbackMessage": "Mensaje de Respaldo",
+      "fallbackPlaceholder": "Lo siento, estoy teniendo problemas...",
+      "fallbackHelp": "Mensaje que se enviará si el chatbot falla completamente",
+      "note": "Al activar el chatbot, se pausarán los Templates automáticos. Solo se usarán como respaldo en caso de error.",
+      "save": "Guardar Configuración"
+    }
+  },
+  "locations": {
+    "title": "Ubicaciones",
+    "subtitle": "Gestiona las ubicaciones de tu negocio",
+    "new": "Nueva Ubicación",
+    "create": "Crear Ubicación",
+    "noLocations": "No hay ubicaciones aún",
+    "firstLocation": "Crea tu primera ubicación para comenzar a recibir y gestionar llamadas",
+    "form": {
+      "name": "Nombre de la Ubicación",
+      "namePlaceholder": "Ej: Tienda Centro",
+      "nameHelp": "Un nombre descriptivo para identificar la ubicación",
+      "address": "Dirección",
+      "addressPlaceholder": "Calle Principal 123, Madrid",
+      "timezone": "Zona Horaria",
+      "timezoneHelp": "Se usa para programar mensajes y horarios"
+    },
+    "details": {
+      "main": "Principal",
+      "noAddress": "Sin dirección",
+      "numbersConfigured": "números configurados",
+      "configure": "Configurar"
+    },
+    "nextStep": {
+      "title": "Siguiente Paso",
+      "desc": "Ahora puedes configurar números de teléfono para cada ubicación y comenzar a recibir llamadas. Los templates y reglas de enrutamiento se pueden asignar por ubicación."
+    }
+  },
+  "plan": {
+    "title": "Mi Plan",
+    "subtitle": "Gestiona tu suscripción y explora opciones de upgrade",
+    "current": "Plan Actual",
+    "active": "Activo",
+    "status": "Estado",
+    "renewal": "Próxima renovación",
+    "includedFeatures": "Funciones incluidas",
+    "messagesIncluded": "Mensajes incluidos",
+    "extraCost": "Costo mensajes extra",
+    "needMore": "¿Necesitas más?",
+    "upgradeDesc": "Upgrade a Pro para obtener 5x más mensajes, análisis avanzados y soporte prioritario.",
+    "templatesPlans": "Planes Templates",
+    "chatbotsPlans": "Planes Chatbots",
+    "automationTemplates": "Automatización vía plantillas SMS y WhatsApp",
+    "aiConversational": "IA conversacional para atención 24/7",
+    "currentPlan": "Plan Actual",
+    "upgradeTo": "Upgrade a",
+    "changePlan": "Cambiar a este plan",
+    "enterprise": {
+      "title": "Enterprise",
+      "subtitle": "Solución personalizada para grandes empresas",
+      "includesAll": "Incluye todo de Pro, más:",
+      "unlimited": "Mensajes ilimitados",
+      "combined": "Templates + Chatbots combinados",
+      "accountManager": "Account Manager dedicado",
+      "sla": "SLA garantizado 99.9%",
+      "api": "API completa con webhooks",
+      "integrations": "Integraciones personalizadas",
+      "custom": "Precio personalizado",
+      "according": "Según necesidades de tu empresa",
+      "contactSales": "Contactar Ventas"
+    },
+    "invoices": {
+      "title": "Historial de Facturas",
+      "subtitle": "Últimas facturas y pagos realizados",
+      "date": "Fecha",
+      "description": "Descripción",
+      "amount": "Monto",
+      "status": "Estado",
+      "action": "Acción",
+      "paid": "Pagado",
+      "download": "Descargar"
+    },
+    "changeDialog": {
+      "title": "Confirmar cambio de plan",
+      "subtitle": "Estás a punto de cambiar a",
+      "warning": "El cambio se aplicará inmediatamente. Se prorrateará el costo del mes actual.",
+      "currentPlan": "Plan actual",
+      "newPlan": "Nuevo plan",
+      "newPrice": "Nuevo precio mensual",
+      "confirm": "Confirmar Cambio",
+      "processing": "Procesando..."
+    }
+  },
+  "header": {
+    "selectLanguage": "Seleccionar idioma",
+    "spanish": "Español",
+    "english": "English",
+    "french": "Français"
+  },
+  "notifications": {
+    "success": {
+      "planUpdated": "¡Plan actualizado!",
+      "planChanged": "Tu plan ha sido cambiado correctamente",
+      "templateCreated": "Template creado",
+      "templateCreatedDesc": "El template se ha creado correctamente",
+      "templateUpdated": "Template actualizado",
+      "templateUpdatedDesc": "Los cambios se han guardado correctamente",
+      "templateDeleted": "Template eliminado",
+      "templateDeletedDesc": "El template se ha eliminado correctamente",
+      "locationCreated": "Ubicación creada",
+      "locationCreatedDesc": "La ubicación se ha creado correctamente",
+      "chatbotConfigured": "Chatbot configurado",
+      "chatbotConfiguredDesc": "ha sido configurado correctamente"
+    },
+    "error": {
+      "generic": "Ha ocurrido un error",
+      "tryAgain": "Por favor, intenta de nuevo",
+      "planChange": "No se pudo cambiar el plan. Intenta de nuevo.",
+      "templateCreate": "No se pudo crear el template",
+      "templateUpdate": "No se pudo actualizar el template",
+      "templateDelete": "No se pudo eliminar el template",
+      "locationCreate": "No se pudo crear la ubicación"
+    }
+  },
+  "errors": {
+    "pageNotFound": "Página no encontrada",
+    "backToDashboard": "Volver al Dashboard",
+    "somethingWrong": "Algo salió mal",
+    "tryRefresh": "Intenta refrescar la página"
+  }
+}
+

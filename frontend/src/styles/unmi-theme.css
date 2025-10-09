@@ -1,0 +1,127 @@
+/* Unmi Theme Styles */
+
+:root {
+  --unmi-primary: #ff0000;
+  --unmi-secondary: #003366;
+  --unmi-text-dark: #0a1930;
+  --unmi-light-bg: #f8f7f4;
+}
+
+.unmi-container {
+  background-color: #f8f7f4;
+}
+
+.unmi-main-content {
+  background-color: white;
+  width: 65%;
+  height: 100%;
+  padding: 1.5rem;
+}
+
+.unmi-nav-active {
+  background-color: var(--unmi-primary);
+  color: white;
+  padding-left: 10px !important;
+  padding-right: 15px !important;
+  margin-right: -5px;
+  margin-left: -3px;
+  border-radius: 8px !important;
+}
+
+.unmi-nav-link:hover {
+  background-color: rgba(255, 0, 0, 0.05);
+}
+
+.unmi-nav-active:hover {
+  background-color: var(--unmi-primary);
+}
+
+.unmi-button-primary {
+  background-color: var(--unmi-primary);
+  transition: all 0.3s ease;
+}
+
+.unmi-button-primary:hover {
+  background-color: #d32f2f;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 0, 0, 0.2);
+}
+
+.unmi-button-secondary {
+  background-color: var(--unmi-secondary);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.unmi-button-secondary:hover {
+  background-color: #002244;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 51, 102, 0.2);
+}
+
+.unmi-section-title {
+  color: var(--unmi-secondary);
+  font-weight: 600;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.unmi-client-name {
+  color: var(--unmi-secondary);
+  font-weight: 700;
+  font-size: 1.8rem;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(0, 51, 102, 0.1);
+  padding-bottom: 0.5rem;
+}
+
+.unmi-section-subtitle {
+  color: var(--unmi-text-dark);
+  font-weight: 500;
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+}
+
+.unmi-logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+.unmi-logo-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.unmi-logo-image {
+  filter: drop-shadow(0px 0px 2px rgba(0, 0, 0, 0.1));
+  transition: all 0.3s ease;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Animation for active elements */
+@keyframes pulse-unmi {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 0, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+  }
+}
+
+.unmi-pulse {
+  animation: pulse-unmi 2s infinite;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+

@@ -1,0 +1,522 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "download": "Download",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No",
+    "or": "or",
+    "and": "and"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "profitability": "UNMI Profitability",
+    "telephony": "Telephony",
+    "templates": "Templates",
+    "chatbots": "Chatbots",
+    "locations": "Locations",
+    "plan": "My Plan",
+    "logout": "Logout"
+  },
+  "landing": {
+    "hero": {
+      "badge": "Transform Your Business",
+      "title": "Transform Your Business Communication Strategy",
+      "subtitle": "UNMI integrates WhatsApp, SMS, and call management into one powerful platform, helping businesses convert more inquiries into bookings with intelligent routing and personalized responses.",
+      "cta": "14-day trial",
+      "trial": "14-day free trial",
+      "cancel": "Cancel anytime"
+    },
+    "features": {
+      "title": "Compare UNMI vs Chatbot",
+      "subtitle": "Switch between UNMI's call-based automations and a full AI chatbot.",
+      "unmi": {
+        "title": "UNMI",
+        "omnichannel": {
+          "title": "Omnichannel Messaging",
+          "desc": "Manage WhatsApp, SMS, and voice calls from one unified dashboard."
+        },
+        "routing": {
+          "title": "Intelligent Routing",
+          "desc": "Our system ensures calls reach the right location or department."
+        },
+        "automated": {
+          "title": "Automated Responses",
+          "desc": "Engage customers even outside business hours with intelligent templates."
+        },
+        "analytics": {
+          "title": "Performance Analytics",
+          "desc": "Get valuable insights on call volumes, response times and conversion rates."
+        },
+        "multilocation": {
+          "title": "Multi-Location Support",
+          "desc": "Manage multiple locations from a single dashboard with custom configurations."
+        },
+        "calculator": {
+          "title": "Revenue Calculator",
+          "desc": "Our built-in calculator helps you track UNMI's direct financial impact."
+        }
+      },
+      "chatbot": {
+        "title": "Chatbot",
+        "engagement": {
+          "title": "Omnichannel Engagement",
+          "desc": "Manage conversations across WhatsApp and voice calls from a unified interface."
+        },
+        "availability": {
+          "title": "24/7 Availability",
+          "desc": "Handle customer inquiries anytime without manual intervention."
+        },
+        "personalization": {
+          "title": "AI Personalization",
+          "desc": "Leverage AI to deliver personalized responses based on context and history."
+        },
+        "scalable": {
+          "title": "Scalable Architecture",
+          "desc": "Automatically scales to handle growing chat volumes without impacting performance."
+        },
+        "realtime": {
+          "title": "Real-time Analytics",
+          "desc": "Get instant insights on response times, satisfaction, and resolution rates."
+        },
+        "efficiency": {
+          "title": "Cost Efficiency Calculator",
+          "desc": "Estimate your ROI and savings by automating chat workflows."
+        }
+      }
+    },
+    "pricing": {
+      "title": "Simple, Transparent Pricing",
+      "subtitle": "Choose the right plan for your business. All plans include a 14-day free trial.",
+      "monthly": "Monthly",
+      "annually": "Annually (Save 20%)",
+      "starter": {
+        "name": "Starter",
+        "price": "€49",
+        "desc": "Perfect for small businesses and single locations",
+        "cta": "14-day trial"
+      },
+      "professional": {
+        "name": "Professional",
+        "price": "€129",
+        "desc": "Ideal for growing businesses with multiple channels",
+        "cta": "14-day trial",
+        "popular": "Most Popular"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "price": "€299",
+        "desc": "For large organizations with complex needs",
+        "cta": "Contact Sales"
+      }
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Find answers to common questions about our platform.",
+      "q1": {
+        "q": "How quickly can I set up UNMI for my business?",
+        "a": "Most businesses are operational within 30 minutes. Our setup wizard guides you through connecting WhatsApp Business, configuring SMS, and routing calls."
+      },
+      "q2": {
+        "q": "Can I integrate UNMI with my existing phone system?",
+        "a": "Yes, UNMI integrates with most VoIP systems and traditional phone lines. We support popular providers like Twilio, RingCentral, and many others."
+      },
+      "q3": {
+        "q": "What happens if I exceed my message limit?",
+        "a": "We'll notify you when approaching your limit. You can upgrade your plan or purchase additional credits. We never cut off your service mid-conversation."
+      }
+    },
+    "cta": {
+      "title": "Ready to Transform Your Business Communication?",
+      "subtitle": "Start your free trial today and experience how UNMI can help your business convert more inquiries into bookings.",
+      "trial": "Start 14-Day Free Trial",
+      "demo": "Schedule a Demo"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Log In",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Log In",
+      "loading": "Logging in..."
+    },
+    "register": {
+      "title": "Register",
+      "fullName": "Full Name",
+      "email": "Email",
+      "password": "Password",
+      "companyName": "Company Name",
+      "terms": "I accept the",
+      "termsLink": "Terms of Use",
+      "privacy": "Privacy Policy",
+      "submit": "Register",
+      "loading": "Registering...",
+      "tagline": "Transform your business communication"
+    },
+    "choosePlan": {
+      "title": "Choose the Perfect Plan for Your Business",
+      "subtitle": "Start with a 14-day free trial. No credit card required. Cancel anytime.",
+      "trial": "Start Free Trial",
+      "contactSales": "Contact Sales",
+      "features": {
+        "noCard": "No credit card required",
+        "cancel": "Cancel anytime",
+        "noSetup": "No setup fees",
+        "support": "24/7 support"
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome",
+    "metrics": {
+      "callsToday": "Calls Today",
+      "missed": "Missed Calls",
+      "messagesSent": "Messages Sent",
+      "revenue": "Estimated Revenue",
+      "vsYesterday": "vs yesterday",
+      "ofTotal": "of total",
+      "delivered": "delivered",
+      "conversions": "conversions this month"
+    },
+    "charts": {
+      "distribution": "Call Distribution",
+      "total": "Total",
+      "answered": "Answered",
+      "missed": "Missed",
+      "recentCalls": "Recent Calls",
+      "lastCalls": "Last 5 calls received"
+    },
+    "calculator": {
+      "title": "Profitability Calculator",
+      "subtitle": "Message to sales conversion",
+      "avgTicket": "Average booking value (€)",
+      "messagesSent": "Messages sent",
+      "potential": "Potential revenue",
+      "disclaimer": "Based on an average conversion rate of 18% and the indicated booking value."
+    },
+    "quickActions": {
+      "locations": "Locations",
+      "manageLocations": "Manage locations",
+      "templates": "Templates",
+      "manageTemplates": "Manage templates",
+      "plan": "Your Plan",
+      "upgradePlan": "Upgrade plan"
+    }
+  },
+  "profitability": {
+    "title": "UNMI Profitability",
+    "subtitle": "ROI analysis and generated revenue projection",
+    "kpis": {
+      "roi": "ROI",
+      "profitable": "Profitable",
+      "adjust": "Adjust strategy",
+      "revenue": "Generated Revenue",
+      "costs": "Total Costs",
+      "profit": "Net Profit",
+      "margin": "Margin"
+    },
+    "calculator": {
+      "title": "Profitability Calculator",
+      "subtitle": "Adjust parameters to project your ROI",
+      "avgTicket": "Average Ticket (€)",
+      "avgValue": "Average value of each sale/booking",
+      "conversionRate": "Conversion Rate (%)",
+      "conversionDesc": "% of missed calls that convert to sales",
+      "monthlyGrowth": "Expected Monthly Growth (%)",
+      "growthDesc": "Growth projection for next month",
+      "missedCalls": "Missed calls",
+      "recovered": "Recovered calls",
+      "monthlyCost": "UNMI monthly cost",
+      "expectedProfit": "Expected profit",
+      "recommendation": "With UNMI, businesses recover an average of 30-40% of missed calls, generating positive ROI from month one."
+    },
+    "trends": {
+      "title": "Profitability Trend",
+      "subtitle": "Monthly evolution of revenue vs. costs",
+      "revenue": "Revenue",
+      "costs": "Costs",
+      "profit": "Profit"
+    },
+    "comparison": {
+      "title": "UNMI's Impact on Your Business",
+      "subtitle": "Before and after implementing UNMI",
+      "beforeUNMI": "Before UNMI",
+      "withUNMI": "With UNMI",
+      "improvement": "improvement"
+    },
+    "cta": {
+      "title": "Want to improve your profitability even more?",
+      "subtitle": "Optimize your conversions with advanced strategies",
+      "upgrade": "Upgrade My Plan",
+      "consult": "Schedule Free Consultation"
+    }
+  },
+  "telephony": {
+    "title": "Telephony",
+    "subtitle": "Call analysis and recovery rates",
+    "filters": {
+      "last7days": "Last 7 days",
+      "last30days": "Last 30 days",
+      "last90days": "Last 90 days",
+      "allLocations": "All locations"
+    },
+    "metrics": {
+      "callsToday": "Calls Today",
+      "answered": "Answered",
+      "missed": "Missed",
+      "avgDuration": "Avg Duration"
+    },
+    "charts": {
+      "trend": "Call Trend",
+      "evolution": "Daily evolution for last",
+      "days": "days",
+      "distribution": "Call Distribution"
+    },
+    "performance": {
+      "title": "Performance by Location",
+      "subtitle": "Locations ranked by missed calls",
+      "noLocations": "No locations configured",
+      "addLocations": "Add locations to see detailed statistics"
+    },
+    "history": {
+      "title": "Call History",
+      "subtitle": "Latest recorded calls",
+      "number": "Number",
+      "status": "Status",
+      "duration": "Duration",
+      "location": "Location",
+      "datetime": "Date/Time",
+      "noCalls": "No calls recorded"
+    }
+  },
+  "templates": {
+    "title": "Templates",
+    "subtitle": "Create and manage predefined messages for various situations",
+    "new": "New Template",
+    "create": "Create Template",
+    "edit": "Edit Template",
+    "noTemplates": "No templates yet",
+    "firstTemplate": "Create your first template to start automating responses",
+    "form": {
+      "name": "Template Name",
+      "namePlaceholder": "e.g., Missed call response",
+      "type": "Template Type",
+      "channel": "Send Channel",
+      "location": "Location (Optional)",
+      "allLocations": "All locations",
+      "content": "Message Content",
+      "contentPlaceholder": "Hi! We saw you called but we couldn't answer...",
+      "variables": "You can use variables like {name}, {company}, {date}",
+      "tip": "Include a clear call-to-action and a link to book or contact"
+    },
+    "types": {
+      "missedCall": "Missed Call",
+      "afterHours": "After Hours",
+      "welcome": "Welcome",
+      "followUp": "Follow-up",
+      "appointment": "Appointment"
+    },
+    "channels": {
+      "sms": "SMS Only",
+      "whatsapp": "WhatsApp Only",
+      "both": "SMS & WhatsApp"
+    },
+    "actions": {
+      "copy": "Copy",
+      "copied": "Copied to clipboard",
+      "delete": "Delete",
+      "confirmDelete": "Are you sure?",
+      "deleteWarning": "This action cannot be undone. The template will be permanently deleted."
+    },
+    "restrictedAccess": {
+      "title": "Restricted Access",
+      "subtitle": "This feature is only available on the Templates plan",
+      "currentPlan": "Your current plan does not include access to template management.",
+      "upgrade": "Upgrade to Templates to create custom WhatsApp and SMS templates.",
+      "viewPlans": "View Available Plans"
+    }
+  },
+  "chatbots": {
+    "title": "Chatbots",
+    "subtitle": "Configure AI chatbots for automated 24/7 responses",
+    "howItWorks": {
+      "title": "How does it work?",
+      "desc": "Select a chatbot provider, configure the API key, and UNMI will automatically route conversations. If the chatbot fails, the Templates system will be used as backup."
+    },
+    "chooseProvider": "Choose Your Chatbot Provider",
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "advanced": "Advanced"
+    },
+    "configure": "Configure",
+    "price": "Price",
+    "preview": {
+      "title": "Chatbot Preview",
+      "subtitle": "This is how your chatbot will look integrated in conversations",
+      "placeholder": "Your chatbot interface will be displayed here once configured",
+      "test": "Test Chatbot (Demo)",
+      "stop": "Stop Test"
+    },
+    "fallback": {
+      "title": "Backup System (Fallback)",
+      "subtitle": "If the chatbot fails or is unavailable, this system will be used",
+      "conditions": "UNMI will automatically use your Templates as backup if:",
+      "condition1": "The chatbot doesn't respond within 5 seconds",
+      "condition2": "There's an API error",
+      "condition3": "Request limit is exceeded",
+      "configureTemplates": "Configure Backup Templates"
+    },
+    "config": {
+      "title": "Configure",
+      "subtitle": "Connect your account with UNMI",
+      "apiKey": "API Key",
+      "apiKeyPlaceholder": "sk-xxxxxxxxxxxxxxxxxxxxxxxx",
+      "apiKeyHelp": "Get your API key from the panel. See documentation →",
+      "webhook": "Webhook URL (Optional)",
+      "webhookPlaceholder": "https://your-chatbot.com/webhook",
+      "webhookHelp": "URL where UNMI will send conversations for your chatbot to respond",
+      "fallbackMessage": "Fallback Message",
+      "fallbackPlaceholder": "Sorry, I'm having technical difficulties...",
+      "fallbackHelp": "Message that will be sent if the chatbot fails completely",
+      "note": "When activating the chatbot, automatic Templates will be paused. They'll only be used as backup in case of error.",
+      "save": "Save Configuration"
+    }
+  },
+  "locations": {
+    "title": "Locations",
+    "subtitle": "Manage your business locations",
+    "new": "New Location",
+    "create": "Create Location",
+    "noLocations": "No locations yet",
+    "firstLocation": "Create your first location to start receiving and managing calls",
+    "form": {
+      "name": "Location Name",
+      "namePlaceholder": "e.g., Downtown Store",
+      "nameHelp": "A descriptive name to identify the location",
+      "address": "Address",
+      "addressPlaceholder": "123 Main Street, Madrid",
+      "timezone": "Time Zone",
+      "timezoneHelp": "Used for scheduling messages and business hours"
+    },
+    "details": {
+      "main": "Main",
+      "noAddress": "No address",
+      "numbersConfigured": "numbers configured",
+      "configure": "Configure"
+    },
+    "nextStep": {
+      "title": "Next Step",
+      "desc": "You can now configure phone numbers for each location and start receiving calls. Templates and routing rules can be assigned per location."
+    }
+  },
+  "plan": {
+    "title": "My Plan",
+    "subtitle": "Manage your subscription and explore upgrade options",
+    "current": "Current Plan",
+    "active": "Active",
+    "status": "Status",
+    "renewal": "Next renewal",
+    "includedFeatures": "Included features",
+    "messagesIncluded": "Messages included",
+    "extraCost": "Extra message cost",
+    "needMore": "Need more?",
+    "upgradeDesc": "Upgrade to Pro to get 5x more messages, advanced analytics, and priority support.",
+    "templatesPlans": "Templates Plans",
+    "chatbotsPlans": "Chatbots Plans",
+    "automationTemplates": "Automation via SMS and WhatsApp templates",
+    "aiConversational": "Conversational AI for 24/7 support",
+    "currentPlan": "Current Plan",
+    "upgradeTo": "Upgrade to",
+    "changePlan": "Change to this plan",
+    "enterprise": {
+      "title": "Enterprise",
+      "subtitle": "Custom solution for large enterprises",
+      "includesAll": "Includes everything in Pro, plus:",
+      "unlimited": "Unlimited messages",
+      "combined": "Templates + Chatbots combined",
+      "accountManager": "Dedicated Account Manager",
+      "sla": "Guaranteed 99.9% SLA",
+      "api": "Complete API with webhooks",
+      "integrations": "Custom integrations",
+      "custom": "Custom pricing",
+      "according": "According to your company needs",
+      "contactSales": "Contact Sales"
+    },
+    "invoices": {
+      "title": "Invoice History",
+      "subtitle": "Latest invoices and payments made",
+      "date": "Date",
+      "description": "Description",
+      "amount": "Amount",
+      "status": "Status",
+      "action": "Action",
+      "paid": "Paid",
+      "download": "Download"
+    },
+    "changeDialog": {
+      "title": "Confirm plan change",
+      "subtitle": "You're about to change to",
+      "warning": "The change will apply immediately. Current month cost will be prorated.",
+      "currentPlan": "Current plan",
+      "newPlan": "New plan",
+      "newPrice": "New monthly price",
+      "confirm": "Confirm Change",
+      "processing": "Processing..."
+    }
+  },
+  "header": {
+    "selectLanguage": "Select language",
+    "spanish": "Español",
+    "english": "English",
+    "french": "Français"
+  },
+  "notifications": {
+    "success": {
+      "planUpdated": "Plan updated!",
+      "planChanged": "Your plan has been successfully changed",
+      "templateCreated": "Template created",
+      "templateCreatedDesc": "The template has been successfully created",
+      "templateUpdated": "Template updated",
+      "templateUpdatedDesc": "Changes have been saved successfully",
+      "templateDeleted": "Template deleted",
+      "templateDeletedDesc": "The template has been successfully deleted",
+      "locationCreated": "Location created",
+      "locationCreatedDesc": "The location has been successfully created",
+      "chatbotConfigured": "Chatbot configured",
+      "chatbotConfiguredDesc": "has been successfully configured"
+    },
+    "error": {
+      "generic": "An error occurred",
+      "tryAgain": "Please try again",
+      "planChange": "Couldn't change plan. Try again.",
+      "templateCreate": "Couldn't create template",
+      "templateUpdate": "Couldn't update template",
+      "templateDelete": "Couldn't delete template",
+      "locationCreate": "Couldn't create location"
+    }
+  },
+  "errors": {
+    "pageNotFound": "Page not found",
+    "backToDashboard": "Back to Dashboard",
+    "somethingWrong": "Something went wrong",
+    "tryRefresh": "Try refreshing the page"
+  }
+}
+
