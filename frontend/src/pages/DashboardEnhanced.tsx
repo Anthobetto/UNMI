@@ -11,7 +11,7 @@
 
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLocationMetrics } from '@/hooks/useLocationMetrics';
 import {
   Card,

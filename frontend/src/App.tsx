@@ -11,9 +11,9 @@ import { Switch, Route, Redirect } from 'wouter';
 import { HelmetProvider } from 'react-helmet-async';
 import { queryClient } from '@/lib/queryClient';
 import { Toaster } from '@/components/ui/toaster';
-import { AuthProvider, useAuth } from '@/hooks/use-auth';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Sidebar } from '@/components/nav/sidebar';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 // i18n Configuration
 import '@/i18n/config';
@@ -75,7 +75,6 @@ function Router() {
           <Route path="/chatbots" component={Chatbots} />
           <Route path="/locations" component={Locations} />
           <Route path="/plan" component={Plan} />
-          <Route path="/choose-plan" component={ChoosePlan} />
 
           {/* Redirects for authenticated users */}
           <Route path="/auth">

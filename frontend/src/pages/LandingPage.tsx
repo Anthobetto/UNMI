@@ -11,7 +11,6 @@ import {
   Moon,
   Sun,
   ArrowRight,
-  Star,
   MessageCircle,
   ServerIcon,
   Globe,
@@ -22,7 +21,6 @@ import {
   Building,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -298,7 +296,7 @@ export default function LandingPage() {
               <Link to="/">
                 <div className="relative rounded-xl overflow-hidden shadow-2xl border border-border/40 bg-gradient-to-b from-background to-muted/20">
                   <img
-                    src="/assets/business-communication-dashboard-with-whatsapp-sms.png"
+                    src="/business-communication-dashboard-with-whatsapp-sms.png"
                     alt="Unmi dashboard"
                     className="w-full h-auto"
                   />

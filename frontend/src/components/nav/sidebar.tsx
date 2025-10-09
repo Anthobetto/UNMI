@@ -2,11 +2,10 @@
  * Sidebar Component - Main Navigation
  * i18n enabled with conditional access based on planType
  */
-
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/cn";
 import {
   LayoutDashboard,
   MapPin,
@@ -18,7 +17,7 @@ import {
   Phone,
   Bot
 } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -29,12 +28,11 @@ import { OfficialLogo } from "@/components/logo/official-logo";
 
 export function Sidebar() {
   const [location] = useLocation();
-  const { user, logoutMutation } = useAuth();
+  const { user, logout } = useAuth(); // ✅ usamos logout directamente
   const [, setLocation] = useLocation();
   const [open, setOpen] = useState(false);
   const { t } = useTranslation();
 
-  // Navigation items with i18n
   const navigation = [
     { name: t('nav.dashboard'), href: "/dashboard", icon: LayoutDashboard },
     { name: t('nav.profitability'), href: "/rentabilidad-unmi", icon: TrendingUp },
@@ -48,9 +46,7 @@ export function Sidebar() {
   const NavLinks = (
     <nav className="flex flex-col gap-y-1 mt-4 px-2">
       {navigation.map((item) => {
-        // Check if user has access to this section
         const hasAccess = !item.requiredPlan || user?.planType === item.requiredPlan;
-        
         return (
           <Link
             key={item.name}
@@ -90,13 +86,10 @@ export function Sidebar() {
           variant="ghost"
           size="icon"
           className="rounded-full h-9 w-9"
-          onClick={() =>
-            logoutMutation.mutate(undefined, {
-              onSuccess: () => {
-                setLocation("/"); // Redirige a la landing page
-              },
-            })
-          }
+          onClick={async () => {
+            await logout(); // ✅ llamada directa a logout()
+            setLocation("/"); // redirige a landing
+          }}
         >
           <LogOut className="h-5 w-5 text-[#003366]" />
         </Button>
