@@ -49,8 +49,8 @@ export function useSessionStatus(sessionId: string | null): UseQueryResult<Strip
       return stripeMockService.getSessionStatus(sessionId);
     },
     enabled: !!sessionId,
-    refetchInterval: (data) => {
-      // Refetch cada 2 segundos si la sesión está pendiente
+    refetchInterval: (query) => {
+      const data = query.state.data; // ✅ Acceso correcto a data
       if (data?.status === 'pending') {
         return 2000;
       }
@@ -58,6 +58,7 @@ export function useSessionStatus(sessionId: string | null): UseQueryResult<Strip
     },
   });
 }
+
 
 // Hook para calcular costo de mensajes extra
 export function useCalculateExtraCost(planId: string, extraMessages: number) {

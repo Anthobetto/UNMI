@@ -20,7 +20,7 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
 const app: Express = express();
 const PORT = process.env.PORT || 5001;
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 // ==================
 // SECURITY MIDDLEWARE

@@ -72,19 +72,25 @@ export default function AuthPage() {
     }
   };
 
-  const handleRegister = async (data: RegisterData) => {
-    try {
-      setIsSubmitting(true);
-      const { url } = await register(data);
-      // En dev: redirige al selector de plan
-      // En prod: redirige a Stripe Checkout
-      setLocation("/choose-plan");
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSubmitting(false);
+ const handleRegister = async (data: RegisterData) => {
+  try {
+    setIsSubmitting(true);
+    const { url } = await register(data);
+
+    if (url) {
+      // ✅ En producción: redirigir al checkout de Stripe
+      window.location.href = url;
+    } else {
+      // 🔄 fallback: ir al selector de plan local (si existe)
+      setLocation("/plan");
     }
-  };
+  } catch (err) {
+    console.error("Error durante el registro:", err);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f8f7f4] p-4 relative">
