@@ -52,6 +52,7 @@ import { useToast } from '@/hooks/use-toast';
 // Schema de validación
 const locationSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido').max(100),
+  phoneNumber: z.string().optional(),
   address: z.string().min(5, 'La dirección debe tener al menos 5 caracteres').max(255),
   timezone: z.string().default('Europe/Madrid'),
 });
@@ -63,6 +64,7 @@ interface Location {
   userId: string;
   name: string;
   address?: string;
+  phoneNumber?: string;
   timezone?: string;
   businessHours?: any;
   isFirstLocation?: boolean;
@@ -98,6 +100,7 @@ export default function Locations() {
     defaultValues: {
       name: '',
       address: '',
+      phoneNumber: '',
       timezone: 'Europe/Madrid',
     },
   });
@@ -205,6 +208,21 @@ export default function Locations() {
 
                   <FormField
                     control={form.control}
+                    name="phoneNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Teléfono</FormLabel>
+                        <FormControl>
+                          <Input placeholder="+34 600 123 456" {...field} />
+                        </FormControl>
+                        <FormDescription>Opcional. Para llamadas y mensajes.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
                     name="timezone"
                     render={({ field }) => (
                       <FormItem>
@@ -221,14 +239,14 @@ export default function Locations() {
                   />
 
                   <DialogFooter>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
+                    <Button
+                      type="button"
+                      variant="outline"
                       onClick={() => setDialogOpen(false)}
                     >
                       Cancelar
                     </Button>
-                    <Button 
+                    <Button
                       type="submit"
                       disabled={createMutation.isPending}
                     >
@@ -304,7 +322,21 @@ export default function Locations() {
                   </div>
                 </CardContent>
                 <CardFooter className="border-t pt-4">
-                  <Button variant="outline" size="sm" className="w-full">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => {
+                      setEditingLocation(location); // guardamos la ubicación seleccionada
+                      form.reset({
+                        name: location.name,
+                        address: location.address || '',
+                        phoneNumber: location.phoneNumber || '',
+                        timezone: location.timezone || 'Europe/Madrid',
+                      });
+                      setDialogOpen(true); // abrimos el modal
+                    }}
+                  >
                     <Edit2 className="h-4 w-4 mr-2" />
                     Configurar
                   </Button>
