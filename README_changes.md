@@ -61,6 +61,17 @@
 
 ---
 
+## 📍 Gestión de Ubicaciones y Teléfonos
+- Integrada la relación **Locations ↔ PhoneNumbers** para mostrar y editar números desde cada ubicación.  
+- Añadidas queries separadas para **locations** y **phone-numbers**, combinadas en `locationsWithPhones`.  
+- Soporte completo para **crear y actualizar números** al editar o crear ubicaciones.  
+- Corregido warning de TypeScript sobre `phoneNumberId` (`null` → `undefined`).  
+- UI mejorada: **Cards** muestran correctamente el número configurado y permiten edición directa.  
+
+
+---
+
+
 ## ✅ Estado actual
 El sistema se encuentra:
 - **Unificado y funcional** en la gestión de autenticación.  
@@ -69,4 +80,4 @@ El sistema se encuentra:
 
 ---
 
-📅 *Última actualización:* 12/10/2025
+📅 *Última actualización:* 19/10/2025

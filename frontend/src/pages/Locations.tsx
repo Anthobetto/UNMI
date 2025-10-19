@@ -1,8 +1,3 @@
-/**
- * Locations Page - Gestión de ubicaciones
- * Multi-location support para empresas
- */
-
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
@@ -48,6 +43,7 @@ import {
   Edit2,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { PhoneNumber } from '@shared/schema';
 
 // Schema de validación
 const locationSchema = z.object({
@@ -65,6 +61,7 @@ interface Location {
   name: string;
   address?: string;
   phoneNumber?: string;
+  phoneNumberId?: number;
   timezone?: string;
   businessHours?: any;
   isFirstLocation?: boolean;
@@ -76,23 +73,7 @@ export default function Locations() {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
-
-  // Queries
-  const { data: locations = [], isLoading } = useQuery<Location[]>({
-    queryKey: ['/api/locations'],
-    queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/locations', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to fetch locations');
-      const data = await response.json();
-      return data.locations || [];
-    },
-    enabled: !!user,
-  });
+  const [editingPhoneNumberId, setEditingPhoneNumberId] = useState<number | null>(null);
 
   // Form
   const form = useForm<LocationFormData>({
@@ -105,10 +86,66 @@ export default function Locations() {
     },
   });
 
-  // Mutations
+
+  // ====================
+  // Queries
+  // ====================
+  const { data: locations = [], isLoading } = useQuery<Location[]>({
+    queryKey: ['/api/locations'],
+    queryFn: async () => {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('/api/locations', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error('Failed to fetch locations');
+      const data = await response.json();
+
+      return (data.locations || []).map((loc: any) => ({
+        ...loc,
+        phoneNumber: loc.phone?.number || '',
+        phoneNumberId: loc.phone?.id || null,
+      }));
+    },
+    enabled: !!user,
+  });
+
+  const { data: phoneNumbers = [] } = useQuery<PhoneNumber[]>({
+    queryKey: ['/api/phone-numbers'],
+    queryFn: async () => {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch('/api/phone-numbers', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Failed to fetch phone numbers');
+      const data = await res.json();
+      return data.phoneNumbers || [];
+    },
+    enabled: !!user,
+  });
+
+  // ====================
+  // LOCATIONS & PHONE NUMBERS
+  // ====================
+  const locationsWithPhones = locations.map((loc) => {
+    const phone = phoneNumbers.find((p) => p.locationId === loc.id);
+    return {
+      ...loc,
+      timezone: loc.timezone === 'UTC' ? 'Europe/Madrid' : loc.timezone,
+      phoneNumber: phone?.number || '',
+      phoneNumberId: phone?.id || undefined,
+    };
+  });
+
+
+
+  // ==============================
+  // MUTATIONS
+  // ==============================
+
+  const token = localStorage.getItem('accessToken');
+
   const createMutation = useMutation({
     mutationFn: async (data: LocationFormData) => {
-      const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/locations', {
         method: 'POST',
         headers: {
@@ -138,9 +175,129 @@ export default function Locations() {
     },
   });
 
+  const editMutation = useMutation({
+    mutationFn: async (data: LocationFormData) => {
+      const response = await fetch(`/api/locations/${editingLocation?.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to update location');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/locations'] });
+      toast({ title: 'Ubicación actualizada', description: 'Cambios guardados correctamente' });
+      setDialogOpen(false);
+      setEditingLocation(null);
+    },
+    onError: () => {
+      toast({ title: 'Error', description: 'No se pudo actualizar la ubicación', variant: 'destructive' });
+    },
+  });
+
+  const createPhoneMutation = useMutation({
+    mutationFn: async (data: Partial<PhoneNumber>) => {
+      const response = await fetch('/api/phone-numbers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to create phone number');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/phone-numbers'] });
+      toast({
+        title: 'Número creado',
+        description: 'El número de teléfono se ha guardado correctamente',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'No se pudo crear el número de teléfono',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const editPhoneMutation = useMutation({
+    mutationFn: (data: Partial<PhoneNumber> & { id: number }) =>
+      fetch(`/api/phone-numbers/${data.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      }).then(res => res.json()),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['/api/phone-numbers'] }),
+  });
+
   const onSubmit = (data: LocationFormData) => {
-    createMutation.mutate(data);
+    const payload: any = {
+      name: data.name,
+      address: data.address,
+    };
+
+    if (data.phoneNumber && /^\+?[1-9]\d{1,14}$/.test(data.phoneNumber)) {
+      payload.phoneNumber = data.phoneNumber;
+      payload.phoneType = 'both';
+    }
+
+    if (editingLocation) {
+      editMutation.mutate(payload, {
+        onSuccess: () => {
+          if (data.phoneNumber) {
+            if (editingPhoneNumberId) {
+              editPhoneMutation.mutate({
+                id: editingPhoneNumberId,
+                number: data.phoneNumber,
+                type: 'mobile',
+                channel: 'both',
+                active: true,
+                forwardingEnabled: true,
+              });
+            } else {
+              createPhoneMutation.mutate({
+                userId: user!.id,
+                locationId: editingLocation.id,
+                number: data.phoneNumber,
+                type: 'mobile',
+                channel: 'both',
+                active: true,
+                forwardingEnabled: true,
+              });
+            }
+          }
+        },
+      });
+    } else {
+      createMutation.mutate(payload, {
+        onSuccess: (res: { location: Location }) => {
+          if (data.phoneNumber) {
+            createPhoneMutation.mutate({
+              userId: user!.id,
+              locationId: res.location.id,
+              number: data.phoneNumber,
+              type: 'mobile',
+              channel: 'both',
+              active: true,
+              forwardingEnabled: true,
+            });
+          }
+        },
+      });
+    }
   };
+
 
   return (
     <>
@@ -158,18 +315,48 @@ export default function Locations() {
               Gestiona las ubicaciones de tu negocio
             </p>
           </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <Dialog
+            open={dialogOpen}
+            onOpenChange={(open) => {
+              setDialogOpen(open);
+
+              if (open && !editingLocation) {
+                setEditingPhoneNumberId(null);
+                form.reset({
+                  name: '',
+                  address: '',
+                  phoneNumber: '',
+                  timezone: 'Europe/Madrid',
+                });
+              }
+
+              if (!open) {
+                setEditingLocation(null);
+                setEditingPhoneNumberId(null);
+                form.reset({
+                  name: '',
+                  address: '',
+                  phoneNumber: '',
+                  timezone: 'Europe/Madrid',
+                });
+              }
+            }}
+          >
             <DialogTrigger asChild>
-              <Button onClick={() => { setEditingLocation(null); form.reset(); }}>
+              <Button>
                 <Plus className="h-4 w-4 mr-2" />
                 Nueva Ubicación
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Crear Nueva Ubicación</DialogTitle>
+                <DialogTitle>
+                  {editingLocation ? 'Editar Ubicación' : 'Crear Nueva Ubicación'}
+                </DialogTitle>
                 <DialogDescription>
-                  Agrega una nueva ubicación para gestionar llamadas y mensajes
+                  {editingLocation
+                    ? 'Modifica los datos de la ubicación seleccionada'
+                    : 'Agrega una nueva ubicación para gestionar llamadas y mensajes'}
                 </DialogDescription>
               </DialogHeader>
 
@@ -246,11 +433,8 @@ export default function Locations() {
                     >
                       Cancelar
                     </Button>
-                    <Button
-                      type="submit"
-                      disabled={createMutation.isPending}
-                    >
-                      Crear Ubicación
+                    <Button type="submit" disabled={createMutation.isPending || editMutation.isPending}>
+                      {editingLocation ? 'Guardar Cambios' : 'Crear Ubicación'}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -290,7 +474,7 @@ export default function Locations() {
           </Card>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {locations.map((location) => (
+            {locationsWithPhones.map((location) => (
               <Card key={location.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -311,13 +495,13 @@ export default function Locations() {
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2 text-gray-600">
                       <Clock className="h-4 w-4" />
-                      <span>{location.timezone || 'Europe/Madrid'}</span>
+                      <span>{location.timezone === 'UTC' ? 'Europe/Madrid' : location.timezone}</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2 text-gray-600">
                       <Phone className="h-4 w-4" />
-                      <span>0 números configurados</span>
+                      <span>{location.phoneNumber || 'Sin número'} </span>
                     </div>
                   </div>
                 </CardContent>
@@ -327,14 +511,18 @@ export default function Locations() {
                     size="sm"
                     className="w-full"
                     onClick={() => {
-                      setEditingLocation(location); // guardamos la ubicación seleccionada
+                      setEditingLocation({
+                        ...location,
+                        phoneNumberId: location.phoneNumberId ?? undefined,
+                      });
+                      setEditingPhoneNumberId(location.phoneNumberId || null);
                       form.reset({
                         name: location.name,
                         address: location.address || '',
                         phoneNumber: location.phoneNumber || '',
                         timezone: location.timezone || 'Europe/Madrid',
                       });
-                      setDialogOpen(true); // abrimos el modal
+                      setDialogOpen(true);
                     }}
                   >
                     <Edit2 className="h-4 w-4 mr-2" />

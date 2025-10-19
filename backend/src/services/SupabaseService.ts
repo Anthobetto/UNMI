@@ -15,6 +15,7 @@ export interface ISupabaseService {
   getLocations(userId: string): Promise<Location[]>;
   getLocationById(locationId: number): Promise<Location | null>;
   createLocation(locationData: Partial<Location>): Promise<Location>;
+  updateLocation(id: number, data: Partial<Location>): Promise<Location>;
 
   // Templates
   getTemplates(userId: string): Promise<Template[]>;
@@ -173,6 +174,24 @@ export class SupabaseService implements ISupabaseService {
     return this.mapLocationFromDb(data);
   }
 
+  async updateLocation(id: number, data: Partial<Location>): Promise<Location> {
+    const { data: updated, error } = await supabase
+      .from('locations')
+      .update({
+        name: data.name,
+        address: data.address,
+        timezone: data.timezone,
+        business_hours: data.businessHours,
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(`Failed to update location: ${error.message}`);
+    return this.mapLocationFromDb(updated);
+  }
+
+
   // ==================
   // TEMPLATE OPERATIONS
   // ==================
@@ -281,7 +300,7 @@ export class SupabaseService implements ISupabaseService {
 
   async getCallStats(userId: string): Promise<any> {
     const calls = await this.getCalls(userId);
-    
+
     const now = new Date();
     const todayStart = new Date(now.setHours(0, 0, 0, 0));
     const yesterdayStart = new Date(todayStart);
@@ -366,7 +385,7 @@ export class SupabaseService implements ISupabaseService {
 
   async getMessageStats(userId: string): Promise<any> {
     const messages = await this.getMessages(userId);
-    
+
     return {
       total: messages.length,
       sent: messages.filter(m => m.status === 'sent').length,
@@ -416,6 +435,25 @@ export class SupabaseService implements ISupabaseService {
 
     return this.mapPhoneNumberFromDb(data);
   }
+
+async updatePhoneNumber(id: number, data: Partial<PhoneNumber>): Promise<PhoneNumber> {
+  const { data: updated, error } = await supabase
+    .from('phone_numbers')
+    .update({
+      phone_number: data.number,
+      type: data.type,
+      linked_number: data.linkedNumber,
+      active: data.active,
+      forwarding_enabled: data.forwardingEnabled,
+      channel: data.channel,
+    })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to update phone number: ${error.message}`);
+  return this.mapPhoneNumberFromDb(updated);
+}
 
   // ==================
   // ROUTING RULE OPERATIONS
