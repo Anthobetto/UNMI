@@ -5,7 +5,7 @@ import { Router, Response } from 'express';
 import { requireAuth, AuthenticatedRequest } from '../middleware/requireAuth';
 import { asyncHandler, NotFoundError, ValidationError } from '../middleware/errorHandler';
 import { supabaseService } from '../services/SupabaseService';
-import { createLocationSchema, createTemplateSchema } from '../../../shared/schema';
+import { createLocationSchema, createTemplateSchema, updateLocationSchema} from '../../../shared/schema';
 import { flowService, postCallEventSchema, templateCompletionSchema } from '../services/FlowService';
 import { providerService } from '../services/ProviderService';
 
@@ -46,6 +46,24 @@ router.post('/locations', requireAuth, asyncHandler(async (req: AuthenticatedReq
   res.status(201).json({ location });
 }));
 
+router.put('/locations/:id', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const locationId = parseInt(req.params.id);
+  const validation = updateLocationSchema.safeParse(req.body);
+  if (!validation.success) {
+    throw new ValidationError('Invalid location data');
+  } if (!validation.success) throw new ValidationError('Invalid location data');
+
+  const profile = await supabaseService.getUserByAuthId(req.user!.id);
+  if (!profile) throw new NotFoundError('User not found');
+
+  const existing = await supabaseService.getLocationById(locationId);
+  if (!existing || existing.userId !== profile.id) throw new NotFoundError('Location not found');
+
+  const updated = await supabaseService.updateLocation(locationId, validation.data);
+  res.json({ location: updated });
+}));
+
+
 // ==================
 // TEMPLATES
 // ==================
@@ -84,14 +102,14 @@ router.post('/templates', requireAuth, asyncHandler(async (req: AuthenticatedReq
 router.put('/templates/:id', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const templateId = parseInt(req.params.id);
   const template = await supabaseService.updateTemplate(templateId, req.body);
-  
+
   res.json(template);
 }));
 
 router.delete('/templates/:id', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const templateId = parseInt(req.params.id);
   await supabaseService.deleteTemplate(templateId);
-  
+
   res.status(204).send();
 }));
 
@@ -102,7 +120,7 @@ router.get('/locations/:locationId/templates', requireAuth, asyncHandler(async (
 
   const templates = await supabaseService.getTemplates(profile.id);
   const filtered = templates.filter(t => t.locationId === parseInt(req.params.locationId));
-  
+
   res.json({ templates: filtered });
 }));
 
@@ -194,6 +212,16 @@ router.post('/phone-numbers', requireAuth, asyncHandler(async (req: Authenticate
 
   res.status(201).json(phoneNumber);
 }));
+
+router.put('/phone-numbers/:id', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const phoneNumberId = parseInt(req.params.id);
+  const profile = await supabaseService.getUserByAuthId(req.user!.id);
+  if (!profile) throw new NotFoundError('User not found');
+
+  const updated = await supabaseService.updatePhoneNumber(phoneNumberId, req.body);
+  res.json(updated);
+}));
+
 
 // ==================
 // ROUTING RULES
@@ -329,8 +357,8 @@ router.post('/providers/generate-number', requireAuth, asyncHandler(async (req: 
 // Send SMS/WhatsApp via provider
 router.post('/providers/send-message', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const { to, message, type = 'whatsapp', provider } = req.body;
-  
-  const result = type === 'sms' 
+
+  const result = type === 'sms'
     ? await providerService.sendSMS(to, message, provider)
     : await providerService.sendWhatsApp(to, message, provider);
 

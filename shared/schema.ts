@@ -36,6 +36,11 @@ export const locationSchema = z.object({
 export type Location = z.infer<typeof locationSchema>;
 
 // ==================
+// UPDATE LOCATION SCHEMA
+// ==================
+export const updateLocationSchema = locationSchema.partial();
+
+// ==================
 // TEMPLATE SCHEMA
 // ==================
 export const templateTypeEnum = z.enum(['missed_call', 'after_hours', 'welcome', 'follow_up']);
@@ -153,8 +158,8 @@ export const registerSchema = z.object({
 export const createLocationSchema = z.object({
   name: z.string().min(1, 'Nombre requerido'),
   address: z.string().min(1, 'Dirección requerida'),
-  phoneNumber: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Número de teléfono inválido'),
-  phoneType: messageChannelEnum,
+  phoneNumber: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Número de teléfono inválido').optional(),
+  phoneType: messageChannelEnum.optional(),
 });
 
 export const createTemplateSchema = templateSchema.omit({ id: true, userId: true });
