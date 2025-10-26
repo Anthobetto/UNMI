@@ -21,7 +21,7 @@ const languages = [
 ];
 
 export function LanguageSelector() {
-  const { i18n, t } = useTranslation();
+  const { i18n } = useTranslation();
 
   const currentLanguage = languages.find((lang) => lang.code === i18n.language) || languages[0];
 

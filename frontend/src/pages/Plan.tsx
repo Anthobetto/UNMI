@@ -1,12 +1,11 @@
 /**
  * Plan - B2B Plan Management & Upsell Page
- * Review plan actual, upgrade/downgrade, historial de pagos
  */
 
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Card,
   CardContent,
@@ -41,7 +40,6 @@ import {
   Crown,
   ArrowRight,
   Download,
-  AlertCircle,
   TrendingUp,
   MessageSquare,
   Bot,
@@ -50,6 +48,8 @@ import { useToast } from '@/hooks/use-toast';
 import { stripeMockService } from '@/services/StripeMockService';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
+import { LanguageSelector } from '@/components/LanguageSelector';
 
 interface Plan {
   id: string;
@@ -64,83 +64,43 @@ interface Plan {
 
 // Mock historial de facturas
 const mockInvoices = [
-  {
-    id: 'inv_2024_04',
-    date: new Date('2024-04-01'),
-    description: 'Plan Templates Basic - Abril 2024',
-    amount: 60,
-    status: 'paid',
-    downloadUrl: '/mock-invoice-apr.pdf',
-  },
-  {
-    id: 'inv_2024_03',
-    date: new Date('2024-03-01'),
-    description: 'Plan Templates Basic - Marzo 2024',
-    amount: 60,
-    status: 'paid',
-    downloadUrl: '/mock-invoice-mar.pdf',
-  },
-  {
-    id: 'inv_2024_02',
-    date: new Date('2024-02-01'),
-    description: 'Plan Templates Basic - Febrero 2024',
-    amount: 60,
-    status: 'paid',
-    downloadUrl: '/mock-invoice-feb.pdf',
-  },
+  { id: 'inv_2024_04', date: new Date('2024-04-01'), description: 'Plan Templates Basic - Abril 2024', amount: 60, status: 'paid', downloadUrl: '/mock-invoice-apr.pdf' },
+  { id: 'inv_2024_03', date: new Date('2024-03-01'), description: 'Plan Templates Basic - Marzo 2024', amount: 60, status: 'paid', downloadUrl: '/mock-invoice-mar.pdf' },
+  { id: 'inv_2024_02', date: new Date('2024-02-01'), description: 'Plan Templates Basic - Febrero 2024', amount: 60, status: 'paid', downloadUrl: '/mock-invoice-feb.pdf' },
 ];
 
 export default function Plan() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  // Obtener planes disponibles
   const templatesPlans = stripeMockService.getPlans('templates');
   const chatbotsPlans = stripeMockService.getPlans('chatbots');
   const allPlans = [...templatesPlans, ...chatbotsPlans];
 
-  // Plan actual del usuario (mock)
-  const currentPlanId = 'templates-basic'; // En producción vendría de user.planId
+  const currentPlanId = 'templates-basic';
   const currentPlan = allPlans.find(p => p.id === currentPlanId);
 
-  // Mutation para cambiar plan
   const changePlanMutation = useMutation({
     mutationFn: async (newPlanId: string) => {
-      // Mock: simula cambio de plan
-      console.log(`Cambiando plan a: ${newPlanId}`);
-      
-      // En producción:
-      // const token = localStorage.getItem('accessToken');
-      // const response = await fetch('/api/user/plan', {
-      //   method: 'PUT',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${token}`,
-      //   },
-      //   body: JSON.stringify({ planId: newPlanId }),
-      // });
-      // return response.json();
-
-      // Simula delay
       await new Promise(resolve => setTimeout(resolve, 1500));
       return { success: true, planId: newPlanId };
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast({
-        title: '¡Plan actualizado!',
-        description: `Tu plan ha sido cambiado correctamente.`,
+        title: t('plan.toast.updatedTitle'),
+        description: t('plan.toast.updatedDesc'),
       });
       setDialogOpen(false);
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
     },
     onError: () => {
       toast({
-        title: 'Error',
-        description: 'No se pudo cambiar el plan. Intenta de nuevo.',
+        title: t('plan.toast.errorTitle'),
+        description: t('plan.toast.errorDesc'),
         variant: 'destructive',
       });
     },
@@ -157,27 +117,30 @@ export default function Plan() {
     }
   };
 
-  const handleDownloadInvoice = (invoiceId: string) => {
+  const handleDownloadInvoice = () => {
     toast({
-      title: '🚧 Descarga de factura',
-      description: 'Esta funcionalidad estará disponible próximamente con tu cuenta Stripe real.',
+      title: t('plan.toast.downloadTitle'),
+      description: t('plan.toast.downloadDesc'),
     });
   };
 
   return (
     <>
       <Helmet>
-        <title>Mi Plan - Gestión de Suscripción - UNMI</title>
-        <meta name="description" content="Gestiona tu plan y suscripción" />
+        <title>{t('plan.header.title')}</title>
+        <meta name="description" content={t('plan.header.subtitle')} />
       </Helmet>
 
       <div className="p-6 space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Mi Plan</h1>
-          <p className="text-gray-600 mt-1">
-            Gestiona tu suscripción y explora opciones de upgrade
-          </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">{t('plan.header.title')}</h1>
+            <p className="text-gray-600 mt-1">{t('plan.header.subtitle')}</p>
+          </div>
+          <div>
+            <LanguageSelector />
+          </div>
         </div>
 
         {/* Plan Actual */}
@@ -185,55 +148,57 @@ export default function Plan() {
           <CardHeader>
             <div className="flex justify-between items-start">
               <div>
-                <Badge className="mb-2 bg-blue-600">Plan Actual</Badge>
-                <CardTitle className="text-2xl">{currentPlan?.name || 'Templates Basic'}</CardTitle>
+                <Badge className="mb-2 bg-blue-600">{t('plan.current.title')}</Badge>
+                <CardTitle className="text-2xl">{currentPlan?.name || t('plan.templates.basic')}</CardTitle>
                 <CardDescription className="text-base mt-1">
                   {currentPlan?.type === 'templates' ? (
                     <span className="flex items-center gap-2">
                       <MessageSquare className="h-4 w-4" />
-                      Automatización con plantillas personalizadas
+                      {t('plan.templates.automation')}
                     </span>
                   ) : (
                     <span className="flex items-center gap-2">
                       <Bot className="h-4 w-4" />
-                      Chatbots con Inteligencia Artificial
+                      {t('plan.chatbots.ai')}
                     </span>
                   )}
                 </CardDescription>
               </div>
               <div className="text-right">
                 <div className="text-3xl font-bold text-blue-600">€{currentPlan?.price || 60}</div>
-                <div className="text-sm text-gray-600">por mes</div>
+                <div className="text-sm text-gray-600">{t('plan.perMonth')}</div>
               </div>
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 bg-white rounded-lg">
-                <span className="text-sm text-gray-700">Mensajes incluidos</span>
-                <Badge variant="secondary">{currentPlan?.messageLimit || 1000} / mes</Badge>
+                <span className="text-sm text-gray-700">{t('plan.messagesIncluded')}</span>
+                <Badge variant="secondary">{currentPlan?.messageLimit || 1000} / {t('plan.perMonth')}</Badge>
               </div>
               <div className="flex items-center justify-between p-3 bg-white rounded-lg">
-                <span className="text-sm text-gray-700">Costo mensajes extra</span>
-                <Badge variant="secondary">€{currentPlan?.extraMessagePrice || 1} / mensaje</Badge>
+                <span className="text-sm text-gray-700">{t('plan.extraCost')}</span>
+                <Badge variant="secondary">€{currentPlan?.extraMessagePrice || 1} / {t('plan.message')}</Badge>
               </div>
               <div className="flex items-center justify-between p-3 bg-white rounded-lg">
-                <span className="text-sm text-gray-700">Estado</span>
-                <Badge className="bg-green-600">Activo</Badge>
+                <span className="text-sm text-gray-700">{t('plan.status')}</span>
+                <Badge className="bg-green-600">{t('plan.active')}</Badge>
               </div>
               <div className="flex items-center justify-between p-3 bg-white rounded-lg">
-                <span className="text-sm text-gray-700">Próxima renovación</span>
-                <span className="text-sm font-medium">{format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'dd MMM yyyy', { locale: es })}</span>
+                <span className="text-sm text-gray-700">{t('plan.renewal')}</span>
+                <span className="text-sm font-medium">
+                  {format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 'dd MMM yyyy', { locale: es })}
+                </span>
               </div>
             </div>
 
             <div className="mt-6 pt-6 border-t">
-              <h4 className="font-semibold mb-3">Funciones incluidas:</h4>
+              <h4 className="font-semibold mb-3">{t('plan.includedFeatures')}:</h4>
               <div className="grid grid-cols-2 gap-2">
                 {currentPlan?.features.map((feature, index) => (
                   <div key={index} className="flex items-start gap-2 text-sm">
                     <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">{feature}</span>
+                    <span>{t(`plan.features.${feature}`)}</span>
                   </div>
                 ))}
               </div>
@@ -241,11 +206,11 @@ export default function Plan() {
           </CardContent>
         </Card>
 
-        {/* Alert de Upgrade */}
+        {/* Alert Upgrade */}
         <Alert className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
           <TrendingUp className="h-4 w-4 text-purple-600" />
           <AlertDescription className="text-purple-900">
-            <strong>¿Necesitas más?</strong> Upgrade a Pro para obtener 5x más mensajes, análisis avanzados y soporte prioritario.
+            <strong>{t('plan.needMore')}</strong> {t('plan.upgradeDesc')}
           </AlertDescription>
         </Alert>
 
@@ -254,63 +219,41 @@ export default function Plan() {
           <div>
             <h2 className="text-2xl font-bold flex items-center gap-2">
               <MessageSquare className="h-6 w-6 text-blue-600" />
-              Planes Templates
+              {t('plan.templates.title')}
             </h2>
-            <p className="text-gray-600 text-sm">Automatización vía plantillas SMS y WhatsApp</p>
+            <p className="text-gray-600 text-sm">{t('plan.templates.subtitle')}</p>
           </div>
-
           <div className="grid gap-6 md:grid-cols-2">
-            {templatesPlans.map((plan) => {
+            {templatesPlans.map(plan => {
               const isCurrent = plan.id === currentPlanId;
               return (
-                <Card 
-                  key={plan.id} 
-                  className={`hover:shadow-lg transition-shadow ${
-                    isCurrent ? 'border-2 border-blue-600' : ''
-                  }`}
-                >
+                <Card key={plan.id} className={`hover:shadow-lg transition-shadow ${isCurrent ? 'border-2 border-blue-600' : ''}`}>
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div>
                         <CardTitle>{plan.name}</CardTitle>
-                        <CardDescription className="mt-1">
-                          {plan.price === 60 ? 'Ideal para pequeñas empresas' : 'Para empresas en crecimiento'}
-                        </CardDescription>
+                        <CardDescription className="mt-1">{plan.price === 60 ? t('plan.templates.ideal') : t('plan.templates.growing')}</CardDescription>
                       </div>
-                      {isCurrent && <Badge className="bg-blue-600">Actual</Badge>}
+                      {isCurrent && <Badge className="bg-blue-600">{t('plan.current.short')}</Badge>}
                     </div>
                     <div className="mt-4">
                       <span className="text-4xl font-bold">€{plan.price}</span>
-                      <span className="text-gray-600 ml-2">/mes</span>
+                      <span className="text-gray-600 ml-2">/ {t('plan.perMonth')}</span>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2">
-                      {plan.features.map((feature, index) => (
-                        <li key={index} className="flex items-start gap-2 text-sm">
+                      {plan.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-sm">
                           <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                          <span>{feature}</span>
+                          <span>{t(`plan.features.${feature}`)}</span>
                         </li>
                       ))}
                     </ul>
                   </CardContent>
                   <CardFooter>
-                    <Button 
-                      className="w-full"
-                      variant={isCurrent ? 'secondary' : 'default'}
-                      onClick={() => !isCurrent && handleSelectPlan(plan)}
-                      disabled={isCurrent}
-                    >
-                      {isCurrent ? (
-                        'Plan Actual'
-                      ) : plan.price > (currentPlan?.price || 0) ? (
-                        <>
-                          Upgrade a {plan.name}
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </>
-                      ) : (
-                        'Cambiar a este plan'
-                      )}
+                    <Button className="w-full" variant={isCurrent ? 'secondary' : 'default'} onClick={() => !isCurrent && handleSelectPlan(plan)} disabled={isCurrent}>
+                      {isCurrent ? t('plan.current.title') : plan.price > (currentPlan?.price || 0) ? <>{t('plan.upgradeTo')} {plan.name}<ArrowRight className="ml-2 h-4 w-4" /></> : t('plan.changePlan')}
                     </Button>
                   </CardFooter>
                 </Card>
@@ -324,61 +267,41 @@ export default function Plan() {
           <div>
             <h2 className="text-2xl font-bold flex items-center gap-2">
               <Bot className="h-6 w-6 text-purple-600" />
-              Planes Chatbots
+              {t('plan.chatbots.title')}
             </h2>
-            <p className="text-gray-600 text-sm">IA conversacional para atención 24/7</p>
+            <p className="text-gray-600 text-sm">{t('plan.chatbots.subtitle')}</p>
           </div>
-
           <div className="grid gap-6 md:grid-cols-2">
-            {chatbotsPlans.map((plan) => {
+            {chatbotsPlans.map(plan => {
               const isCurrent = plan.id === currentPlanId;
               return (
-                <Card 
-                  key={plan.id} 
-                  className={`hover:shadow-lg transition-shadow ${
-                    isCurrent ? 'border-2 border-purple-600' : ''
-                  }`}
-                >
+                <Card key={plan.id} className={`hover:shadow-lg transition-shadow ${isCurrent ? 'border-2 border-purple-600' : ''}`}>
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div>
                         <CardTitle>{plan.name}</CardTitle>
-                        <CardDescription className="mt-1">
-                          {plan.price === 60 ? 'Chatbot básico con IA' : 'IA avanzada personalizada'}
-                        </CardDescription>
+                        <CardDescription className="mt-1">{plan.price === 60 ? t('plan.chatbots.basic') : t('plan.chatbots.advanced')}</CardDescription>
                       </div>
-                      {isCurrent && <Badge className="bg-purple-600">Actual</Badge>}
+                      {isCurrent && <Badge className="bg-purple-600">{t('plan.current.short')}</Badge>}
                     </div>
                     <div className="mt-4">
                       <span className="text-4xl font-bold">€{plan.price}</span>
-                      <span className="text-gray-600 ml-2">/mes</span>
+                      <span className="text-gray-600 ml-2">/ {t('plan.perMonth')}</span>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2">
-                      {plan.features.map((feature, index) => (
-                        <li key={index} className="flex items-start gap-2 text-sm">
+                      {plan.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-sm">
                           <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                          <span>{feature}</span>
+                          <span>{t(`plan.features.${feature}`)}</span>
                         </li>
                       ))}
                     </ul>
                   </CardContent>
                   <CardFooter>
-                    <Button 
-                      className="w-full bg-purple-600 hover:bg-purple-700"
-                      variant={isCurrent ? 'secondary' : 'default'}
-                      onClick={() => !isCurrent && handleSelectPlan(plan)}
-                      disabled={isCurrent}
-                    >
-                      {isCurrent ? (
-                        'Plan Actual'
-                      ) : (
-                        <>
-                          Cambiar a {plan.name}
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </>
-                      )}
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700" variant={isCurrent ? 'secondary' : 'default'} onClick={() => !isCurrent && handleSelectPlan(plan)} disabled={isCurrent}>
+                      {isCurrent ? t('plan.current.title') : <>{t('plan.changeTo')} {plan.name}<ArrowRight className="ml-2 h-4 w-4" /></>}
                     </Button>
                   </CardFooter>
                 </Card>
@@ -392,51 +315,38 @@ export default function Plan() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Crown className="h-6 w-6 text-yellow-600" />
-              <CardTitle className="text-2xl">Enterprise</CardTitle>
+              <CardTitle className="text-2xl">{t('plan.enterprise.title')}</CardTitle>
             </div>
-            <CardDescription className="text-base">
-              Solución personalizada para grandes empresas
-            </CardDescription>
+            <CardDescription className="text-base">{t('plan.enterprise.subtitle')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <h4 className="font-semibold mb-3">Incluye todo de Pro, más:</h4>
+                <h4 className="font-semibold mb-3">{t('plan.enterprise.includes')}</h4>
                 <ul className="space-y-2 text-sm">
-                  <li className="flex items-start gap-2">
-                    <Check className="h-4 w-4 text-yellow-600 mt-0.5" />
-                    <span>Mensajes ilimitados</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="h-4 w-4 text-yellow-600 mt-0.5" />
-                    <span>Templates + Chatbots combinados</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="h-4 w-4 text-yellow-600 mt-0.5" />
-                    <span>Account Manager dedicado</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="h-4 w-4 text-yellow-600 mt-0.5" />
-                    <span>SLA garantizado 99.9%</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="h-4 w-4 text-yellow-600 mt-0.5" />
-                    <span>API completa con webhooks</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <Check className="h-4 w-4 text-yellow-600 mt-0.5" />
-                    <span>Integraciones personalizadas</span>
-                  </li>
+                  {[
+                    'unlimitedMessages',
+                    'combinedTemplatesChatbots',
+                    'accountManager',
+                    'sla',
+                    'fullApi',
+                    'integrations'
+                  ].map((feature, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <Check className="h-4 w-4 text-yellow-600 mt-0.5" />
+                      <span>{t(`plan.features.${feature}`)}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
               <div className="flex flex-col justify-center">
                 <div className="text-center mb-4">
-                  <div className="text-4xl font-bold">Precio personalizado</div>
-                  <p className="text-gray-600 mt-2">Según necesidades de tu empresa</p>
+                  <div className="text-4xl font-bold">{t('plan.enterprise.customPricing')}</div>
+                  <p className="text-gray-600 mt-2">{t('plan.enterprise.according')}</p>
                 </div>
                 <Button size="lg" className="bg-yellow-600 hover:bg-yellow-700">
                   <Zap className="mr-2 h-5 w-5" />
-                  Contactar Ventas
+                  {t('plan.enterprise.contactSales')}
                 </Button>
               </div>
             </div>
@@ -448,8 +358,8 @@ export default function Plan() {
           <CardHeader>
             <div className="flex justify-between items-center">
               <div>
-                <CardTitle>Historial de Facturas</CardTitle>
-                <CardDescription>Últimas facturas y pagos realizados</CardDescription>
+                <CardTitle>{t('plan.invoices.title')}</CardTitle>
+                <CardDescription>{t('plan.invoices.subtitle')}</CardDescription>
               </div>
               <CreditCard className="h-5 w-5 text-gray-600" />
             </div>
@@ -458,32 +368,26 @@ export default function Plan() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead>Descripción</TableHead>
-                  <TableHead>Monto</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Acción</TableHead>
+                  <TableHead>{t('plan.invoices.date')}</TableHead>
+                  <TableHead>{t('plan.invoices.description')}</TableHead>
+                  <TableHead>{t('plan.invoices.amount')}</TableHead>
+                  <TableHead>{t('plan.invoices.status')}</TableHead>
+                  <TableHead className="text-right">{t('plan.invoices.action')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {mockInvoices.map((invoice) => (
+                {mockInvoices.map(invoice => (
                   <TableRow key={invoice.id}>
-                    <TableCell className="font-medium">
-                      {format(invoice.date, 'dd MMM yyyy', { locale: es })}
-                    </TableCell>
+                    <TableCell className="font-medium">{format(invoice.date, 'dd MMM yyyy', { locale: es })}</TableCell>
                     <TableCell>{invoice.description}</TableCell>
                     <TableCell className="font-semibold">€{invoice.amount}</TableCell>
                     <TableCell>
-                      <Badge className="bg-green-600">Pagado</Badge>
+                      <Badge className="bg-green-600">{t('plan.invoices.paid')}</Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button 
-                        size="sm" 
-                        variant="ghost"
-                        onClick={() => handleDownloadInvoice(invoice.id)}
-                      >
+                      <Button size="sm" variant="ghost" onClick={handleDownloadInvoice}>
                         <Download className="h-4 w-4 mr-1" />
-                        Descargar
+                        {t('plan.invoices.download')}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -497,45 +401,17 @@ export default function Plan() {
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Confirmar cambio de plan</DialogTitle>
+              <DialogTitle>{t('plan.changeDialog.title')}</DialogTitle>
               <DialogDescription>
-                Estás a punto de cambiar a <strong>{selectedPlan?.name}</strong>
+                {t('plan.changeDialog.subtitle')} <strong>{selectedPlan?.name}</strong>. {t('plan.changeDialog.warning')}
               </DialogDescription>
             </DialogHeader>
-
-            <div className="space-y-4 py-4">
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  El cambio se aplicará inmediatamente. Se prorrateará el costo del mes actual.
-                </AlertDescription>
-              </Alert>
-
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Plan actual:</span>
-                  <span className="font-medium">{currentPlan?.name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Nuevo plan:</span>
-                  <span className="font-medium">{selectedPlan?.name}</span>
-                </div>
-                <div className="flex justify-between pt-2 border-t">
-                  <span className="text-gray-600">Nuevo precio mensual:</span>
-                  <span className="text-xl font-bold text-blue-600">€{selectedPlan?.price}</span>
-                </div>
-              </div>
-            </div>
-
             <DialogFooter>
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                Cancelar
+              <Button variant="secondary" onClick={() => setDialogOpen(false)}>
+                {t('plan.changeDialog.cancel')}
               </Button>
-              <Button 
-                onClick={handleConfirmChange}
-                disabled={changePlanMutation.isPending}
-              >
-                {changePlanMutation.isPending ? 'Procesando...' : 'Confirmar Cambio'}
+              <Button onClick={handleConfirmChange} className="ml-2">
+                {t('plan.changeDialog.confirm')}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -544,4 +420,3 @@ export default function Plan() {
     </>
   );
 }
-

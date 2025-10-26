@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import {
   Card,
   CardContent,
@@ -55,11 +56,10 @@ import {
   PieChart,
   Pie,
   Cell,
-  BarChart,
-  Bar,
 } from 'recharts';
 import { format, subDays, startOfDay } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { LanguageSelector } from '@/components/LanguageSelector';
 
 const COLORS = {
   answered: '#10b981',
@@ -92,6 +92,7 @@ interface Location {
 }
 
 export default function Telefonia() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [dateRange, setDateRange] = useState('30');
   const [selectedLocation, setSelectedLocation] = useState<string>('all');
@@ -141,7 +142,8 @@ export default function Telefonia() {
   // Cálculos
   const todayCalls = callStats?.todayCallsCount ?? 0;
   const yesterdayCalls = callStats?.yesterdayCallsCount ?? 0;
-  const callDiff = yesterdayCalls === 0 ? 100 : ((todayCalls - yesterdayCalls) / yesterdayCalls) * 100;
+  const callDiff =
+    yesterdayCalls === 0 ? 100 : ((todayCalls - yesterdayCalls) / yesterdayCalls) * 100;
   const isCallsPositive = callDiff >= 0;
 
   const totalCalls = callStats?.total ?? 0;
@@ -152,16 +154,15 @@ export default function Telefonia() {
 
   // Datos para gráfico de distribución
   const distributionData = [
-    { name: 'Contestadas', value: answeredCalls },
-    { name: 'Perdidas', value: missedCalls },
+    { name: t('telephony.metrics.answered'), value: answeredCalls },
+    { name: t('telephony.metrics.missed'), value: missedCalls },
   ];
 
-  // Datos para gráfico de tendencia diaria (últimos 30 días simulados)
+  // Datos para gráfico de tendencia diaria
   const dailyData = Array.from({ length: parseInt(dateRange) }, (_, i) => {
     const date = startOfDay(subDays(new Date(), parseInt(dateRange) - i - 1));
     const dayIndex = i;
-    
-    // Simular datos con patrón: más llamadas en días recientes
+
     const baseCalls = 15 + Math.floor(Math.random() * 10);
     const trend = (dayIndex / parseInt(dateRange)) * 20;
     const totalDay = Math.floor(baseCalls + trend);
@@ -177,70 +178,78 @@ export default function Telefonia() {
   });
 
   // Top ubicaciones por llamadas perdidas
-  const locationStats = locations.map(location => {
-    const locationCalls = calls.filter(call => call.routedToLocation === location.id);
-    const locationMissed = locationCalls.filter(call => call.status === 'missed').length;
-    const locationTotal = locationCalls.length;
-    const missedPercentage = locationTotal > 0 ? ((locationMissed / locationTotal) * 100).toFixed(1) : '0';
+  const locationStats = locations
+    .map((location) => {
+      const locationCalls = calls.filter((call) => call.routedToLocation === location.id);
+      const locationMissed = locationCalls.filter((call) => call.status === 'missed').length;
+      const locationTotal = locationCalls.length;
+      const missedPercentage =
+        locationTotal > 0 ? ((locationMissed / locationTotal) * 100).toFixed(1) : '0';
 
-    return {
-      location: location.name,
-      missed: locationMissed,
-      total: locationTotal,
-      missedPercentage: parseFloat(missedPercentage),
-    };
-  }).sort((a, b) => b.missed - a.missed);
+      return {
+        location: location.name,
+        missed: locationMissed,
+        total: locationTotal,
+        missedPercentage: parseFloat(missedPercentage),
+      };
+    })
+    .sort((a, b) => b.missed - a.missed);
 
-  // Filtrar llamadas si hay ubicación seleccionada
-  const filteredCalls = selectedLocation === 'all' 
-    ? calls 
-    : calls.filter(call => call.routedToLocation?.toString() === selectedLocation);
+  const filteredCalls =
+    selectedLocation === 'all'
+      ? calls
+      : calls.filter((call) => call.routedToLocation?.toString() === selectedLocation);
 
   const handleExport = () => {
-    alert('🚧 Exportación de datos estará disponible próximamente.\n\nPodrás descargar:\n- Reporte CSV de llamadas\n- Gráficos en PDF\n- Estadísticas por ubicación');
+    alert(t('telephony.actions.exportAlert'));
   };
+
 
   return (
     <>
       <Helmet>
-        <title>Telefonía - Análisis de Llamadas - UNMI</title>
-        <meta name="description" content="Análisis detallado de llamadas y tasas de recuperación" />
+        <title>{t('telephony.title')} - UNMI</title>
+        <meta name="description" content={t('telephony.subtitle')} />
       </Helmet>
 
       <div className="p-6 space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-start">
+        <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Telefonía</h1>
-            <p className="text-gray-600 mt-1">
-              Análisis de llamadas y tasas de recuperación
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900">{t('telephony.title')}</h1>
+            <p className="text-gray-600 mt-1">{t('telephony.subtitle')}</p>
           </div>
-          <div className="flex gap-3">
+
+          <div className="flex items-center gap-3">
             <Select value={dateRange} onValueChange={setDateRange}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="7">Últimos 7 días</SelectItem>
-                <SelectItem value="30">Últimos 30 días</SelectItem>
-                <SelectItem value="90">Últimos 90 días</SelectItem>
+                <SelectItem value="7">{t('telephony.filters.last7days')}</SelectItem>
+                <SelectItem value="30">{t('telephony.filters.last30days')}</SelectItem>
+                <SelectItem value="90">{t('telephony.filters.last90days')}</SelectItem>
               </SelectContent>
             </Select>
+
             <Button onClick={handleExport} variant="outline">
               <Download className="h-4 w-4 mr-2" />
-              Exportar
+              {t('telephony.actions.export')}
             </Button>
+
+            <LanguageSelector />
           </div>
         </div>
 
         {/* KPIs */}
         <div className="grid gap-6 md:grid-cols-4">
-          {/* Total Llamadas Hoy */}
+          {/* Llamadas Hoy */}
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium">Llamadas Hoy</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  {t('telephony.metrics.callsToday')}
+                </CardTitle>
                 <Phone className="h-4 w-4 text-blue-600" />
               </div>
             </CardHeader>
@@ -254,42 +263,50 @@ export default function Telefonia() {
                     {isCallsPositive ? (
                       <>
                         <TrendingUp className="h-3 w-3 text-green-600" />
-                        <span className="text-green-600">+{Math.abs(callDiff).toFixed(0)}%</span>
+                        <span className="text-green-600">
+                          +{Math.abs(callDiff).toFixed(0)}% {t('telephony.metrics.vsYesterday')}
+                        </span>
                       </>
                     ) : (
                       <>
                         <TrendingDown className="h-3 w-3 text-red-600" />
-                        <span className="text-red-600">-{Math.abs(callDiff).toFixed(0)}%</span>
+                        <span className="text-red-600">
+                          -{Math.abs(callDiff).toFixed(0)}% {t('telephony.metrics.vsYesterday')}
+                        </span>
                       </>
                     )}
-                    vs ayer
                   </p>
+
                 </>
               )}
             </CardContent>
           </Card>
 
-          {/* Llamadas Contestadas */}
+          {/* Contestadas */}
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium">Contestadas</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('telephony.metrics.answered')}</CardTitle>
                 <PhoneIncoming className="h-4 w-4 text-green-600" />
               </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">{answeredCalls}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                {answerRate}% del total
+                {answerRate}% {t('telephony.metrics.ofTotal')}
               </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {missedRate}% {t('telephony.metrics.ofTotal')}
+              </p>
+
             </CardContent>
           </Card>
 
-          {/* Llamadas Perdidas */}
+          {/* Perdidas */}
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium">Perdidas</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('telephony.metrics.missed')}</CardTitle>
                 <PhoneMissed className="h-4 w-4 text-red-600" />
               </div>
             </CardHeader>
@@ -305,29 +322,30 @@ export default function Telefonia() {
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium">Duración Promedio</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('telephony.metrics.avgDuration')}</CardTitle>
                 <Clock className="h-4 w-4 text-purple-600" />
               </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-purple-600">
-                {callStats?.averageDuration ? Math.floor(callStats.averageDuration / 60) : 0}m
+                {callStats?.averageDuration ? Math.floor(callStats.averageDuration / 60) : 0}{t('telephony.metrics.minutes')}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {callStats?.averageDuration ? callStats.averageDuration % 60 : 0}s
+                {callStats?.averageDuration ? callStats.averageDuration % 60 : 0}{t('telephony.metrics.seconds')}
               </p>
+
             </CardContent>
           </Card>
         </div>
 
-        {/* Row 2: Gráfico Tendencia + Distribución */}
+        {/* Row 2: Gráficos */}
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Tendencia Diaria */}
+          {/* Tendencia */}
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle>Tendencia de Llamadas</CardTitle>
+              <CardTitle>{t('telephony.charts.trend')}</CardTitle>
               <CardDescription>
-                Evolución diaria en los últimos {dateRange} días
+                {t('telephony.charts.evolution')} {dateRange} {t('telephony.charts.days')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -336,30 +354,22 @@ export default function Telefonia() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
                   <YAxis />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: 'white', border: '1px solid #ccc' }}
-                  />
+                  <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #ccc' }} />
                   <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="total" 
-                    stroke="#3b82f6" 
-                    strokeWidth={2} 
-                    name="Total" 
+                  <Line type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={2} name={t('telephony.metrics.total')} />
+                  <Line
+                    type="monotone"
+                    dataKey="answered"
+                    stroke="#10b981"
+                    strokeWidth={2}
+                    name={t('telephony.metrics.answered')}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="answered" 
-                    stroke="#10b981" 
-                    strokeWidth={2} 
-                    name="Contestadas" 
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="missed" 
-                    stroke="#ef4444" 
-                    strokeWidth={2} 
-                    name="Perdidas" 
+                  <Line
+                    type="monotone"
+                    dataKey="missed"
+                    stroke="#ef4444"
+                    strokeWidth={2}
+                    name={t('telephony.metrics.missed')}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -369,8 +379,10 @@ export default function Telefonia() {
           {/* Distribución */}
           <Card>
             <CardHeader>
-              <CardTitle>Distribución de Llamadas</CardTitle>
-              <CardDescription>Total: {totalCalls} llamadas</CardDescription>
+              <CardTitle>{t('telephony.charts.distribution')}</CardTitle>
+              <CardDescription>
+                Total: {totalCalls} {t('telephony.metrics.callsToday').toLowerCase()}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
@@ -386,9 +398,9 @@ export default function Telefonia() {
                     dataKey="value"
                   >
                     {distributionData.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={index === 0 ? COLORS.answered : COLORS.missed} 
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={index === 0 ? COLORS.answered : COLORS.missed}
                       />
                     ))}
                   </Pie>
@@ -398,24 +410,28 @@ export default function Telefonia() {
               <div className="flex justify-around mt-4">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-green-500" />
-                  <span className="text-sm">Contestadas: {answeredCalls}</span>
+                  <span className="text-sm">
+                    {t('telephony.metrics.answered')}: {answeredCalls}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-red-500" />
-                  <span className="text-sm">Perdidas: {missedCalls}</span>
+                  <span className="text-sm">
+                    {t('telephony.metrics.missed')}: {missedCalls}
+                  </span>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Top Ubicaciones por Llamadas Perdidas */}
+        {/* Rendimiento por Ubicación */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Rendimiento por Ubicación</CardTitle>
-                <CardDescription>Ubicaciones ordenadas por llamadas perdidas</CardDescription>
+                <CardTitle>{t('telephony.performance.title')}</CardTitle>
+                <CardDescription>{t('telephony.performance.subtitle')}</CardDescription>
               </div>
               <BarChart3 className="h-5 w-5 text-gray-600" />
             </div>
@@ -424,8 +440,8 @@ export default function Telefonia() {
             {locationStats.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <MapPin className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>No hay ubicaciones configuradas</p>
-                <p className="text-sm mt-1">Agrega ubicaciones para ver estadísticas detalladas</p>
+                <p>{t('telephony.performance.noLocations')}</p>
+                <p className="text-sm mt-1">{t('telephony.performance.addLocations')}</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -437,27 +453,31 @@ export default function Telefonia() {
                           <MapPin className="h-4 w-4 text-gray-600" />
                           <span className="font-medium">{stat.location}</span>
                         </div>
-                        <Badge 
+                        <Badge
                           variant={stat.missedPercentage > 30 ? 'destructive' : 'secondary'}
                         >
-                          {stat.missed} perdidas ({stat.missedPercentage}%)
+                          {stat.missed} {t('telephony.metrics.missed')} ({stat.missedPercentage}%)
                         </Badge>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className={`h-2 rounded-full ${
-                            stat.missedPercentage > 30 
-                              ? 'bg-red-500' 
-                              : stat.missedPercentage > 15 
-                                ? 'bg-orange-500' 
-                                : 'bg-green-500'
-                          }`}
+                        <div
+                          className={`h-2 rounded-full ${stat.missedPercentage > 30
+                            ? 'bg-red-500'
+                            : stat.missedPercentage > 15
+                              ? 'bg-orange-500'
+                              : 'bg-green-500'
+                            }`}
                           style={{ width: `${Math.min(stat.missedPercentage, 100)}%` }}
                         />
                       </div>
                       <div className="flex justify-between text-xs text-gray-500 mt-1">
-                        <span>Total: {stat.total} llamadas</span>
-                        <span>Contestadas: {stat.total - stat.missed}</span>
+                        <span>
+                          {t('telephony.metrics.total')}: {stat.total} {t('telephony.metrics.callsToday').toLowerCase()}
+                        </span>
+
+                        <span>
+                          {t('telephony.metrics.answered')}: {stat.total - stat.missed}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -467,22 +487,24 @@ export default function Telefonia() {
           </CardContent>
         </Card>
 
-        {/* Tabla de Llamadas Recientes */}
+        {/* Historial de Llamadas */}
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
               <div>
-                <CardTitle>Historial de Llamadas</CardTitle>
-                <CardDescription>Últimas {filteredCalls.length > 20 ? 20 : filteredCalls.length} llamadas registradas</CardDescription>
+                <CardTitle>{t('telephony.history.title')}</CardTitle>
+                <CardDescription>
+                  {t('telephony.history.subtitle')}
+                </CardDescription>
               </div>
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4 text-gray-600" />
                 <Select value={selectedLocation} onValueChange={setSelectedLocation}>
                   <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Filtrar por ubicación" />
+                    <SelectValue placeholder={t('telephony.filters.allLocations')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todas las ubicaciones</SelectItem>
+                    <SelectItem value="all">{t('telephony.filters.allLocations')}</SelectItem>
                     {locations.map((location) => (
                       <SelectItem key={location.id} value={location.id.toString()}>
                         {location.name}
@@ -503,43 +525,47 @@ export default function Telefonia() {
             ) : filteredCalls.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <Phone className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>No hay llamadas registradas</p>
+                <p>{t('telephony.history.noCalls')}</p>
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Número</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Duración</TableHead>
-                    <TableHead>Ubicación</TableHead>
-                    <TableHead>Fecha/Hora</TableHead>
+                    <TableHead>{t('telephony.history.number')}</TableHead>
+                    <TableHead>{t('telephony.history.status')}</TableHead>
+                    <TableHead>{t('telephony.history.duration')}</TableHead>
+                    <TableHead>{t('telephony.history.location')}</TableHead>
+                    <TableHead>{t('telephony.history.datetime')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredCalls.slice(0, 20).map((call) => {
-                    const location = locations.find(l => l.id === call.routedToLocation);
+                    const location = locations.find((l) => l.id === call.routedToLocation);
                     return (
                       <TableRow key={call.id}>
                         <TableCell className="font-medium">{call.callerNumber}</TableCell>
                         <TableCell>
-                          <Badge 
+                          <Badge
                             variant={call.status === 'missed' ? 'destructive' : 'default'}
                           >
-                            {call.status === 'missed' ? 'Perdida' : 'Contestada'}
+                            {call.status === 'missed'
+                              ? t('telephony.metrics.missed')
+                              : t('telephony.metrics.answered')}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {call.duration > 0 ? `${Math.floor(call.duration / 60)}m ${call.duration % 60}s` : '-'}
+                          {call.duration > 0
+                            ? `${Math.floor(call.duration / 60)}m ${call.duration % 60}s`
+                            : '-'}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <MapPin className="h-3 w-3 text-gray-500" />
-                            <span className="text-sm">{location?.name || 'N/A'}</span>
+                            <span className="text-sm">{location?.name || t('telephony.history.noLocation')}</span>
                           </div>
                         </TableCell>
                         <TableCell className="text-gray-500 text-sm">
-                          {format(new Date(call.createdAt), 'dd/MM/yyyy HH:mm', { locale: es })}
+                          {format(new Date(call.createdAt), t('telephony.dateFormat'), { locale: es })}
                         </TableCell>
                       </TableRow>
                     );
@@ -553,4 +579,3 @@ export default function Telefonia() {
     </>
   );
 }
-

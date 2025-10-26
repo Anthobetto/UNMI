@@ -1,13 +1,8 @@
-/**
- * Dashboard Page - Overview de métricas y llamadas
- * Conectado con useCallMetrics y backend real
- * Conditional rendering según plan del usuario
- */
-
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import {
   Card,
   CardContent,
@@ -42,6 +37,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Link } from 'wouter';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
+import { LanguageSelector } from '@/components/LanguageSelector';
 
 const COLORS = {
   answered: '#10b981',
@@ -81,6 +77,7 @@ interface Call {
 }
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const { user, hasAccessToSection } = useAuth();
   const [averageTicket, setAverageTicket] = useState('50');
   const [conversionRate, setConversionRate] = useState('30');
@@ -91,9 +88,7 @@ export default function Dashboard() {
     queryFn: async () => {
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/calls/stats', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) throw new Error('Failed to fetch call stats');
       return response.json();
@@ -106,9 +101,7 @@ export default function Dashboard() {
     queryFn: async () => {
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/messages/stats', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) throw new Error('Failed to fetch message stats');
       return response.json();
@@ -121,9 +114,7 @@ export default function Dashboard() {
     queryFn: async () => {
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/locations', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) throw new Error('Failed to fetch locations');
       const data = await response.json();
@@ -137,9 +128,7 @@ export default function Dashboard() {
     queryFn: async () => {
       const token = localStorage.getItem('accessToken');
       const response = await fetch('/api/calls', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) throw new Error('Failed to fetch calls');
       const data = await response.json();
@@ -160,53 +149,58 @@ export default function Dashboard() {
   const expectedRevenue = recoveredCalls * Number(averageTicket);
 
   const pieData = [
-    { name: 'Contestadas', value: callStats?.answered ?? 0 },
-    { name: 'Perdidas', value: callStats?.missed ?? 0 },
+    { name: t('dashboard.charts.answered'), value: callStats?.answered ?? 0 },
+    { name: t('dashboard.charts.missed'), value: callStats?.missed ?? 0 },
   ];
 
-  const missedCallRate = callStats?.total 
+  const missedCallRate = callStats?.total
     ? ((callStats.missed / callStats.total) * 100).toFixed(1)
     : '0';
 
   return (
     <>
       <Helmet>
-        <title>Dashboard - UNMI</title>
-        <meta name="description" content="Panel de control de métricas y llamadas" />
+        <title>{t('dashboard.title')} - UNMI</title>
+        <meta name="description" content={t('dashboard.description')} />
       </Helmet>
 
       <div className="p-6 space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">
-            Bienvenido, {user?.username || 'Usuario'}
-          </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.title')}</h1>
+            <p className="text-gray-600 mt-1">
+              {t('dashboard.welcome', { username: user?.username || t('dashboard.welcome', { username: 'Usuario' }) })}
+            </p>
+          </div>
+
+          <div>
+            <LanguageSelector />
+          </div>
         </div>
 
-        {/* Plan Info Alert */}
+        {/* Plan Alert */}
         {user?.planType && (
           <Alert>
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Plan Activo: {user.planType === 'templates' ? 'Templates' : 'Chatbots'}</AlertTitle>
+            <AlertTitle>
+              {t('dashboard.plan.active', { plan: user.planType === 'templates' ? t('dashboard.plan.templates') : t('dashboard.plan.chatbots') })}
+            </AlertTitle>
             <AlertDescription>
-              Tienes acceso a {user.planType === 'templates' ? 'plantillas personalizadas' : 'chatbots con IA'}.
-              {' '}
+              {t('dashboard.plan.access', { access: user.planType === 'templates' ? t('dashboard.plan.templates') : t('dashboard.plan.chatbots') })}{' '}
               <Link href="/plan">
-                <a className="underline font-medium">Cambiar plan</a>
+                <a className="underline font-medium">{t('dashboard.plan.change')}</a>
               </Link>
             </AlertDescription>
           </Alert>
         )}
 
-        {/* Métricas Principales */}
+        {/* Metrics */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {/* Total Calls Today */}
+          {/* Calls Today */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                Llamadas Hoy
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">{t('dashboard.metrics.callsToday')}</CardTitle>
               <PhoneCall className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
@@ -227,7 +221,7 @@ export default function Dashboard() {
                         <span className="text-red-600">-{Math.abs(callDiff).toFixed(0)}%</span>
                       </>
                     )}
-                    vs ayer
+                    {t('dashboard.metrics.vsYesterday')}
                   </p>
                 </>
               )}
@@ -237,9 +231,7 @@ export default function Dashboard() {
           {/* Missed Calls */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                Llamadas Perdidas
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">{t('dashboard.metrics.missedCalls')}</CardTitle>
               <Phone className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
@@ -249,7 +241,7 @@ export default function Dashboard() {
                 <>
                   <div className="text-2xl font-bold text-red-600">{missedCalls}</div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {missedCallRate}% del total
+                    {t('dashboard.metrics.missedRate', { rate: missedCallRate })}
                   </p>
                 </>
               )}
@@ -259,9 +251,7 @@ export default function Dashboard() {
           {/* Messages Sent */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                Mensajes Enviados
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">{t('dashboard.metrics.messagesSent')}</CardTitle>
               <MessageSquare className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
@@ -271,7 +261,7 @@ export default function Dashboard() {
                 <>
                   <div className="text-2xl font-bold">{totalMessages}</div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {messageStats?.delivered ?? 0} entregados
+                    {t('dashboard.metrics.delivered', { count: messageStats?.delivered ?? 0 })}
                   </p>
                 </>
               )}
@@ -281,9 +271,7 @@ export default function Dashboard() {
           {/* Expected Revenue */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">
-                Ingresos Estimados
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">{t('dashboard.metrics.expectedRevenue')}</CardTitle>
               <DollarSign className="h-4 w-4 text-yellow-600" />
             </CardHeader>
             <CardContent>
@@ -291,20 +279,20 @@ export default function Dashboard() {
                 €{expectedRevenue.toLocaleString()}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {recoveredCalls} llamadas recuperadas
+                {t('dashboard.metrics.recoveredCalls', { count: recoveredCalls })}
               </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Row 2: Distribution Chart + Revenue Calculator */}
+        {/* Charts & Calculator */}
         <div className="grid gap-6 lg:grid-cols-2">
-          {/* Call Distribution */}
+          {/* Call Distribution Chart */}
           <Card>
             <CardHeader>
-              <CardTitle>Distribución de Llamadas</CardTitle>
+              <CardTitle>{t('dashboard.charts.callDistribution')}</CardTitle>
               <CardDescription>
-                Total: {callStats?.total ?? 0} llamadas
+                {t('dashboard.charts.totalCalls', { count: callStats?.total ?? 0 })}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -324,9 +312,9 @@ export default function Dashboard() {
                       dataKey="value"
                     >
                       {pieData.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={index === 0 ? COLORS.answered : COLORS.missed} 
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={index === 0 ? COLORS.answered : COLORS.missed}
                         />
                       ))}
                     </Pie>
@@ -337,11 +325,11 @@ export default function Dashboard() {
               <div className="flex justify-around mt-4">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-green-500" />
-                  <span className="text-sm">Contestadas: {callStats?.answered ?? 0}</span>
+                  <span className="text-sm">{t('dashboard.charts.answered', { count: callStats?.answered ?? 0 })}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-red-500" />
-                  <span className="text-sm">Perdidas: {callStats?.missed ?? 0}</span>
+                  <span className="text-sm">{t('dashboard.charts.missed', { count: callStats?.missed ?? 0 })}</span>
                 </div>
               </div>
             </CardContent>
@@ -352,15 +340,15 @@ export default function Dashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calculator className="h-5 w-5" />
-                Calculadora de Rentabilidad
+                {t('dashboard.calculator.title')}
               </CardTitle>
               <CardDescription>
-                Estima los ingresos generados por la recuperación de llamadas
+                {t('dashboard.calculator.description')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="averageTicket">Ticket Promedio (€)</Label>
+                <Label htmlFor="averageTicket">{t('dashboard.calculator.averageTicket')}</Label>
                 <Input
                   id="averageTicket"
                   type="number"
@@ -371,7 +359,7 @@ export default function Dashboard() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="conversionRate">Tasa de Conversión (%)</Label>
+                <Label htmlFor="conversionRate">{t('dashboard.calculator.conversionRate')}</Label>
                 <Input
                   id="conversionRate"
                   type="number"
@@ -385,15 +373,15 @@ export default function Dashboard() {
               <div className="pt-4 border-t">
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Llamadas perdidas:</span>
+                    <span className="text-gray-600">{t('dashboard.calculator.missedCalls')}</span>
                     <span className="font-medium">{missedCalls}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Llamadas recuperadas ({conversionRate}%):</span>
+                    <span className="text-gray-600">{t('dashboard.calculator.recoveredCalls', { rate: conversionRate })}</span>
                     <span className="font-medium">{recoveredCalls}</span>
                   </div>
                   <div className="flex justify-between text-lg font-bold pt-2 border-t">
-                    <span>Ingresos estimados:</span>
+                    <span>{t('dashboard.calculator.estimatedRevenue')}</span>
                     <span className="text-green-600">€{expectedRevenue.toLocaleString()}</span>
                   </div>
                 </div>
@@ -401,7 +389,7 @@ export default function Dashboard() {
 
               <Alert className="bg-blue-50 border-blue-200">
                 <AlertDescription className="text-sm text-blue-800">
-                  💡 Con UNMI recuperas automáticamente un promedio del 30% de llamadas perdidas
+                  {t('dashboard.calculator.tip')}
                 </AlertDescription>
               </Alert>
             </CardContent>
@@ -411,21 +399,19 @@ export default function Dashboard() {
         {/* Recent Calls Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Llamadas Recientes</CardTitle>
-            <CardDescription>Últimas 5 llamadas recibidas</CardDescription>
+            <CardTitle>{t('dashboard.recentCalls.title')}</CardTitle>
+            <CardDescription>{t('dashboard.recentCalls.description')}</CardDescription>
           </CardHeader>
           <CardContent>
             {recentCalls.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <Phone className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>No hay llamadas registradas aún</p>
-                <p className="text-sm mt-1">
-                  Las llamadas aparecerán aquí cuando configures tus números
-                </p>
+                <p>{t('dashboard.recentCalls.noCalls')}</p>
+                <p className="text-sm mt-1">{t('dashboard.recentCalls.info')}</p>
                 <Button variant="outline" className="mt-4" asChild>
                   <Link href="/locations">
                     <MapPin className="h-4 w-4 mr-2" />
-                    Configurar Ubicaciones
+                    {t('dashboard.recentCalls.configureLocations')}
                   </Link>
                 </Button>
               </div>
@@ -433,11 +419,11 @@ export default function Dashboard() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Número</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Duración</TableHead>
-                    <TableHead>Ubicación</TableHead>
-                    <TableHead>Hora</TableHead>
+                    <TableHead>{t('dashboard.recentCalls.table.number')}</TableHead>
+                    <TableHead>{t('dashboard.recentCalls.table.status')}</TableHead>
+                    <TableHead>{t('dashboard.recentCalls.table.duration')}</TableHead>
+                    <TableHead>{t('dashboard.recentCalls.table.location')}</TableHead>
+                    <TableHead>{t('dashboard.recentCalls.table.time')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -447,23 +433,16 @@ export default function Dashboard() {
                       <TableRow key={call.id}>
                         <TableCell className="font-medium">{call.callerNumber}</TableCell>
                         <TableCell>
-                          <Badge 
-                            variant={call.status === 'missed' ? 'destructive' : 'default'}
-                          >
-                            {call.status === 'missed' ? 'Perdida' : 'Contestada'}
+                          <Badge variant={call.status === 'missed' ? 'destructive' : 'default'}>
+                            {call.status === 'missed'
+                              ? t('dashboard.recentCalls.table.missed')
+                              : t('dashboard.recentCalls.table.answered')}
                           </Badge>
                         </TableCell>
-                        <TableCell>
-                          {call.duration > 0 ? `${call.duration}s` : '-'}
-                        </TableCell>
-                        <TableCell>
-                          {location?.name || 'N/A'}
-                        </TableCell>
+                        <TableCell>{call.duration > 0 ? `${call.duration}s` : '-'}</TableCell>
+                        <TableCell>{location?.name || 'N/A'}</TableCell>
                         <TableCell className="text-gray-500">
-                          {new Date(call.createdAt).toLocaleTimeString('es-ES', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
+                          {new Date(call.createdAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                         </TableCell>
                       </TableRow>
                     );
@@ -475,52 +454,54 @@ export default function Dashboard() {
         </Card>
 
         {/* Quick Actions */}
+        {/* Quick Actions */}
         <div className="grid gap-4 md:grid-cols-3">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer" asChild>
-            <Link href="/locations">
+          {/* Locations */}
+          <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <Link href="/locations" className="block">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Ubicaciones</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('dashboard.quickActions.locations')}</CardTitle>
                 <MapPin className="h-4 w-4 text-gray-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{locations.length}</div>
-                <p className="text-xs text-muted-foreground">Gestionar ubicaciones</p>
+                <p className="text-xs text-muted-foreground">{t('dashboard.quickActions.manageLocations')}</p>
               </CardContent>
             </Link>
           </Card>
 
+          {/* Templates */}
           {hasAccessToSection('templates') && (
-            <Card className="hover:shadow-md transition-shadow cursor-pointer" asChild>
-              <Link href="/templates">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <Link href="/templates" className="block">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">Templates</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t('dashboard.quickActions.templates')}</CardTitle>
                   <FileText className="h-4 w-4 text-gray-600" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">-</div>
-                  <p className="text-xs text-muted-foreground">Gestionar plantillas</p>
+                  <p className="text-xs text-muted-foreground">{t('dashboard.quickActions.manageTemplates')}</p>
                 </CardContent>
               </Link>
             </Card>
           )}
 
-          <Card className="hover:shadow-md transition-shadow cursor-pointer" asChild>
-            <Link href="/plan">
+          {/* Your Plan */}
+          <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <Link href="/plan" className="block">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Tu Plan</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('dashboard.quickActions.yourPlan')}</CardTitle>
                 <TrendingUp className="h-4 w-4 text-gray-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-sm font-medium capitalize">{user?.planType || 'Basic'}</div>
-                <p className="text-xs text-muted-foreground">Mejorar plan</p>
+                <p className="text-xs text-muted-foreground">{t('dashboard.quickActions.upgradePlan')}</p>
               </CardContent>
             </Link>
           </Card>
         </div>
+
       </div>
     </>
   );
 }
-
-
-
