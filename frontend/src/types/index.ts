@@ -49,6 +49,7 @@ export interface Plan {
   features: string[];
   messageLimit: number;
   extraMessagePrice: number;
+  popular?: boolean;
 }
 
 export interface Subscription {

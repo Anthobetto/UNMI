@@ -1,5 +1,4 @@
-// Copiado de UNMI base con mejoras técnicas
-// Mejoras: TypeScript strict, error handling, SEO, performance
+// LandingPage.tsx
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
@@ -26,23 +25,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTheme } from "@/hooks/useTheme";
 import { OfficialLogo } from "@/components/logo/official-logo";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { useTranslation } from "react-i18next";
 
-export default function LandingPage() {
+export default function LandingPage(): JSX.Element {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     setMounted(true);
     const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      setIsScrolled(window.scrollY > 10);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -64,39 +61,51 @@ export default function LandingPage() {
 
   const featuresUNMI = [
     {
-      title: "Omnichannel Messaging",
-      description:
-        "Seamlessly manage WhatsApp, SMS, and voice calls from one unified dashboard, ensuring no customer inquiry goes unanswered.",
+      title: t("features.unmi.omnichannel.title", "Omnichannel Messaging"),
+      description: t(
+        "features.unmi.omnichannel.description",
+        "Seamlessly manage WhatsApp, SMS, and voice calls from one unified dashboard, ensuring no customer inquiry goes unanswered."
+      ),
       icon: <MessageCircle className="size-5" />,
     },
     {
-      title: "Intelligent Call Routing",
-      description:
-        "Our smart routing system ensures calls reach the right location or department, reducing missed opportunities and improving customer satisfaction.",
+      title: t("features.unmi.routing.title", "Intelligent Call Routing"),
+      description: t(
+        "features.unmi.routing.description",
+        "Our smart routing system ensures calls reach the right location or department, reducing missed opportunities and improving customer satisfaction."
+      ),
       icon: <Phone className="size-5" />,
     },
     {
-      title: "Automated Responses",
-      description:
-        "Instantly engage with customers even outside business hours with intelligent templates that provide the information they need.",
+      title: t("features.unmi.autoResponse.title", "Automated Responses"),
+      description: t(
+        "features.unmi.autoResponse.description",
+        "Instantly engage with customers even outside business hours with intelligent templates that provide the information they need."
+      ),
       icon: <Clock className="size-5" />,
     },
     {
-      title: "Performance Analytics",
-      description:
-        "Gain valuable insights with comprehensive analytics on call volumes, response times, and conversion rates to optimize your communication strategy.",
+      title: t("features.unmi.analytics.title", "Performance Analytics"),
+      description: t(
+        "features.unmi.analytics.description",
+        "Gain valuable insights with comprehensive analytics on call volumes, response times, and conversion rates to optimize your communication strategy."
+      ),
       icon: <BarChart className="size-5" />,
     },
     {
-      title: "Multi-Location Support",
-      description:
-        "Easily manage multiple business locations from a single dashboard, with customized settings and reporting for each site.",
+      title: t("features.unmi.multiLocation.title", "Multi-Location Support"),
+      description: t(
+        "features.unmi.multiLocation.description",
+        "Easily manage multiple business locations from a single dashboard, with customized settings and reporting for each site."
+      ),
       icon: <Building className="size-5" />,
     },
     {
-      title: "Revenue Calculator",
-      description:
-        "Our integrated calculator helps you track the direct financial impact of improved communication, showing the ROI of your Unmi investment.",
+      title: t("features.unmi.revenueCalc.title", "Revenue Calculator"),
+      description: t(
+        "features.unmi.revenueCalc.description",
+        "Our integrated calculator helps you track the direct financial impact of improved communication, showing the ROI of your Unmi investment."
+      ),
       icon: (
         <div className="rounded-full bg-[#FF0000] size-5 flex items-center justify-center text-white font-bold text-xs">
           €
@@ -107,39 +116,51 @@ export default function LandingPage() {
 
   const featuresChatbot = [
     {
-      title: "Omni-Channel Engagement",
-      description:
-        "Seamlessly manage conversations across WhatsApp, and voice calls from one unified interface.",
+      title: t("features.chatbot.engagement.title", "Omni-Channel Engagement"),
+      description: t(
+        "features.chatbot.engagement.description",
+        "Seamlessly manage conversations across WhatsApp, and voice calls from one unified interface."
+      ),
       icon: <Globe className="size-5" />,
     },
     {
-      title: "24/7 Availability",
-      description:
-        "Handle customer queries any time of day or night without manual intervention.",
+      title: t("features.chatbot.availability.title", "24/7 Availability"),
+      description: t(
+        "features.chatbot.availability.description",
+        "Handle customer queries any time of day or night without manual intervention."
+      ),
       icon: <Clock className="size-5" />,
     },
     {
-      title: "AI-Powered Personalization",
-      description:
-        "Leverage AI to deliver tailored responses based on user context and history.",
+      title: t("features.chatbot.personalization.title", "AI-Powered Personalization"),
+      description: t(
+        "features.chatbot.personalization.description",
+        "Leverage AI to deliver tailored responses based on user context and history."
+      ),
       icon: <User className="size-5" />,
     },
     {
-      title: "Scalable Architecture",
-      description:
-        "Automatically scale to handle growing chat volumes without impacting performance.",
+      title: t("features.chatbot.scalable.title", "Scalable Architecture"),
+      description: t(
+        "features.chatbot.scalable.description",
+        "Automatically scale to handle growing chat volumes without impacting performance."
+      ),
       icon: <ServerIcon className="size-5" />,
     },
     {
-      title: "Real-Time Analytics",
-      description:
-        "Get instant insights on response times, user satisfaction, and resolution rates.",
+      title: t("features.chatbot.analytics.title", "Real-Time Analytics"),
+      description: t(
+        "features.chatbot.analytics.description",
+        "Get instant insights on response times, user satisfaction, and resolution rates."
+      ),
       icon: <BarChart className="size-5" />,
     },
     {
-      title: "Cost Efficiency Calculator",
-      description:
-        "Estimate your ROI and savings by automating chat workflows with our built-in calculator.",
+      title: t("features.chatbot.costCalc.title", "Cost Efficiency Calculator"),
+      description: t(
+        "features.chatbot.costCalc.description",
+        "Estimate your ROI and savings by automating chat workflows with our built-in calculator."
+      ),
       icon: (
         <div className="rounded-full bg-[#F59E0B] size-5 flex items-center justify-center text-white font-bold text-xs">
           €
@@ -151,68 +172,101 @@ export default function LandingPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[100dvh]">
       <header
-        className={`sticky top-0 z-50 w-full backdrop-blur-lg transition-all duration-300 ${isScrolled ? "bg-background/80 shadow-sm" : "bg-transparent"}`}
+        className={`sticky top-0 z-50 w-full backdrop-blur-lg transition-all duration-300 ${
+          isScrolled ? "bg-background/80 shadow-sm" : "bg-transparent"
+        }`}
       >
         <div className="container flex h-16 items-center justify-between">
+          {/* Logo */}
           <div className="flex items-center gap-2 font-bold">
             <div className="mb-3">
               <OfficialLogo width={220} />
             </div>
           </div>
-          <nav className="hidden md:flex gap-8">
+
+          {/* Navigation - Desktop */}
+          <nav className="hidden md:flex gap-8 items-center">
             <Link
               to="#featuresUNMI"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              Features
+              {t("landing.nav.features", "Features")}
             </Link>
             <Link
               to="#testimonials"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              Testimonials
+              {t("landing.nav.testimonials", "Testimonials")}
             </Link>
             <Link
               to="#pricing"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              Pricing
+              {t("landing.nav.pricing", "Pricing")}
             </Link>
             <Link
               to="#faq"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              FAQ
+              {t("header.nav.faq", "FAQ")}
             </Link>
           </nav>
-          <div className="hidden md:flex gap-4 items-center">
+
+          {/* Right Controls - Desktop */}
+          <div className="hidden md:flex items-center gap-4 ml-auto">
+            {/* Theme toggle */}
             <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full">
               {mounted && theme === "dark" ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
-              <span className="sr-only">Toggle theme</span>
+              <span className="sr-only">{t("header.toggleTheme", "Toggle theme")}</span>
             </Button>
+
+            {/* Access link */}
             <Link
               to="/auth"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              Access
+              {t("landing.access", "Access")}
             </Link>
+
+            {/* 14 day trial button */}
             <Link to="/auth">
               <Button className="rounded-full bg-[#FF0000] hover:bg-[#D32F2F]">
-                14 day trial
+                {t("header.trial", "14 day trial")}
                 <ChevronRight className="ml-1 size-4" />
               </Button>
             </Link>
+
+            {/* Language selector */}
+            <LanguageSelector />
           </div>
-          <div className="flex items-center gap-4 md:hidden">
+
+          {/* Mobile Controls */}
+          <div className="flex items-center gap-4 md:hidden ml-auto">
+            {/* Theme toggle */}
             <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full">
               {mounted && theme === "dark" ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
             </Button>
+
+            {/* 14 day trial + Language selector */}
+            <div className="flex items-center gap-2">
+              <Link to="/auth">
+                <Button className="rounded-full bg-[#FF0000] hover:bg-[#D32F2F]">
+                  {t("header.trial", "14 day trial")}
+                  <ChevronRight className="ml-1 size-4" />
+                </Button>
+              </Link>
+              <LanguageSelector />
+            </div>
+
+            {/* Mobile menu */}
             <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
               {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-              <span className="sr-only">Toggle menu</span>
+              <span className="sr-only">{t("header.toggleMenu", "Toggle menu")}</span>
             </Button>
           </div>
         </div>
+
+        {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -222,30 +276,37 @@ export default function LandingPage() {
           >
             <div className="container py-4 flex flex-col gap-4">
               <Link to="#featuresUNMI" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
-                Features
+                {t("header.nav.features", "Features")}
               </Link>
               <Link to="#testimonials" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
-                Testimonials
+                {t("header.nav.testimonials", "Testimonials")}
               </Link>
               <Link to="#pricing" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
-                Pricing
+                {t("header.nav.pricing", "Pricing")}
               </Link>
               <Link to="#faq" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
-                FAQ
+                {t("header.nav.faq", "FAQ")}
               </Link>
+
               <div className="flex flex-col gap-2 pt-2 border-t">
                 <Link to="/auth" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
-                  Log in
+                  {t("header.access", "Access")}
                 </Link>
-                <Button className="rounded-full bg-[#FF0000] hover:bg-[#D32F2F]">
-                  14 day trial
-                  <ChevronRight className="ml-1 size-4" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                    <Button className="rounded-full bg-[#FF0000] hover:bg-[#D32F2F] w-full">
+                      {t("header.trial", "14 day trial")}
+                      <ChevronRight className="ml-1 size-4" />
+                    </Button>
+                  </Link>
+                  <LanguageSelector />
+                </div>
               </div>
             </div>
           </motion.div>
         )}
       </header>
+
       <main className="flex-1">
         <section className="w-full py-10 md:py-22 lg:py-30 overflow-hidden">
           <div className="container px-4 md:px-6 relative">
@@ -258,19 +319,19 @@ export default function LandingPage() {
               className="text-center max-w-3xl mx-auto mb-12"
             >
               <Badge className="mb-4 rounded-full px-4 py-1.5 text-sm font-medium" variant="secondary">
-                Transform Your Business
+                {t("hero.badge", "Transform Your Business")}
               </Badge>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-                Transform Your Business Communication Strategy
+                {t("hero.title", "Transform Your Business Communication Strategy")}
               </h1>
               <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                Unmi seamlessly integrates WhatsApp, SMS, and call management into one powerful platform, helping
-                businesses convert more inquiries into bookings with intelligent routing and personalized responses.
+                {t(
+                  "hero.subtitle")}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/auth?tab=register">
                   <Button size="lg" className="rounded-full h-12 px-8 text-base bg-[#FF0000] hover:bg-[#D32F2F]">
-                    14 day trial
+                    {t("hero.cta", "14 day trial")}
                     <ArrowRight className="ml-2 size-4" />
                   </Button>
                 </Link>
@@ -278,11 +339,11 @@ export default function LandingPage() {
               <div className="flex items-center justify-center gap-4 mt-6 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Check className="size-4 text-[#FF0000]" />
-                  <span>14 day trial</span>
+                  <span>{t("hero.features.trial", "14 day trial")}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Check className="size-4 text-[#FF0000]" />
-                  <span>Cancel anytime</span>
+                  <span>{t("hero.features.cancel", "Cancel anytime")}</span>
                 </div>
               </div>
             </motion.div>
@@ -297,7 +358,7 @@ export default function LandingPage() {
                 <div className="relative rounded-xl overflow-hidden shadow-2xl border border-border/40 bg-gradient-to-b from-background to-muted/20">
                   <img
                     src="/business-communication-dashboard-with-whatsapp-sms.png"
-                    alt="Unmi dashboard"
+                    alt={t("hero.imageAlt", "Unmi dashboard")}
                     className="w-full h-auto"
                   />
                   <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-black/10 dark:ring-white/10"></div>
@@ -313,11 +374,11 @@ export default function LandingPage() {
         <section id="features" className="w-full py-20 md:py-32">
           <div className="container px-4 md:px-6 text-center mb-12">
             <Badge className="rounded-full px-4 py-1.5 text-sm font-medium mb-4" variant="secondary">
-              Features
+              {t("features.badge", "Features")}
             </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Compare UNMI vs Chatbot</h2>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">{t("features.title", "Compare UNMI vs Chatbot")}</h2>
             <p className="max-w-[800px] mx-auto text-muted-foreground md:text-lg">
-              Toggle between UNMI's call-based automations and a full-fledged AI chatbot.
+              {t("features.description", "Toggle between UNMI's call-based automations and a full-fledged AI chatbot.")}
             </p>
           </div>
 
@@ -325,10 +386,10 @@ export default function LandingPage() {
             <Tabs defaultValue="unmi">
               <TabsList className="rounded-full p-1 inline-flex mb-8">
                 <TabsTrigger value="unmi" className="rounded-full px-6">
-                  UNMI
+                  {t("features.tabs.unmi", "UNMI")}
                 </TabsTrigger>
                 <TabsTrigger value="chatbot" className="rounded-full px-6">
-                  Chatbot
+                  {t("features.tabs.chatbot", "Chatbot")}
                 </TabsTrigger>
               </TabsList>
 
@@ -383,9 +444,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Resto de secciones del landing original... */}
-        {/* Por brevedad, las secciones de testimonials, pricing, FAQ se mantienen igual */}
-        {/* Ver UNMI/client/src/pages/landing-page.tsx líneas 467-890 */}
+        {/* Resto de secciones del landing original... (se mantuvieron fuera por brevedad) */}
       </main>
       <footer className="mt-auto w-full border-t bg-background/95 backdrop-blur-sm">
         <div className="container flex flex-col items-center gap-8 px-4 py-10 md:px-6 lg:py-16">
@@ -395,16 +454,15 @@ export default function LandingPage() {
                 <OfficialLogo width={110} />
               </div>
               <p className="text-sm text-muted-foreground">
-                Transform your business communication with our all-in-one platform.
+                {t("footer.text", "Transform your business communication with our all-in-one platform.")}
               </p>
             </div>
           </div>
-          <div className="flex flex-col gap-4 sm:flex-row justify-between items-center border-t border-border/40 pt-8">
-            <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} Unmi. All rights reserved.</p>
+          <div className="flex flex-col gap-4 sm:flex-row justify-between items-center border-t border-border/40 pt-8 w-full">
+            <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} Unmi. {t("footer.rights", "All rights reserved.")}</p>
           </div>
         </div>
       </footer>
     </div>
   );
 }
-

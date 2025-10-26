@@ -44,12 +44,14 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PhoneNumber } from '@shared/schema';
+import { useTranslation } from 'react-i18next';
+import { LanguageSelector } from '@/components/LanguageSelector';
 
 // Schema de validación
 const locationSchema = z.object({
-  name: z.string().min(1, 'El nombre es requerido').max(100),
+  name: z.string().min(1, 'locations.validation.nameRequired'),
   phoneNumber: z.string().optional(),
-  address: z.string().min(5, 'La dirección debe tener al menos 5 caracteres').max(255),
+  address: z.string().min(5, 'locations.validation.addressMin').max(255),
   timezone: z.string().default('Europe/Madrid'),
 });
 
@@ -68,6 +70,7 @@ interface Location {
 }
 
 export default function Locations() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -85,7 +88,6 @@ export default function Locations() {
       timezone: 'Europe/Madrid',
     },
   });
-
 
   // ====================
   // Queries
@@ -136,8 +138,6 @@ export default function Locations() {
     };
   });
 
-
-
   // ==============================
   // MUTATIONS
   // ==============================
@@ -160,16 +160,16 @@ export default function Locations() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/locations'] });
       toast({
-        title: 'Ubicación creada',
-        description: 'La ubicación se ha creado correctamente',
+        title: t('locations.toast.created.title'),
+        description: t('locations.toast.created.description'),
       });
       setDialogOpen(false);
       form.reset();
     },
     onError: () => {
       toast({
-        title: 'Error',
-        description: 'No se pudo crear la ubicación',
+        title: t('locations.toast.error.title'),
+        description: t('locations.toast.error.description'),
         variant: 'destructive',
       });
     },
@@ -190,12 +190,19 @@ export default function Locations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/locations'] });
-      toast({ title: 'Ubicación actualizada', description: 'Cambios guardados correctamente' });
+      toast({
+        title: t('locations.toast.updated.title'),
+        description: t('locations.toast.updated.description'),
+      });
       setDialogOpen(false);
       setEditingLocation(null);
     },
     onError: () => {
-      toast({ title: 'Error', description: 'No se pudo actualizar la ubicación', variant: 'destructive' });
+      toast({
+        title: t('locations.toast.error.title'),
+        description: t('locations.toast.error.description'),
+        variant: 'destructive',
+      });
     },
   });
 
@@ -215,14 +222,14 @@ export default function Locations() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/phone-numbers'] });
       toast({
-        title: 'Número creado',
-        description: 'El número de teléfono se ha guardado correctamente',
+        title: t('locations.toast.phoneCreated.title'),
+        description: t('locations.toast.phoneCreated.description'),
       });
     },
     onError: () => {
       toast({
-        title: 'Error',
-        description: 'No se pudo crear el número de teléfono',
+        title: t('locations.toast.error.title'),
+        description: t('locations.toast.error.description'),
         variant: 'destructive',
       });
     },
@@ -298,150 +305,149 @@ export default function Locations() {
     }
   };
 
-
   return (
     <>
       <Helmet>
-        <title>Ubicaciones - UNMI</title>
-        <meta name="description" content="Gestiona las ubicaciones de tu negocio" />
+        <title>{t('locations.title')} - UNMI</title>
+        <meta name="description" content={t('locations.subtitle')} />
       </Helmet>
 
       <div className="p-6 space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-start">
+        <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Ubicaciones</h1>
-            <p className="text-gray-600 mt-1">
-              Gestiona las ubicaciones de tu negocio
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900">{t('locations.title')}</h1>
+            <p className="text-gray-600 mt-1">{t('locations.subtitle')}</p>
           </div>
-          <Dialog
-            open={dialogOpen}
-            onOpenChange={(open) => {
-              setDialogOpen(open);
 
-              if (open && !editingLocation) {
-                setEditingPhoneNumberId(null);
-                form.reset({
-                  name: '',
-                  address: '',
-                  phoneNumber: '',
-                  timezone: 'Europe/Madrid',
-                });
-              }
+          <div className="flex items-center space-x-2">
+            <Dialog
+              open={dialogOpen}
+              onOpenChange={(open) => {
+                setDialogOpen(open);
 
-              if (!open) {
-                setEditingLocation(null);
-                setEditingPhoneNumberId(null);
-                form.reset({
-                  name: '',
-                  address: '',
-                  phoneNumber: '',
-                  timezone: 'Europe/Madrid',
-                });
-              }
-            }}
-          >
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Nueva Ubicación
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {editingLocation ? 'Editar Ubicación' : 'Crear Nueva Ubicación'}
-                </DialogTitle>
-                <DialogDescription>
-                  {editingLocation
-                    ? 'Modifica los datos de la ubicación seleccionada'
-                    : 'Agrega una nueva ubicación para gestionar llamadas y mensajes'}
-                </DialogDescription>
-              </DialogHeader>
+                if (open && !editingLocation) {
+                  setEditingPhoneNumberId(null);
+                  form.reset({
+                    name: '',
+                    address: '',
+                    phoneNumber: '',
+                    timezone: 'Europe/Madrid',
+                  });
+                }
 
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nombre de la Ubicación</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ej: Tienda Centro" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          Un nombre descriptivo para identificar la ubicación
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                if (!open) {
+                  setEditingLocation(null);
+                  setEditingPhoneNumberId(null);
+                  form.reset({
+                    name: '',
+                    address: '',
+                    phoneNumber: '',
+                    timezone: 'Europe/Madrid',
+                  });
+                }
+              }}
+            >
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  {t('locations.new')}
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingLocation ? t('locations.edit') : t('locations.create')}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {editingLocation
+                      ? t('locations.dialog.editDesc')
+                      : t('locations.dialog.createDesc')}
+                  </DialogDescription>
+                </DialogHeader>
 
-                  <FormField
-                    control={form.control}
-                    name="address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Dirección</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Calle Principal 123, Madrid" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('locations.form.name')}</FormLabel>
+                          <FormControl>
+                            <Input placeholder={t('locations.form.namePlaceholder')} {...field} />
+                          </FormControl>
+                          <FormDescription>{t('locations.form.nameHelp')}</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <FormField
-                    control={form.control}
-                    name="phoneNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Teléfono</FormLabel>
-                        <FormControl>
-                          <Input placeholder="+34 600 123 456" {...field} />
-                        </FormControl>
-                        <FormDescription>Opcional. Para llamadas y mensajes.</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <FormField
+                      control={form.control}
+                      name="address"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('locations.form.address')}</FormLabel>
+                          <FormControl>
+                            <Input placeholder={t('locations.form.addressPlaceholder')} {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <FormField
-                    control={form.control}
-                    name="timezone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Zona Horaria</FormLabel>
-                        <FormControl>
-                          <Input {...field} readOnly />
-                        </FormControl>
-                        <FormDescription>
-                          Se usa para programar mensajes y horarios
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <FormField
+                      control={form.control}
+                      name="phoneNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('locations.form.phone')}</FormLabel>
+                          <FormControl>
+                            <Input placeholder={t('locations.form.phonePlaceholder')} {...field} />
+                          </FormControl>
+                          <FormDescription>{t('locations.form.phoneHelp')}</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <DialogFooter>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setDialogOpen(false)}
-                    >
-                      Cancelar
-                    </Button>
-                    <Button type="submit" disabled={createMutation.isPending || editMutation.isPending}>
-                      {editingLocation ? 'Guardar Cambios' : 'Crear Ubicación'}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
+                    <FormField
+                      control={form.control}
+                      name="timezone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('locations.form.timezone')}</FormLabel>
+                          <FormControl>
+                            <Input {...field} readOnly />
+                          </FormControl>
+                          <FormDescription>{t('locations.form.timezoneHelp')}</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <DialogFooter>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setDialogOpen(false)}
+                      >
+                        {t('locations.cancel')}
+                      </Button>
+                      <Button type="submit" disabled={createMutation.isPending || editMutation.isPending}>
+                        {editingLocation ? t('locations.saveChanges') : t('locations.createLocation')}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+
+            <LanguageSelector />
+          </div>
         </div>
+
 
         {/* Locations Grid */}
         {isLoading ? (
@@ -462,13 +468,13 @@ export default function Locations() {
           <Card className="text-center py-12">
             <CardContent>
               <MapPin className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-semibold mb-2">No hay ubicaciones aún</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('locations.noLocations')}</h3>
               <p className="text-gray-600 mb-4 max-w-md mx-auto">
-                Crea tu primera ubicación para comenzar a recibir y gestionar llamadas
+                {t('locations.firstLocation')}
               </p>
               <Button onClick={() => setDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Crear Primera Ubicación
+                {t('locations.createFirstLocation')}
               </Button>
             </CardContent>
           </Card>
@@ -483,12 +489,12 @@ export default function Locations() {
                       <CardTitle className="text-lg">{location.name}</CardTitle>
                     </div>
                     {location.isFirstLocation && (
-                      <Badge variant="secondary">Principal</Badge>
+                      <Badge variant="secondary">{t('locations.details.main')}</Badge>
                     )}
                   </div>
                   <CardDescription className="flex items-start gap-2 mt-2">
                     <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                    <span>{location.address || 'Sin dirección'}</span>
+                    <span>{location.address || t('locations.details.noAddress')}</span>
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -501,7 +507,7 @@ export default function Locations() {
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2 text-gray-600">
                       <Phone className="h-4 w-4" />
-                      <span>{location.phoneNumber || 'Sin número'} </span>
+                      <span>{location.phoneNumber || t('locations.details.noNumber')} </span>
                     </div>
                   </div>
                 </CardContent>
@@ -526,7 +532,7 @@ export default function Locations() {
                     }}
                   >
                     <Edit2 className="h-4 w-4 mr-2" />
-                    Configurar
+                    {t('locations.details.configure')}
                   </Button>
                 </CardFooter>
               </Card>
@@ -538,12 +544,11 @@ export default function Locations() {
         {locations.length > 0 && (
           <Card className="bg-blue-50 border-blue-200">
             <CardHeader>
-              <CardTitle className="text-sm font-medium">💡 Siguiente Paso</CardTitle>
+              <CardTitle className="text-sm font-medium">💡 {t('locations.nextStep.title')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-700">
-                Ahora puedes configurar números de teléfono para cada ubicación y comenzar a recibir llamadas.
-                Los templates y reglas de enrutamiento se pueden asignar por ubicación.
+                {t('locations.nextStep.desc')}
               </p>
             </CardContent>
           </Card>
@@ -552,6 +557,3 @@ export default function Locations() {
     </>
   );
 }
-
-
-

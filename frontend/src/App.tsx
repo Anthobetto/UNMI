@@ -1,11 +1,3 @@
-/**
- * App.tsx - Main Application Router
- * Implementa routing completo con guards y layouts
- * Seguir principios SOLID: SRP para routing, OCP para nuevas rutas
- * 
- * i18n: Multi-language support (ES, EN, FR)
- */
-
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Switch, Route, Redirect } from 'wouter';
 import { HelmetProvider } from 'react-helmet-async';
@@ -64,37 +56,41 @@ function Router() {
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      <div className="flex-1 overflow-y-auto bg-gray-50">
-        <Switch>
-          {/* Core Features */}
-          <Route path="/" component={Dashboard} />
-          <Route path="/dashboard" component={Dashboard} />
-          <Route path="/rentabilidad-unmi" component={RentabilidadUNMI} />
-          <Route path="/telefonia" component={Telefonia} />
-          <Route path="/templates" component={Templates} />
-          <Route path="/chatbots" component={Chatbots} />
-          <Route path="/locations" component={Locations} />
-          <Route path="/plan" component={Plan} />
+      <div className="flex-1 flex flex-col bg-gray-50">
 
-          {/* Redirects for authenticated users */}
-          <Route path="/auth">
-            <Redirect to="/dashboard" />
-          </Route>
+        {/* Contenido principal */}
+        <main className="flex-1 overflow-y-auto">
+          <Switch>
+            {/* Core Features */}
+            <Route path="/" component={Dashboard} />
+            <Route path="/dashboard" component={Dashboard} />
+            <Route path="/rentabilidad-unmi" component={RentabilidadUNMI} />
+            <Route path="/telefonia" component={Telefonia} />
+            <Route path="/templates" component={Templates} />
+            <Route path="/chatbots" component={Chatbots} />
+            <Route path="/locations" component={Locations} />
+            <Route path="/plan" component={Plan} />
 
-          {/* 404 - Not Found */}
-          <Route>
-            <div className="p-6 text-center">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
-              <p className="text-gray-600 mb-6">Page not found</p>
-              <a 
-                href="/dashboard" 
-                className="text-blue-600 hover:underline"
-              >
-                Back to Dashboard
-              </a>
-            </div>
-          </Route>
-        </Switch>
+            {/* Redirects for authenticated users */}
+            <Route path="/auth">
+              <Redirect to="/dashboard" />
+            </Route>
+
+            {/* 404 - Not Found */}
+            <Route>
+              <div className="p-6 text-center">
+                <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
+                <p className="text-gray-600 mb-6">Page not found</p>
+                <a
+                  href="/dashboard"
+                  className="text-blue-600 hover:underline"
+                >
+                  Back to Dashboard
+                </a>
+              </div>
+            </Route>
+          </Switch>
+        </main>
       </div>
     </div>
   );
@@ -119,4 +115,3 @@ function App() {
 }
 
 export default App;
-

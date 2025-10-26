@@ -72,24 +72,24 @@ export default function AuthPage() {
     }
   };
 
- const handleRegister = async (data: RegisterData) => {
-  try {
-    setIsSubmitting(true);
-    const { url } = await register(data);
+  const handleRegister = async (data: RegisterData) => {
+    try {
+      setIsSubmitting(true);
+      const { url } = await register(data);
 
-    if (url) {
-      // ✅ En producción: redirigir al checkout de Stripe
-      window.location.href = url;
-    } else {
-      // 🔄 fallback: ir al selector de plan local (si existe)
-      setLocation("/plan");
+      if (url) {
+        // ✅ En producción: redirigir al checkout de Stripe
+        window.location.href = url;
+      } else {
+        // 🔄 fallback: ir al selector de plan local (si existe)
+        setLocation("/plan");
+      }
+    } catch (err) {
+      console.error("Error durante el registro:", err);
+    } finally {
+      setIsSubmitting(false);
     }
-  } catch (err) {
-    console.error("Error durante el registro:", err);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
 
   return (
@@ -97,7 +97,7 @@ export default function AuthPage() {
       {/* Selector de idioma */}
       <div className="absolute top-4 right-4">
         <LanguageSelector />
-      </div>
+      </div> 
 
       <Card className="w-full max-w-md shadow-sm bg-white rounded-3xl border-0">
         <CardContent className="p-8">
@@ -195,7 +195,7 @@ export default function AuthPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-[#333333] font-medium">
-                          Full Name
+                          {t("auth.register.fullName")}
                         </FormLabel>
                         <FormControl>
                           <Input {...field} className="h-14 rounded-xl border-gray-200" />
@@ -211,7 +211,7 @@ export default function AuthPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-[#333333] font-medium">
-                          Email
+                          {t("auth.register.email")}
                         </FormLabel>
                         <FormControl>
                           <Input {...field} className="h-14 rounded-xl border-gray-200" />
@@ -227,7 +227,7 @@ export default function AuthPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-[#333333] font-medium">
-                          Password
+                          {t("auth.register.password")}
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -247,7 +247,7 @@ export default function AuthPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-[#333333] font-medium">
-                          Company Name
+                          {t("auth.register.companyName")}
                         </FormLabel>
                         <FormControl>
                           <Input {...field} className="h-14 rounded-xl border-gray-200" />
@@ -271,13 +271,14 @@ export default function AuthPage() {
                           />
                         </FormControl>
                         <FormLabel className="text-sm">
-                          Acepto los{" "}
+                          {t("auth.register.terms")}
+                          {" "}
                           <a href="/terms" className="underline">
-                            Términos de uso
+                            {t("auth.register.termsLink")}
                           </a>{" "}
-                          y el{" "}
+                          {t("auth.register.andThe")}{" "}
                           <a href="/privacy" className="underline">
-                            Aviso de privacidad
+                            {t("auth.register.privacy")}
                           </a>
                         </FormLabel>
                         <FormMessage />
@@ -290,7 +291,7 @@ export default function AuthPage() {
                     disabled={isSubmitting}
                     className="w-full h-14 rounded-full mt-6 bg-[#FF0000] hover:bg-[#D32F2F] text-white font-medium text-lg"
                   >
-                    {isSubmitting ? "Registering..." : "Register"}
+                    {isSubmitting ? t("auth.register.registering") : t("auth.register.title")}
                   </Button>
                 </form>
               </Form>

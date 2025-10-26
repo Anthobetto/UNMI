@@ -1,5 +1,4 @@
 // Stripe Mock Service - OCP (Open-Closed Principle)
-// Servicio extensible para diferentes tipos de planes sin modificación
 
 import { Plan, PlanSelectionForm, StripeSession } from '@/types';
 
@@ -18,13 +17,7 @@ export class StripeMockService implements IPaymentService {
       name: 'Templates Basic',
       type: 'templates',
       price: 60,
-      features: [
-        'Plantillas ilimitadas',
-        'Integración SMS & WhatsApp',
-        'Análisis básicos',
-        'Soporte por email',
-        '1000 mensajes incluidos'
-      ],
+      features: ['templateAutomation'],
       messageLimit: 1000,
       extraMessagePrice: 1,
     },
@@ -33,14 +26,7 @@ export class StripeMockService implements IPaymentService {
       name: 'Templates Pro',
       type: 'templates',
       price: 120,
-      features: [
-        'Todo en Basic',
-        'Plantillas avanzadas',
-        'Soporte multi-ubicación',
-        'Análisis avanzados',
-        'Soporte telefónico',
-        '5000 mensajes incluidos'
-      ],
+      features: ['templateAutomation', 'fullApi', 'integrations'],
       messageLimit: 5000,
       extraMessagePrice: 0.8,
     },
@@ -49,13 +35,7 @@ export class StripeMockService implements IPaymentService {
       name: 'Chatbots Basic',
       type: 'chatbots',
       price: 60,
-      features: [
-        'Integración IA chatbot',
-        'Respuestas personalizadas',
-        'Análisis avanzados',
-        'Soporte prioritario',
-        '1000 conversaciones incluidas'
-      ],
+      features: ['aiChatbots', 'aiBasic'],
       messageLimit: 1000,
       extraMessagePrice: 1,
     },
@@ -64,20 +44,29 @@ export class StripeMockService implements IPaymentService {
       name: 'Chatbots Pro',
       type: 'chatbots',
       price: 120,
-      features: [
-        'Todo en Basic',
-        'Entrenamiento IA personalizado',
-        'Soporte multi-idioma',
-        'Integraciones avanzadas',
-        'Account manager dedicado',
-        '5000 conversaciones incluidas'
-      ],
+      features: ['aiChatbots', 'aiAdvanced', 'accountManager', 'sla'],
       messageLimit: 5000,
       extraMessagePrice: 0.8,
     },
+    {
+      id: 'enterprise',
+      name: 'Enterprise',
+      type: 'chatbots',
+      price: 0, // Custom pricing
+      features: [
+        'unlimitedMessages',
+        'combinedTemplatesChatbots',
+        'accountManager',
+        'sla',
+        'fullApi',
+        'integrations'
+      ],
+      messageLimit: Infinity,
+      extraMessagePrice: 0,
+      popular: true,
+    },
   ];
 
-  // OCP: Método abierto para extensión de nuevos planes
   public addPlan(plan: Plan): void {
     this.plans.push(plan);
   }
@@ -91,9 +80,7 @@ export class StripeMockService implements IPaymentService {
 
   async createCheckoutSession(formData: PlanSelectionForm): Promise<StripeSession> {
     const plan = this.plans.find(p => p.id === formData.planId);
-    if (!plan) {
-      throw new Error('Plan no encontrado');
-    }
+    if (!plan) throw new Error('Plan no encontrado');
 
     const sessionId = `cs_mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const session: StripeSession = {
@@ -106,7 +93,6 @@ export class StripeMockService implements IPaymentService {
 
     this.sessions.set(sessionId, session);
 
-    // Simular procesamiento asíncrono
     setTimeout(() => {
       const currentSession = this.sessions.get(sessionId);
       if (currentSession) {
@@ -125,7 +111,6 @@ export class StripeMockService implements IPaymentService {
   async completePayment(sessionId: string): Promise<boolean> {
     const session = this.sessions.get(sessionId);
     if (!session) return false;
-
     session.status = 'completed';
     this.sessions.set(sessionId, session);
     return true;
@@ -134,7 +119,6 @@ export class StripeMockService implements IPaymentService {
   async failPayment(sessionId: string): Promise<boolean> {
     const session = this.sessions.get(sessionId);
     if (!session) return false;
-
     session.status = 'failed';
     this.sessions.set(sessionId, session);
     return true;
@@ -143,7 +127,6 @@ export class StripeMockService implements IPaymentService {
   calculateExtraMessageCost(planId: string, extraMessages: number): number {
     const plan = this.plans.find(p => p.id === planId);
     if (!plan) return 0;
-
     return extraMessages * plan.extraMessagePrice;
   }
 
@@ -151,10 +134,9 @@ export class StripeMockService implements IPaymentService {
     return this.plans.find(plan => plan.id === planId) || null;
   }
 
-  // Mock webhook handler
   async handleWebhook(eventType: string, data: any): Promise<boolean> {
     console.log(`Mock webhook received: ${eventType}`, data);
-    
+
     switch (eventType) {
       case 'checkout.session.completed':
         return this.completePayment(data.session_id);
@@ -168,7 +150,3 @@ export class StripeMockService implements IPaymentService {
 }
 
 export const stripeMockService = new StripeMockService();
-
-
-
-

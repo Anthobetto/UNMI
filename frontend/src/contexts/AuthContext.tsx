@@ -9,6 +9,7 @@ export interface User {
   username: string;
   email: string;
   planType: 'templates' | 'chatbots' | null;
+   companyName?: string; 
 }
 
 // --- Esquemas de validación ---
