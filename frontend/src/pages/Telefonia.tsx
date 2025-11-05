@@ -204,7 +204,6 @@ export default function Telefonia() {
     alert(t('telephony.actions.exportAlert'));
   };
 
-
   return (
     <>
       <Helmet>
@@ -212,15 +211,15 @@ export default function Telefonia() {
         <meta name="description" content={t('telephony.subtitle')} />
       </Helmet>
 
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-6 mt-12">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">{t('telephony.title')}</h1>
             <p className="text-gray-600 mt-1">{t('telephony.subtitle')}</p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Select value={dateRange} onValueChange={setDateRange}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue />
@@ -232,7 +231,7 @@ export default function Telefonia() {
               </SelectContent>
             </Select>
 
-            <Button onClick={handleExport} variant="outline">
+            <Button onClick={handleExport} variant="outline" className="flex-shrink-0">
               <Download className="h-4 w-4 mr-2" />
               {t('telephony.actions.export')}
             </Button>
@@ -242,9 +241,9 @@ export default function Telefonia() {
         </div>
 
         {/* KPIs */}
-        <div className="grid gap-6 md:grid-cols-4">
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
           {/* Llamadas Hoy */}
-          <Card>
+          <Card className="min-w-0">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium">
@@ -276,14 +275,13 @@ export default function Telefonia() {
                       </>
                     )}
                   </p>
-
                 </>
               )}
             </CardContent>
           </Card>
 
           {/* Contestadas */}
-          <Card>
+          <Card className="min-w-0">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium">{t('telephony.metrics.answered')}</CardTitle>
@@ -298,12 +296,11 @@ export default function Telefonia() {
               <p className="text-xs text-muted-foreground mt-1">
                 {missedRate}% {t('telephony.metrics.ofTotal')}
               </p>
-
             </CardContent>
           </Card>
 
           {/* Perdidas */}
-          <Card>
+          <Card className="min-w-0">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium">{t('telephony.metrics.missed')}</CardTitle>
@@ -319,7 +316,7 @@ export default function Telefonia() {
           </Card>
 
           {/* Duración Promedio */}
-          <Card>
+          <Card className="min-w-0">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium">{t('telephony.metrics.avgDuration')}</CardTitle>
@@ -333,15 +330,14 @@ export default function Telefonia() {
               <p className="text-xs text-muted-foreground mt-1">
                 {callStats?.averageDuration ? callStats.averageDuration % 60 : 0}{t('telephony.metrics.seconds')}
               </p>
-
             </CardContent>
           </Card>
         </div>
 
         {/* Row 2: Gráficos */}
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
           {/* Tendencia */}
-          <Card className="lg:col-span-2">
+          <Card className="lg:col-span-2 min-w-0 overflow-x-auto">
             <CardHeader>
               <CardTitle>{t('telephony.charts.trend')}</CardTitle>
               <CardDescription>
@@ -377,7 +373,7 @@ export default function Telefonia() {
           </Card>
 
           {/* Distribución */}
-          <Card>
+          <Card className="min-w-0 overflow-x-auto">
             <CardHeader>
               <CardTitle>{t('telephony.charts.distribution')}</CardTitle>
               <CardDescription>
@@ -407,7 +403,7 @@ export default function Telefonia() {
                   <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="flex justify-around mt-4">
+              <div className="flex flex-wrap justify-around mt-4 gap-2">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-green-500" />
                   <span className="text-sm">
@@ -426,7 +422,7 @@ export default function Telefonia() {
         </div>
 
         {/* Rendimiento por Ubicación */}
-        <Card>
+        <Card className="min-w-0 overflow-x-auto">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
@@ -447,11 +443,11 @@ export default function Telefonia() {
               <div className="space-y-4">
                 {locationStats.slice(0, 5).map((stat, index) => (
                   <div key={index} className="flex items-center gap-4">
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 text-gray-600" />
-                          <span className="font-medium">{stat.location}</span>
+                          <span className="font-medium truncate">{stat.location}</span>
                         </div>
                         <Badge
                           variant={stat.missedPercentage > 30 ? 'destructive' : 'secondary'}
@@ -474,7 +470,6 @@ export default function Telefonia() {
                         <span>
                           {t('telephony.metrics.total')}: {stat.total} {t('telephony.metrics.callsToday').toLowerCase()}
                         </span>
-
                         <span>
                           {t('telephony.metrics.answered')}: {stat.total - stat.missed}
                         </span>
@@ -488,16 +483,16 @@ export default function Telefonia() {
         </Card>
 
         {/* Historial de Llamadas */}
-        <Card>
+        <Card className="min-w-0 overflow-x-auto">
           <CardHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
               <div>
                 <CardTitle>{t('telephony.history.title')}</CardTitle>
                 <CardDescription>
                   {t('telephony.history.subtitle')}
                 </CardDescription>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Filter className="h-4 w-4 text-gray-600" />
                 <Select value={selectedLocation} onValueChange={setSelectedLocation}>
                   <SelectTrigger className="w-[200px]">
@@ -528,50 +523,52 @@ export default function Telefonia() {
                 <p>{t('telephony.history.noCalls')}</p>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('telephony.history.number')}</TableHead>
-                    <TableHead>{t('telephony.history.status')}</TableHead>
-                    <TableHead>{t('telephony.history.duration')}</TableHead>
-                    <TableHead>{t('telephony.history.location')}</TableHead>
-                    <TableHead>{t('telephony.history.datetime')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredCalls.slice(0, 20).map((call) => {
-                    const location = locations.find((l) => l.id === call.routedToLocation);
-                    return (
-                      <TableRow key={call.id}>
-                        <TableCell className="font-medium">{call.callerNumber}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={call.status === 'missed' ? 'destructive' : 'default'}
-                          >
-                            {call.status === 'missed'
-                              ? t('telephony.metrics.missed')
-                              : t('telephony.metrics.answered')}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {call.duration > 0
-                            ? `${Math.floor(call.duration / 60)}m ${call.duration % 60}s`
-                            : '-'}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3 text-gray-500" />
-                            <span className="text-sm">{location?.name || t('telephony.history.noLocation')}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-gray-500 text-sm">
-                          {format(new Date(call.createdAt), t('telephony.dateFormat'), { locale: es })}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+              <div className="overflow-x-auto">
+                <Table className="min-w-full">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('telephony.history.number')}</TableHead>
+                      <TableHead>{t('telephony.history.status')}</TableHead>
+                      <TableHead>{t('telephony.history.duration')}</TableHead>
+                      <TableHead>{t('telephony.history.location')}</TableHead>
+                      <TableHead>{t('telephony.history.datetime')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCalls.slice(0, 20).map((call) => {
+                      const location = locations.find((l) => l.id === call.routedToLocation);
+                      return (
+                        <TableRow key={call.id}>
+                          <TableCell className="font-medium">{call.callerNumber}</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={call.status === 'missed' ? 'destructive' : 'default'}
+                            >
+                              {call.status === 'missed'
+                                ? t('telephony.metrics.missed')
+                                : t('telephony.metrics.answered')}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {call.duration > 0
+                              ? `${Math.floor(call.duration / 60)}m ${call.duration % 60}s`
+                              : '-'}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <MapPin className="h-3 w-3 text-gray-500" />
+                              <span className="text-sm">{location?.name || t('telephony.history.noLocation')}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-gray-500 text-sm">
+                            {format(new Date(call.createdAt), t('telephony.dateFormat'), { locale: es })}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>

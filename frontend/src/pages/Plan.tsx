@@ -131,11 +131,11 @@ export default function Plan() {
         <meta name="description" content={t('plan.header.subtitle')} />
       </Helmet>
 
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-6 mt-12">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{t('plan.header.title')}</h1>
+            <h1 className="text-3xl font-bold text-gray-900 break-words">{t('plan.header.title')}</h1>
             <p className="text-gray-600 mt-1">{t('plan.header.subtitle')}</p>
           </div>
           <div>
@@ -144,10 +144,10 @@ export default function Plan() {
         </div>
 
         {/* Plan Actual */}
-        <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white">
-          <CardHeader>
-            <div className="flex justify-between items-start">
-              <div>
+        <Card className="min-w-0 border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white">
+          <CardHeader className="min-w-0 break-words">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+              <div className="flex flex-wrap justify-between items-start min-w-0">
                 <Badge className="mb-2 bg-blue-600">{t('plan.current.title')}</Badge>
                 <CardTitle className="text-2xl">{currentPlan?.name || t('plan.templates.basic')}</CardTitle>
                 <CardDescription className="text-base mt-1">
@@ -223,15 +223,19 @@ export default function Plan() {
             </h2>
             <p className="text-gray-600 text-sm">{t('plan.templates.subtitle')}</p>
           </div>
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full min-w-0">
             {templatesPlans.map(plan => {
               const isCurrent = plan.id === currentPlanId;
               return (
-                <Card key={plan.id} className={`hover:shadow-lg transition-shadow ${isCurrent ? 'border-2 border-blue-600' : ''}`}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
+                <Card
+                  key={plan.id}
+                  className={`min-w-0 w-full hover:shadow-lg transition-shadow ${isCurrent ? 'border-2 border-blue-600' : ''
+                    }`}
+                >
+                  <CardHeader className="min-w-0 break-words">
+                    <div className="flex flex-wrap justify-between items-start gap-3 min-w-0">
                       <div>
-                        <CardTitle>{plan.name}</CardTitle>
+                        <CardTitle className="break-words truncate">{plan.name}</CardTitle>
                         <CardDescription className="mt-1">{plan.price === 60 ? t('plan.templates.ideal') : t('plan.templates.growing')}</CardDescription>
                       </div>
                       {isCurrent && <Badge className="bg-blue-600">{t('plan.current.short')}</Badge>}
@@ -251,7 +255,7 @@ export default function Plan() {
                       ))}
                     </ul>
                   </CardContent>
-                  <CardFooter>
+                  <CardFooter className="pt-4">
                     <Button className="w-full" variant={isCurrent ? 'secondary' : 'default'} onClick={() => !isCurrent && handleSelectPlan(plan)} disabled={isCurrent}>
                       {isCurrent ? t('plan.current.title') : plan.price > (currentPlan?.price || 0) ? <>{t('plan.upgradeTo')} {plan.name}<ArrowRight className="ml-2 h-4 w-4" /></> : t('plan.changePlan')}
                     </Button>
@@ -271,12 +275,13 @@ export default function Plan() {
             </h2>
             <p className="text-gray-600 text-sm">{t('plan.chatbots.subtitle')}</p>
           </div>
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full min-w-0">
+
             {chatbotsPlans.map(plan => {
               const isCurrent = plan.id === currentPlanId;
               return (
                 <Card key={plan.id} className={`hover:shadow-lg transition-shadow ${isCurrent ? 'border-2 border-purple-600' : ''}`}>
-                  <CardHeader>
+                  <CardHeader className="min-w-0 break-words">
                     <div className="flex justify-between items-start">
                       <div>
                         <CardTitle>{plan.name}</CardTitle>
@@ -311,8 +316,8 @@ export default function Plan() {
         </div>
 
         {/* Plan Enterprise */}
-        <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-300">
-          <CardHeader>
+        <Card className="min-w-0 bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-300">
+          <CardHeader className="min-w-0 break-words">
             <div className="flex items-center gap-2">
               <Crown className="h-6 w-6 text-yellow-600" />
               <CardTitle className="text-2xl">{t('plan.enterprise.title')}</CardTitle>
@@ -320,7 +325,7 @@ export default function Plan() {
             <CardDescription className="text-base">{t('plan.enterprise.subtitle')}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full min-w-0">
               <div>
                 <h4 className="font-semibold mb-3">{t('plan.enterprise.includes')}</h4>
                 <ul className="space-y-2 text-sm">
@@ -339,7 +344,7 @@ export default function Plan() {
                   ))}
                 </ul>
               </div>
-              <div className="flex flex-col justify-center">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 min-w-0">
                 <div className="text-center mb-4">
                   <div className="text-4xl font-bold">{t('plan.enterprise.customPricing')}</div>
                   <p className="text-gray-600 mt-2">{t('plan.enterprise.according')}</p>
@@ -355,7 +360,7 @@ export default function Plan() {
 
         {/* Historial de Facturas */}
         <Card>
-          <CardHeader>
+          <CardHeader className="min-w-0 break-words">
             <div className="flex justify-between items-center">
               <div>
                 <CardTitle>{t('plan.invoices.title')}</CardTitle>
@@ -365,41 +370,43 @@ export default function Plan() {
             </div>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('plan.invoices.date')}</TableHead>
-                  <TableHead>{t('plan.invoices.description')}</TableHead>
-                  <TableHead>{t('plan.invoices.amount')}</TableHead>
-                  <TableHead>{t('plan.invoices.status')}</TableHead>
-                  <TableHead className="text-right">{t('plan.invoices.action')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {mockInvoices.map(invoice => (
-                  <TableRow key={invoice.id}>
-                    <TableCell className="font-medium">{format(invoice.date, 'dd MMM yyyy', { locale: es })}</TableCell>
-                    <TableCell>{invoice.description}</TableCell>
-                    <TableCell className="font-semibold">€{invoice.amount}</TableCell>
-                    <TableCell>
-                      <Badge className="bg-green-600">{t('plan.invoices.paid')}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button size="sm" variant="ghost" onClick={handleDownloadInvoice}>
-                        <Download className="h-4 w-4 mr-1" />
-                        {t('plan.invoices.download')}
-                      </Button>
-                    </TableCell>
+            <div className="overflow-x-auto rounded-lg border border-gray-200 max-w-full">
+              <Table className="min-w-full text-sm table-auto">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('plan.invoices.date')}</TableHead>
+                    <TableHead>{t('plan.invoices.description')}</TableHead>
+                    <TableHead>{t('plan.invoices.amount')}</TableHead>
+                    <TableHead>{t('plan.invoices.status')}</TableHead>
+                    <TableHead className="text-right">{t('plan.invoices.action')}</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {mockInvoices.map(invoice => (
+                    <TableRow key={invoice.id}>
+                      <TableCell className="font-medium">{format(invoice.date, 'dd MMM yyyy', { locale: es })}</TableCell>
+                      <TableCell>{invoice.description}</TableCell>
+                      <TableCell className="font-semibold">€{invoice.amount}</TableCell>
+                      <TableCell>
+                        <Badge className="bg-green-600">{t('plan.invoices.paid')}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button size="sm" variant="ghost" onClick={handleDownloadInvoice}>
+                          <Download className="h-4 w-4 mr-1" />
+                          {t('plan.invoices.download')}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
 
         {/* Dialog Confirmación Cambio de Plan */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent>
+          <DialogContent className="sm:max-w-md rounded-2xl">
             <DialogHeader>
               <DialogTitle>{t('plan.changeDialog.title')}</DialogTitle>
               <DialogDescription>
