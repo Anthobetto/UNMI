@@ -133,15 +133,15 @@ export default function RentabilidadUNMI() {
         <meta name="description" content={t('profitability.subtitle')} />
       </Helmet>
 
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-6 mt-12">
         {/* Header */}
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">{t('profitability.title')}</h1>
-            <p className="text-gray-600 mt-1">{t('profitability.subtitle')}</p>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+          <div className="break-words">
+            <h1 className="text-3xl font-bold text-gray-900 break-words">{t('profitability.title')}</h1>
+            <p className="text-gray-600 mt-1 break-words">{t('profitability.subtitle')}</p>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-2 mt-4 md:mt-0">
             <Button onClick={handleExportPDF} variant="outline">
               <Download className="h-4 w-4 mr-2" />
               PDF
@@ -151,11 +151,11 @@ export default function RentabilidadUNMI() {
         </div>
 
         {/* KPIs */}
-        <div className="grid gap-6 md:grid-cols-4">
-          <Card className="border-2 border-blue-200 bg-blue-50">
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
+          <Card className="min-w-0">
             <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium">{t('profitability.kpis.roi')}</CardTitle>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <CardTitle className="text-sm font-medium break-words">{t('profitability.kpis.roi')}</CardTitle>
                 <Percent className="h-4 w-4 text-blue-600" />
               </div>
             </CardHeader>
@@ -167,48 +167,48 @@ export default function RentabilidadUNMI() {
                 {isPositiveROI ? (
                   <>
                     <ArrowUpRight className="h-3 w-3 text-green-600" />
-                    <span className="text-green-600">{t('profitability.kpis.profitable')}</span>
+                    <span className="text-green-600 break-words">{t('profitability.kpis.profitable')}</span>
                   </>
                 ) : (
                   <>
                     <ArrowDownRight className="h-3 w-3 text-red-600" />
-                    <span className="text-red-600">{t('profitability.kpis.adjust')}</span>
+                    <span className="text-red-600 break-words">{t('profitability.kpis.adjust')}</span>
                   </>
                 )}
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="min-w-0">
             <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <CardTitle className="text-sm font-medium">{t('profitability.kpis.revenue')}</CardTitle>
                 <Euro className="h-4 w-4 text-green-600" />
               </div>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-green-600">€{expectedRevenue.toLocaleString()}</div>
-              <p className="text-xs text-gray-600 mt-1">{recoveredCalls} {t('profitability.calculator.recovered')}</p>
+              <p className="text-xs text-gray-600 mt-1 break-words">{recoveredCalls} {t('profitability.calculator.recovered')}</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="min-w-0">
             <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium">{t('profitability.kpis.costs')}</CardTitle>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <CardTitle className="text-sm font-medium break-words">{t('profitability.kpis.costs')}</CardTitle>
                 <DollarSign className="h-4 w-4 text-orange-600" />
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-gray-600 mt-1">{t('profitability.calculator.monthlyCost')} + {messagesSent} {t('profitability.calculator.messages')}</p>
+              <p className="text-xs text-gray-600 mt-1 break-words">{t('profitability.calculator.monthlyCost')} + {messagesSent} {t('profitability.calculator.messages')}</p>
               <div className="text-3xl font-bold text-orange-600">€{totalCost.toLocaleString()}</div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="min-w-0">
             <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium">{t('profitability.kpis.profit')}</CardTitle>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <CardTitle className="text-sm font-medium break-words">{t('profitability.kpis.profit')}</CardTitle>
                 <TrendingUp className="h-4 w-4 text-purple-600" />
               </div>
             </CardHeader>
@@ -216,20 +216,20 @@ export default function RentabilidadUNMI() {
               <div className={`text-3xl font-bold ${profit >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
                 {profit >= 0 && '+'} €{profit.toLocaleString()}
               </div>
-              <p className="text-xs text-gray-600 mt-1">{t('profitability.kpis.margin')}: {totalCost > 0 ? ((profit / expectedRevenue) * 100).toFixed(1) : '0'}%</p>
+              <p className="text-xs text-gray-600 mt-1 break-words">{t('profitability.kpis.margin')}: {totalCost > 0 ? ((profit / expectedRevenue) * 100).toFixed(1) : '0'}%</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Calculadora y Gráfico Tendencia */}
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
+          <Card className="min-w-0">
             <CardHeader>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Calculator className="h-5 w-5 text-blue-600" />
-                <CardTitle>{t('profitability.calculator.title')}</CardTitle>
+                <CardTitle className="break-words">{t('profitability.calculator.title')}</CardTitle>
               </div>
-              <CardDescription>{t('profitability.calculator.subtitle')}</CardDescription>
+              <CardDescription className="break-words">{t('profitability.calculator.subtitle')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -241,7 +241,7 @@ export default function RentabilidadUNMI() {
                   onChange={(e) => setAverageTicket(e.target.value)}
                   placeholder="50"
                 />
-                <p className="text-xs text-muted-foreground">{t('profitability.calculator.avgValue')}</p>
+                <p className="text-xs text-muted-foreground break-words">{t('profitability.calculator.avgValue')}</p>
               </div>
 
               <div className="space-y-2">
@@ -254,7 +254,7 @@ export default function RentabilidadUNMI() {
                   placeholder="30"
                   max="100"
                 />
-                <p className="text-xs text-muted-foreground">{t('profitability.calculator.conversionDesc')}</p>
+                <p className="text-xs text-muted-foreground break-words">{t('profitability.calculator.conversionDesc')}</p>
               </div>
 
               <div className="space-y-2">
@@ -266,23 +266,23 @@ export default function RentabilidadUNMI() {
                   onChange={(e) => setMonthlyGrowth(e.target.value)}
                   placeholder="10"
                 />
-                <p className="text-xs text-muted-foreground">{t('profitability.calculator.growthDesc')}</p>
+                <p className="text-xs text-muted-foreground break-words">{t('profitability.calculator.growthDesc')}</p>
               </div>
 
               <div className="pt-4 border-t space-y-3">
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-sm break-words">
                   <span className="text-gray-600">{t('profitability.calculator.missedCalls')}:</span>
                   <span className="font-semibold">{missedCalls}</span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-sm break-words">
                   <span className="text-gray-600">{t('profitability.calculator.recovered')} ({conversionRate}%):</span>
                   <span className="font-semibold text-green-600">{recoveredCalls}</span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-sm break-words">
                   <span className="text-gray-600">{t('profitability.calculator.monthlyCost')}:</span>
                   <span className="font-semibold text-orange-600">€{totalCost}</span>
                 </div>
-                <div className="flex justify-between text-lg font-bold pt-2 border-t">
+                <div className="flex justify-between text-lg font-bold pt-2 border-t break-words">
                   <span>{t('profitability.calculator.expectedProfit')}:</span>
                   <span className={profit >= 0 ? 'text-green-600' : 'text-red-600'}>
                     €{profit.toLocaleString()}
@@ -291,17 +291,17 @@ export default function RentabilidadUNMI() {
               </div>
 
               <Alert className="bg-blue-50 border-blue-200">
-                <AlertDescription className="text-sm text-blue-800">
+                <AlertDescription className="text-sm text-blue-800 break-words">
                   💡 {t('profitability.calculator.recommendation')}
                 </AlertDescription>
               </Alert>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="w-full min-w-0 overflow-x-auto">
             <CardHeader>
-              <CardTitle>{t('profitability.trends.title')}</CardTitle>
-              <CardDescription>{t('profitability.trends.subtitle')}</CardDescription>
+              <CardTitle className="break-words">{t('profitability.trends.title')}</CardTitle>
+              <CardDescription className="break-words">{t('profitability.trends.subtitle')}</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -321,10 +321,10 @@ export default function RentabilidadUNMI() {
         </div>
 
         {/* Comparativa Antes/Después UNMI */}
-        <Card>
+        <Card className="w-full min-w-0 overflow-x-auto">
           <CardHeader>
-            <CardTitle>{t('profitability.comparison.title')}</CardTitle>
-            <CardDescription>{t('profitability.comparison.subtitle')}</CardDescription>
+            <CardTitle className="break-words">{t('profitability.comparison.title')}</CardTitle>
+            <CardDescription className="break-words">{t('profitability.comparison.subtitle')}</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -339,14 +339,14 @@ export default function RentabilidadUNMI() {
               </BarChart>
             </ResponsiveContainer>
 
-            <div className="grid grid-cols-3 gap-4 mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
               {comparisonData.map((item, index) => {
                 const improvement = item.beforeUNMI > 0
                   ? (((item.withUNMI - item.beforeUNMI) / item.beforeUNMI) * 100).toFixed(0)
                   : '∞';
                 return (
-                  <div key={index} className="text-center p-4 bg-gray-50 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">{item.metric}</h4>
+                  <div key={index} className="text-center p-4 bg-gray-50 rounded-lg min-w-0">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2 break-words">{item.metric}</h4>
                     <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                       +{improvement}% {t('profitability.comparison.improvement')}
                     </Badge>
@@ -358,24 +358,24 @@ export default function RentabilidadUNMI() {
         </Card>
 
         {/* CTA Card */}
-        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 min-w-0">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex flex-wrap items-center gap-2 break-words">
               <TrendingUp className="h-5 w-5 text-blue-600" />
               {t('profitability.cta.title')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-gray-700">{t('profitability.cta.subtitle')}</p>
+            <p className="text-gray-700 break-words">{t('profitability.cta.subtitle')}</p>
             <ul className="space-y-2 text-sm text-gray-600">
               {(t('profitability.cta.benefits', { returnObjects: true }) as string[]).map((benefit, idx) => (
-                <li key={idx} className="flex items-start gap-2">
+                <li key={idx} className="flex items-start gap-2 break-words">
                   <span className="text-green-600">✓</span>
-                  <span>{benefit}</span>
+                  <span className="break-words">{benefit}</span>
                 </li>
               ))}
             </ul>
-            <div className="flex gap-3 pt-2">
+            <div className="flex flex-wrap gap-3 pt-2">
               <Button className="bg-blue-600 hover:bg-blue-700">{t('profitability.cta.upgrade')}</Button>
               <Button variant="outline">{t('profitability.cta.consult')}</Button>
             </div>
