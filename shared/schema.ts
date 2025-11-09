@@ -153,7 +153,11 @@ export const registerSchema = z.object({
   termsAccepted: z.boolean().refine(val => val === true, {
     message: "Debes aceptar los términos y condiciones",
   }),
+  planType: z.enum(['templates', 'chatbots'], {
+    required_error: ("auth.register.planRequired"),
+  }),
 });
+
 
 export const createLocationSchema = z.object({
   name: z.string().min(1, 'Nombre requerido'),

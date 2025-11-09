@@ -41,15 +41,15 @@
       },
       "toggleTheme": "Changer de thème",
       "access": "Accès",
-      "trial": "Essai de 14 jours"
+      "trial": "Commencez dès aujourd'hui"
     },
     "hero": {
       "badge": "Transformez votre entreprise",
       "title": "Transformez la stratégie de communication de votre entreprise",
       "subtitle": "Unmi intègre WhatsApp, SMS et gestion des appels dans une plateforme puissante.",
-      "cta": "Essai de 14 jours",
+      "cta": "Commencez dès aujourd'hui",
       "features": {
-        "trial": "Essai de 14 jours",
+        "trial": "Commencez dès aujourd'hui",
         "cancel": "Annulez à tout moment"
       }
     },
@@ -134,7 +134,9 @@
       "privacy": "Politique de confidentialité",
       "submit": "S'inscrire",
       "loading": "Inscription en cours...",
-      "tagline": "Transformez votre communication d'entreprise"
+      "tagline": "Transformez votre communication d'entreprise",
+      "selectPlan": "Choisissez votre plan ",
+      "planRequired": "Vous devez sélectionner un plan"
     },
     "choosePlan": {
       "title": "Choisissez le Plan Parfait pour Votre Entreprise",

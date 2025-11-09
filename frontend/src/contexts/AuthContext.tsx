@@ -28,9 +28,11 @@ export const registerSchema = z.object({
   termsAccepted: z.boolean().refine((val) => val === true, {
     message: 'You must accept the terms and conditions',
   }),
+  planType: z.enum(['templates', 'chatbots']),
 });
 
 export type RegisterData = z.infer<typeof registerSchema>;
+
 
 // --- Contexto principal ---
 interface AuthContextType {

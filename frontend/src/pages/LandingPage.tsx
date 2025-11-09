@@ -228,10 +228,10 @@ export default function LandingPage(): JSX.Element {
               {t("landing.access", "Access")}
             </Link>
 
-            {/* 14 day trial button */}
+            {/* Start Today button */}
             <Link to="/auth">
               <Button className="rounded-full bg-[#FF0000] hover:bg-[#D32F2F]">
-                {t("header.trial", "14 day trial")}
+                {t("landing.trial", "Start Today")}
                 <ChevronRight className="ml-1 size-4" />
               </Button>
             </Link>
@@ -247,11 +247,11 @@ export default function LandingPage(): JSX.Element {
               {mounted && theme === "dark" ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
             </Button>
 
-            {/* 14 day trial + Language selector */}
+            {/* Start Today + Language selector */}
             <div className="flex items-center gap-2">
               <Link to="/auth">
                 <Button className="rounded-full bg-[#FF0000] hover:bg-[#D32F2F]">
-                  {t("header.trial", "14 day trial")}
+                  {t("header.trial", "Start Today")}
                   <ChevronRight className="ml-1 size-4" />
                 </Button>
               </Link>
@@ -295,7 +295,7 @@ export default function LandingPage(): JSX.Element {
                 <div className="flex items-center gap-2">
                   <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
                     <Button className="rounded-full bg-[#FF0000] hover:bg-[#D32F2F] w-full">
-                      {t("header.trial", "14 day trial")}
+                      {t("header.trial", "Start Today")}
                       <ChevronRight className="ml-1 size-4" />
                     </Button>
                   </Link>
@@ -331,7 +331,7 @@ export default function LandingPage(): JSX.Element {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/auth?tab=register">
                   <Button size="lg" className="rounded-full h-12 px-8 text-base bg-[#FF0000] hover:bg-[#D32F2F]">
-                    {t("hero.cta", "14 day trial")}
+                    {t("hero.cta", "Start Today")}
                     <ArrowRight className="ml-2 size-4" />
                   </Button>
                 </Link>
@@ -339,7 +339,7 @@ export default function LandingPage(): JSX.Element {
               <div className="flex items-center justify-center gap-4 mt-6 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Check className="size-4 text-[#FF0000]" />
-                  <span>{t("hero.features.trial", "14 day trial")}</span>
+                  <span>{t("hero.features.trial", "Start Today")}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Check className="size-4 text-[#FF0000]" />
