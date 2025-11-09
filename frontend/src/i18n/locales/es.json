@@ -41,15 +41,15 @@
     },
     "toggleTheme": "Cambiar tema",
     "access": "Acceso",
-    "trial": "Prueba de 14 días"
+    "trial": "Empieza hoy"
   },
   "hero": {
     "badge": "Transforma tu negocio",
     "title": "Transforma la estrategia de comunicación de tu negocio",
     "subtitle": "Unmi integra WhatsApp, SMS y gestión de llamadas en una plataforma potente.",
-    "cta": "Prueba de 14 días",
+    "cta": "Empieza hoy",
     "features": {
-      "trial": "Prueba de 14 días",
+      "trial": "Empieza hoy",
       "cancel": "Cancela en cualquier momento"
     }
   },
@@ -134,11 +134,13 @@
       "privacy": "Aviso de privacidad",
       "submit": "Registrarse",
       "loading": "Registrando...",
-      "tagline": "Transforma tu comunicación empresarial"
+      "tagline": "Transforma tu comunicación empresarial",
+      "selectPlan": "Elige tu plan",
+      "planRequired": "Debes seleccionar un plan"
     },
     "choosePlan": {
       "title": "Selecciona el Plan Perfecto para tu Negocio",
-      "subtitle": "Comienza con una prueba gratuita de 14 días. Sin tarjeta de crédito requerida. Cancela en cualquier momento.",
+      "subtitle": "Comienza con una prueba. Sin tarjeta de crédito requerida. Cancela en cualquier momento.",
       "trial": "Comenzar Prueba Gratuita",
       "contactSales": "Contactar Ventas",
       "features": {

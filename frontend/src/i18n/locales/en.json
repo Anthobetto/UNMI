@@ -41,15 +41,15 @@
     },
     "toggleTheme": "Toggle theme",
     "access": "Access",
-    "trial": "14 day trial"
+    "trial": "Start Today"
   },
   "hero": {
     "badge": "Transform Your Business",
     "title": "Transform Your Business Communication Strategy",
     "subtitle": "Unmi seamlessly integrates WhatsApp, SMS, and call management into one powerful platform.",
-    "cta": "14 day trial",
+    "cta": "Start Today",
     "features": {
-      "trial": "14 day trial",
+      "trial": "Start Today",
       "cancel": "Cancel anytime"
     }
   },
@@ -134,7 +134,9 @@
       "privacy": "Privacy Policy",
       "submit": "Register",
       "loading": "Registering...",
-      "tagline": "Transform your business communication"
+      "tagline": "Transform your business communication",
+      "selectPlan": "Choose your plan",
+      "planRequired": "You must select a plan"
     },
     "choosePlan": {
       "title": "Choose the Perfect Plan for Your Business",

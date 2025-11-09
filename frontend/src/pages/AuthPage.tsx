@@ -1,7 +1,3 @@
-/**
- * AuthPage - Login & Register with i18n
- * Compatible con el nuevo AuthContext (sin React Query)
- */
 import { useAuth, loginSchema, LoginData, registerSchema, RegisterData } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
@@ -30,14 +26,21 @@ export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<string>("login");
   const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [prices, setPrices] = useState<{ templates: number; chatbots: number } | null>(null);
 
   useEffect(() => {
     const url = new URL(window.location.href);
     const tabParam = url.searchParams.get("tab");
-    if (tabParam === "register") {
-      setActiveTab("register");
-    }
+    if (tabParam === "register") setActiveTab("register");
   }, [location]);
+
+
+  useEffect(() => {
+    fetch('/api/prices')
+      .then(res => res.json())
+      .then(data => setPrices(data))
+      .catch(err => console.error(err));
+  }, []);
 
   if (user) {
     setLocation("/dashboard");
@@ -57,126 +60,67 @@ export default function AuthPage() {
       password: "",
       companyName: "",
       termsAccepted: false,
+      planType: undefined,
     },
   });
 
   const handleLogin = async (data: LoginData) => {
-    try {
-      setIsSubmitting(true);
-      await login(data);
-      setLocation("/dashboard");
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSubmitting(false);
-    }
+    try { setIsSubmitting(true); await login(data); setLocation("/dashboard"); }
+    catch (err) { console.error(err); }
+    finally { setIsSubmitting(false); }
   };
 
   const handleRegister = async (data: RegisterData) => {
     try {
       setIsSubmitting(true);
-      const { url } = await register(data);
-
-      if (url) {
-        // ✅ En producción: redirigir al checkout de Stripe
-        window.location.href = url;
-      } else {
-        // 🔄 fallback: ir al selector de plan local (si existe)
-        setLocation("/plan");
-      }
-    } catch (err) {
-      console.error("Error durante el registro:", err);
-    } finally {
-      setIsSubmitting(false);
-    }
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const json = await res.json();
+      if (json.url) window.location.href = json.url; // Stripe checkout
+    } catch (err) { console.error(err); }
+    finally { setIsSubmitting(false); }
   };
-
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f8f7f4] p-4 relative">
-      {/* Selector de idioma */}
-      <div className="absolute top-4 right-4">
-        <LanguageSelector />
-      </div> 
+      <div className="absolute top-4 right-4"><LanguageSelector /></div>
 
       <Card className="w-full max-w-md shadow-sm bg-white rounded-3xl border-0">
         <CardContent className="p-8">
           <div className="flex flex-col items-center mb-6">
-            <div className="mb-3 cursor-pointer" onClick={() => setLocation("/")}>
-              <OfficialLogo width={220} />
-            </div>
-            <p className="text-[#333333] text-center mt-2">
-              {t("auth.register.tagline")}
-            </p>
+            <div className="mb-3 cursor-pointer" onClick={() => setLocation("/")}><OfficialLogo width={220} /></div>
+            <p className="text-[#333333] text-center mt-2">{t("auth.register.tagline")}</p>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-8">
             <TabsList className="grid w-full grid-cols-2 mb-8 bg-gray-100 p-1 rounded-full">
-              <TabsTrigger
-                value="login"
-                className="rounded-full data-[state=active]:bg-white data-[state=active]:shadow-sm"
-              >
-                {t("auth.login.title")}
-              </TabsTrigger>
-              <TabsTrigger
-                value="register"
-                className="rounded-full data-[state=active]:bg-white data-[state=active]:shadow-sm"
-              >
-                {t("auth.register.title")}
-              </TabsTrigger>
+              <TabsTrigger value="login" className="rounded-full data-[state=active]:bg-white data-[state=active]:shadow-sm">{t("auth.login.title")}</TabsTrigger>
+              <TabsTrigger value="register" className="rounded-full data-[state=active]:bg-white data-[state=active]:shadow-sm">{t("auth.register.title")}</TabsTrigger>
             </TabsList>
 
             {/* LOGIN */}
             <TabsContent value="login">
               <Form {...loginForm}>
-                <form
-                  onSubmit={loginForm.handleSubmit(handleLogin)}
-                  className="space-y-6"
-                >
-                  <FormField
-                    control={loginForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[#333333] font-medium">
-                          {t("auth.login.email")}
-                        </FormLabel>
-                        <FormControl>
-                          <Input {...field} className="h-14 rounded-xl border-gray-200" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={loginForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[#333333] font-medium">
-                          {t("auth.login.password")}
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            {...field}
-                            className="h-14 rounded-xl border-gray-200"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full h-14 rounded-full mt-6 bg-[#FF0000] hover:bg-[#D32F2F] text-white font-medium text-lg"
-                  >
-                    {isSubmitting
-                      ? t("auth.login.loading")
-                      : t("auth.login.submit")}
+                <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-6">
+                  <FormField control={loginForm.control} name="email" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[#333333] font-medium">{t("auth.login.email")}</FormLabel>
+                      <FormControl><Input {...field} className="h-14 rounded-xl border-gray-200" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={loginForm.control} name="password" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[#333333] font-medium">{t("auth.login.password")}</FormLabel>
+                      <FormControl><Input type="password" {...field} className="h-14 rounded-xl border-gray-200" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <Button type="submit" disabled={isSubmitting} className="w-full h-14 rounded-full mt-6 bg-[#FF0000] hover:bg-[#D32F2F] text-white font-medium text-lg">
+                    {isSubmitting ? t("auth.login.loading") : t("auth.login.submit")}
                   </Button>
                 </form>
               </Form>
@@ -185,117 +129,78 @@ export default function AuthPage() {
             {/* REGISTER */}
             <TabsContent value="register">
               <Form {...registerForm}>
-                <form
-                  onSubmit={registerForm.handleSubmit(handleRegister)}
-                  className="space-y-6"
-                >
-                  <FormField
-                    control={registerForm.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[#333333] font-medium">
-                          {t("auth.register.fullName")}
-                        </FormLabel>
-                        <FormControl>
-                          <Input {...field} className="h-14 rounded-xl border-gray-200" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-6">
+                  <FormField control={registerForm.control} name="username" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[#333333] font-medium">{t("auth.register.fullName")}</FormLabel>
+                      <FormControl><Input {...field} className="h-14 rounded-xl border-gray-200" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={registerForm.control} name="email" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[#333333] font-medium">{t("auth.register.email")}</FormLabel>
+                      <FormControl><Input {...field} className="h-14 rounded-xl border-gray-200" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={registerForm.control} name="password" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[#333333] font-medium">{t("auth.register.password")}</FormLabel>
+                      <FormControl><Input type="password" {...field} className="h-14 rounded-xl border-gray-200" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={registerForm.control} name="companyName" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[#333333] font-medium">{t("auth.register.companyName")}</FormLabel>
+                      <FormControl><Input {...field} className="h-14 rounded-xl border-gray-200" /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
 
-                  <FormField
-                    control={registerForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[#333333] font-medium">
-                          {t("auth.register.email")}
-                        </FormLabel>
-                        <FormControl>
-                          <Input {...field} className="h-14 rounded-xl border-gray-200" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* PLAN SELECTION CON PRECIOS DINÁMICOS */}
+                  <FormField control={registerForm.control} name="planType" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="mb-2">{t("auth.register.selectPlan")}</FormLabel>
+                      <div className="flex flex-col space-y-4 mt-2">
+                        {['templates', 'chatbots'].map(plan => {
+                          const isSelected = field.value === plan;
+                          const labelText = plan === 'templates'
+                            ? `Templates (€${prices?.templates ?? '…'}/mes)`
+                            : `Chatbots (€${prices?.chatbots ?? '…'}/mes)`;
+                          return (
+                            <label key={plan} className={`cursor-pointer flex justify-between items-center p-4 border rounded-xl transition-all ${isSelected ? 'border-[#e73623] bg-[#ffeae6] shadow-md' : 'border-gray-200 hover:border-gray-400'}`}>
+                              <span className="font-medium text-gray-700">{labelText}</span>
+                              <input type="radio" value={plan} checked={isSelected} onChange={() => field.onChange(plan)} className="form-radio h-5 w-5 text-[#e73623]" />
+                            </label>
+                          );
+                        })}
+                      </div>
+                      {!field.value &&  <p className="text-sm text-red-600 mt-1">{t("auth.register.planRequired")}</p>}
+                      <FormMessage />
+                    </FormItem>
+                  )} />
 
-                  <FormField
-                    control={registerForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[#333333] font-medium">
-                          {t("auth.register.password")}
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            {...field}
-                            className="h-14 rounded-xl border-gray-200"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <FormField control={registerForm.control} name="termsAccepted" render={({ field }) => (
+                    <FormItem className="flex items-start space-x-2">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={checked => field.onChange(checked === true)} />
+                      </FormControl>
+                      <FormLabel className="text-sm">
+                        {t("auth.register.terms")} <a href="/terms" className="underline">{t("auth.register.termsLink")}</a> {t("auth.register.andThe")} <a href="/privacy" className="underline">{t("auth.register.privacy")}</a>
+                      </FormLabel>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
 
-                  <FormField
-                    control={registerForm.control}
-                    name="companyName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[#333333] font-medium">
-                          {t("auth.register.companyName")}
-                        </FormLabel>
-                        <FormControl>
-                          <Input {...field} className="h-14 rounded-xl border-gray-200" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={registerForm.control}
-                    name="termsAccepted"
-                    render={({ field }) => (
-                      <FormItem className="flex items-start space-x-2">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={(checked) =>
-                              field.onChange(checked === true)
-                            }
-                          />
-                        </FormControl>
-                        <FormLabel className="text-sm">
-                          {t("auth.register.terms")}
-                          {" "}
-                          <a href="/terms" className="underline">
-                            {t("auth.register.termsLink")}
-                          </a>{" "}
-                          {t("auth.register.andThe")}{" "}
-                          <a href="/privacy" className="underline">
-                            {t("auth.register.privacy")}
-                          </a>
-                        </FormLabel>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full h-14 rounded-full mt-6 bg-[#FF0000] hover:bg-[#D32F2F] text-white font-medium text-lg"
-                  >
+                  <Button type="submit" disabled={isSubmitting} className="w-full h-14 rounded-full mt-6 bg-[#e73623] hover:bg-[#d32f2f] text-white font-medium text-lg">
                     {isSubmitting ? t("auth.register.registering") : t("auth.register.title")}
                   </Button>
                 </form>
               </Form>
             </TabsContent>
+
           </Tabs>
         </CardContent>
       </Card>

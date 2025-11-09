@@ -18,13 +18,13 @@ export interface IStripeService {
   createCustomer(email: string, metadata?: Record<string, string>): Promise<Stripe.Customer>;
   getSession(sessionId: string): Promise<Stripe.Checkout.Session | null>;
   constructWebhookEvent(body: any, signature: string): Stripe.Event;
+  getPlanPrice(planType: 'templates' | 'chatbots'): Promise<number>;
 }
 
 export interface CheckoutSessionParams {
   email: string;
   userId: string;
   planType: 'templates' | 'chatbots' | 'initial_registration';
-  amount: number;
   successUrl?: string;
   cancelUrl?: string;
   metadata?: Record<string, string>;
@@ -46,29 +46,34 @@ export class StripeService implements IStripeService {
       email,
       userId,
       planType,
-      amount,
       successUrl,
       cancelUrl,
       metadata = {},
     } = params;
+
+    // Mapeo de plan a Price ID
+    const priceIdMap: Record<'templates' | 'chatbots' | 'initial_registration', string> = {
+      templates: process.env.STRIPE_PRICE_TEMPLATES!,
+      chatbots: process.env.STRIPE_PRICE_CHATBOTS!,
+      initial_registration: process.env.STRIPE_PRICE_TEMPLATES!, // Usa el de templates por defecto
+    };
+
+    const priceId = priceIdMap[planType];
+
+    if (!priceId) {
+      throw new Error(`Price ID no configurado para el plan: ${planType}`);
+    }
 
     try {
       const session = await this.stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         line_items: [
           {
-            price_data: {
-              currency: 'eur',
-              product_data: {
-                name: this.getPlanName(planType),
-                description: this.getPlanDescription(planType),
-              },
-              unit_amount: amount * 100, // Stripe usa centavos
-            },
+            price: priceId, // ✅ Usa el Price ID directamente
             quantity: 1,
           },
         ],
-        mode: 'payment',
+        mode: 'subscription', // O 'payment' si no son suscripciones
         customer_email: email,
         success_url: successUrl || `${FRONTEND_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}&success=true`,
         cancel_url: cancelUrl || `${FRONTEND_URL}/pricing?canceled=true`,
@@ -114,6 +119,19 @@ export class StripeService implements IStripeService {
     }
   }
 
+  // Obtener precio desde Stripe (para mostrar en frontend)
+  async getPlanPrice(planType: 'templates' | 'chatbots'): Promise<number> {
+    const priceIdMap: Record<'templates' | 'chatbots', string> = {
+      templates: process.env.STRIPE_PRICE_TEMPLATES!,
+      chatbots: process.env.STRIPE_PRICE_CHATBOTS!,
+    };
+
+    const price = await this.stripe.prices.retrieve(priceIdMap[planType]);
+    if (!price.unit_amount) throw new Error(`No se encontró precio para ${planType}`);
+
+    return price.unit_amount / 100; // convertir a euros
+  }
+
   constructWebhookEvent(body: any, signature: string): Stripe.Event {
     if (!this.webhookSecret) {
       throw new Error('Webhook secret not configured');
@@ -130,30 +148,6 @@ export class StripeService implements IStripeService {
       throw new Error('Invalid webhook signature');
     }
   }
-
-  private getPlanName(planType: string): string {
-    const planNames: Record<string, string> = {
-      'initial_registration': 'Registro Inicial UNMI',
-      'templates': 'Plan Templates UNMI',
-      'chatbots': 'Plan Chatbots UNMI',
-    };
-
-    return planNames[planType] || 'Plan UNMI';
-  }
-
-  private getPlanDescription(planType: string): string {
-    const descriptions: Record<string, string> = {
-      'initial_registration': 'Acceso a la plataforma con configuración inicial',
-      'templates': 'Gestión de plantillas y mensajes automáticos',
-      'chatbots': 'Chatbots inteligentes con IA',
-    };
-
-    return descriptions[planType] || 'Suscripción UNMI';
-  }
 }
 
 export const stripeService = new StripeService();
-
-
-
-
