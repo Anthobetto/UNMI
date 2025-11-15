@@ -10,12 +10,16 @@ export interface ISupabaseService {
   getUserById(userId: string): Promise<User | null>;
   createUser(userData: Partial<User>): Promise<User>;
   updateUserPlan(userId: string, planType: 'templates' | 'chatbots'): Promise<void>;
+  handleUserLogin(email: string, password: string): Promise<{ accessToken: string; refreshToken: string; user: User & { purchasedLocations?: any[]; credits: Record<string, number>; }; }>;
 
   // Locations
   getLocations(userId: string): Promise<Location[]>;
   getLocationById(locationId: number): Promise<Location | null>;
   createLocation(locationData: Partial<Location>): Promise<Location>;
   updateLocation(id: number, data: Partial<Location>): Promise<Location>;
+  recordPurchasedLocations(userId: string, selections: { planType: 'templates' | 'chatbots'; quantity: number }[]): Promise<void>;
+  getAvailableLocations(userId: string, planType: 'templates' | 'chatbots'): Promise<number>;
+  markLocationUsed(userId: string, planType: 'templates' | 'chatbots'): Promise<void>;
 
   // Templates
   getTemplates(userId: string): Promise<Template[]>;
@@ -96,7 +100,7 @@ export class SupabaseService implements ISupabaseService {
         email: userData.email,
         company_name: userData.companyName,
         terms_accepted: userData.termsAccepted || false,
-        terms_accepted_at: userData.termsAcceptedAt || new Date(),
+        terms_accepted_at: userData.termsAcceptedAt || new Date()
       }])
       .select()
       .single();
@@ -117,6 +121,40 @@ export class SupabaseService implements ISupabaseService {
     if (error) {
       throw new Error(`Failed to update user plan: ${error.message}`);
     }
+  }
+
+  async handleUserLogin(email: string, password: string) {
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (authError || !authData.session || !authData.user) {
+      throw new Error('Invalid credentials');
+    }
+
+    const user = await this.getUserByAuthId(authData.user.id);
+    if (!user) throw new Error('User record not found');
+
+    const { data: purchasedLocations } = await supabase
+      .from('purchased_locations')
+      .select('*')
+      .eq('user_id', user.id);
+
+    const credits = purchasedLocations?.reduce((acc, pl) => {
+      acc[pl.plan_type] = (acc[pl.plan_type] || 0) + (pl.quantity - (pl.used || 0));
+      return acc;
+    }, {} as Record<string, number>) || {};
+
+    return {
+      accessToken: authData.session.access_token,
+      refreshToken: authData.session.refresh_token,
+      user: {
+        ...user,
+        purchasedLocations: purchasedLocations || [],
+        credits,
+      },
+    };
   }
 
   // ==================
@@ -152,11 +190,26 @@ export class SupabaseService implements ISupabaseService {
     return data ? this.mapLocationFromDb(data) : null;
   }
 
-  async createLocation(locationData: Partial<Location>): Promise<Location> {
+  async createLocation(locationData: Partial<Location> & { planType?: 'templates' | 'chatbots' }): Promise<Location> {
+    if (!locationData.userId) throw new Error('Missing userId');
+    if (!locationData.planType) throw new Error('Plan type is required');
+
+    const userId = locationData.userId;
+    const requestedPlan = locationData.planType;
+
+    // ✅ Verificar que el usuario tenga créditos disponibles para el plan solicitado
+    const available = await this.getAvailableLocations(userId, requestedPlan);
+
+    if (available <= 0) {
+      throw new Error(`No available locations for ${requestedPlan} plan. Please purchase more credits.`);
+    }
+
+    console.log(`✅ Creating location using ${requestedPlan} plan (${available} credits available)`);
+
     const { data, error } = await supabase
       .from('locations')
       .insert([{
-        user_id: locationData.userId,
+        user_id: userId,
         group_id: locationData.groupId,
         name: locationData.name,
         address: locationData.address,
@@ -167,9 +220,11 @@ export class SupabaseService implements ISupabaseService {
       .select()
       .single();
 
-    if (error) {
-      throw new Error(`Failed to create location: ${error.message}`);
-    }
+    if (error) throw new Error(`Failed to create location: ${error.message}`);
+
+    await this.markLocationUsed(userId, requestedPlan);
+
+    console.log(`✅ Location created and ${requestedPlan} credit used`);
 
     return this.mapLocationFromDb(data);
   }
@@ -189,6 +244,87 @@ export class SupabaseService implements ISupabaseService {
 
     if (error) throw new Error(`Failed to update location: ${error.message}`);
     return this.mapLocationFromDb(updated);
+  }
+
+  async recordPurchasedLocations(
+    userId: string,
+    selections: { planType: 'templates' | 'chatbots'; quantity: number }[]
+  ) {
+    if (!selections || selections.length === 0) return;
+
+    // Preparar registros para upsert
+    const records = selections.map(sel => ({
+      user_id: userId,
+      plan_type: sel.planType,
+      quantity: sel.quantity,
+      used: 0,
+    }));
+
+    // Upsert: si existe user_id + plan_type, suma quantity; si no existe, inserta
+    for (const record of records) {
+      const { data: existing, error: fetchError } = await supabase
+        .from('purchased_locations')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('plan_type', record.plan_type)
+        .single();
+
+      if (fetchError && !fetchError.code?.includes('PGRST116')) {
+        throw new Error(`Failed to check existing purchased locations: ${fetchError.message}`);
+      }
+
+      if (existing) {
+        // Si existe, sumar la cantidad
+        const { error: updateError } = await supabase
+          .from('purchased_locations')
+          .update({ quantity: existing.quantity + record.quantity })
+          .eq('id', existing.id);
+
+        if (updateError) throw new Error(`Failed to update purchased locations: ${updateError.message}`);
+      } else {
+        // Si no existe, insertar
+        const { error: insertError } = await supabase
+          .from('purchased_locations')
+          .insert([record]);
+
+        if (insertError) throw new Error(`Failed to insert purchased locations: ${insertError.message}`);
+      }
+    }
+  }
+
+  async getAvailableLocations(userId: string, planType: 'templates' | 'chatbots'): Promise<number> {
+    const { data: purchasedList, error } = await supabase
+      .from('purchased_locations')
+      .select('quantity, used')
+      .eq('user_id', userId)
+      .eq('plan_type', planType);
+
+    if (error || !purchasedList) return 0;
+
+    return purchasedList.reduce((sum, pl) => sum + ((pl.quantity || 0) - (pl.used || 0)), 0);
+  }
+
+
+  async markLocationUsed(userId: string, planType: 'templates' | 'chatbots'): Promise<void> {
+    const { data: purchasedList, error } = await supabase
+      .from('purchased_locations')
+      .select('id, quantity, used')
+      .eq('user_id', userId)
+      .eq('plan_type', planType)
+      .order('id', { ascending: true });
+
+    if (error || !purchasedList || purchasedList.length === 0)
+      throw new Error('No available purchased location to mark as used');
+
+    const recordToUse = purchasedList.find(pl => (pl.quantity - (pl.used || 0)) > 0);
+    if (!recordToUse) throw new Error('No available purchased location to mark as used');
+
+    const { error: updateError } = await supabase
+      .from('purchased_locations')
+      .update({ used: (recordToUse.used || 0) + 1 })
+      .eq('id', recordToUse.id);
+
+    if (updateError) throw new Error(`Failed to mark purchased location as used: ${updateError.message}`);
   }
 
 
@@ -436,24 +572,24 @@ export class SupabaseService implements ISupabaseService {
     return this.mapPhoneNumberFromDb(data);
   }
 
-async updatePhoneNumber(id: number, data: Partial<PhoneNumber>): Promise<PhoneNumber> {
-  const { data: updated, error } = await supabase
-    .from('phone_numbers')
-    .update({
-      phone_number: data.number,
-      type: data.type,
-      linked_number: data.linkedNumber,
-      active: data.active,
-      forwarding_enabled: data.forwardingEnabled,
-      channel: data.channel,
-    })
-    .eq('id', id)
-    .select()
-    .single();
+  async updatePhoneNumber(id: number, data: Partial<PhoneNumber>): Promise<PhoneNumber> {
+    const { data: updated, error } = await supabase
+      .from('phone_numbers')
+      .update({
+        phone_number: data.number,
+        type: data.type,
+        linked_number: data.linkedNumber,
+        active: data.active,
+        forwarding_enabled: data.forwardingEnabled,
+        channel: data.channel,
+      })
+      .eq('id', id)
+      .select()
+      .single();
 
-  if (error) throw new Error(`Failed to update phone number: ${error.message}`);
-  return this.mapPhoneNumberFromDb(updated);
-}
+    if (error) throw new Error(`Failed to update phone number: ${error.message}`);
+    return this.mapPhoneNumberFromDb(updated);
+  }
 
   // ==================
   // ROUTING RULE OPERATIONS
@@ -506,7 +642,7 @@ async updatePhoneNumber(id: number, data: Partial<PhoneNumber>): Promise<PhoneNu
       companyName: dbUser.company_name,
       termsAccepted: dbUser.terms_accepted,
       termsAcceptedAt: dbUser.terms_accepted_at ? new Date(dbUser.terms_accepted_at) : undefined,
-      planType: dbUser.plan_type,
+      planType: dbUser.plan_type, // ✅ AGREGADO
       subscriptionStatus: dbUser.subscription_status,
     };
   }

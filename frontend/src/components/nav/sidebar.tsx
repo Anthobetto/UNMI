@@ -1,6 +1,6 @@
 /**
  * Sidebar Component - Main Navigation
- * i18n enabled with conditional access based on planType
+ * i18n enabled with conditional access based on purchasedLocations and credits
  */
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -28,10 +28,13 @@ import { OfficialLogo } from "@/components/logo/official-logo";
 
 export function Sidebar() {
   const [location] = useLocation();
-  const { user, logout } = useAuth(); // ✅ usamos logout directamente
+  const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
   const [open, setOpen] = useState(false);
   const { t } = useTranslation();
+
+  // ✅ Derivar créditos disponibles por plan
+  const planCredits = user?.credits || {}; // { templates: 2, chatbots: 1 }
 
   const navigation = [
     { name: t('nav.dashboard'), href: "/dashboard", icon: LayoutDashboard },
@@ -46,7 +49,9 @@ export function Sidebar() {
   const NavLinks = (
     <nav className="flex flex-col gap-y-1 mt-4 px-2">
       {navigation.map((item) => {
-        const hasAccess = !item.requiredPlan || user?.planType === item.requiredPlan;
+        const hasPlan = !item.requiredPlan || (planCredits[item.requiredPlan] !== undefined);
+        const hasCredits = item.requiredPlan ? (planCredits[item.requiredPlan] ?? 0) > 0 : true;
+
         return (
           <Link
             key={item.name}
@@ -56,7 +61,7 @@ export function Sidebar() {
               location === item.href
                 ? "bg-[#003366] text-white"
                 : "text-[#003366] hover:bg-gray-100",
-              !hasAccess && "opacity-60"
+              !hasPlan && "opacity-60"
             )}
             onClick={() => setOpen(false)}
           >
@@ -67,8 +72,10 @@ export function Sidebar() {
               )}
             />
             <span className="flex-1">{item.name}</span>
-            {!hasAccess && (
-              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">Pro</span>
+            {!hasCredits && hasPlan && (
+              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
+                Sin créditos
+              </span>
             )}
           </Link>
         );
@@ -87,8 +94,8 @@ export function Sidebar() {
           size="icon"
           className="rounded-full h-9 w-9"
           onClick={async () => {
-            await logout(); // ✅ llamada directa a logout()
-            setLocation("/"); // redirige a landing
+            await logout();
+            setLocation("/"); 
           }}
         >
           <LogOut className="h-5 w-5 text-[#003366]" />

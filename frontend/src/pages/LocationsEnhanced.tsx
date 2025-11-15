@@ -301,8 +301,8 @@ export default function LocationsEnhanced() {
   return (
     <>
       <Helmet>
-        <title>Ubicaciones - UNMI</title>
-        <meta name="description" content="Gestiona tus ubicaciones y números virtuales" />
+        <title>Establecimientos - UNMI</title>
+        <meta name="description" content="Gestiona tus establecimientos y números virtuales" />
       </Helmet>
 
       <div className="p-6 space-y-6">

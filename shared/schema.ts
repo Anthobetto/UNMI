@@ -153,9 +153,10 @@ export const registerSchema = z.object({
   termsAccepted: z.boolean().refine(val => val === true, {
     message: "Debes aceptar los términos y condiciones",
   }),
-  planType: z.enum(['templates', 'chatbots'], {
-    required_error: ("auth.register.planRequired"),
-  }),
+  selections: z.array(z.object({
+    planType: z.enum(['templates', 'chatbots']),
+    quantity: z.number().min(1).max(10),
+  })).min(1, 'Debes seleccionar al menos un plan'),
 });
 
 
@@ -164,6 +165,7 @@ export const createLocationSchema = z.object({
   address: z.string().min(1, 'Dirección requerida'),
   phoneNumber: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Número de teléfono inválido').optional(),
   phoneType: messageChannelEnum.optional(),
+  planType: z.enum(['templates', 'chatbots']),
 });
 
 export const createTemplateSchema = templateSchema.omit({ id: true, userId: true });

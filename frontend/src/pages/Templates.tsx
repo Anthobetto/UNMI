@@ -511,11 +511,11 @@ export default function Templates() {
                           >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Todas las ubicaciones" />
+                                <SelectValue placeholder="Todos las establecimientos" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="null">Todas las ubicaciones</SelectItem>
+                              <SelectItem value="null">Todas los establecimientos</SelectItem>
                               {locations.map((location) => (
                                 <SelectItem key={location.id} value={location.id.toString()}>
                                   {location.name}
@@ -524,7 +524,7 @@ export default function Templates() {
                             </SelectContent>
                           </Select>
                           <FormDescription>
-                            Deja vacío para usar en todas las ubicaciones
+                            Deja vacío para usar en todas los establecimientos
                           </FormDescription>
                           <FormMessage />
                         </FormItem>

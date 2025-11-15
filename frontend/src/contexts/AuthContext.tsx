@@ -9,7 +9,9 @@ export interface User {
   username: string;
   email: string;
   planType: 'templates' | 'chatbots' | null;
-   companyName?: string; 
+  companyName?: string;
+  purchasedLocations?: any[]; 
+  credits?: Record<string, number>;
 }
 
 // --- Esquemas de validación ---
@@ -21,14 +23,17 @@ export const loginSchema = z.object({
 export type LoginData = z.infer<typeof loginSchema>;
 
 export const registerSchema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters'),
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  companyName: z.string().min(1, 'Company name is required'),
-  termsAccepted: z.boolean().refine((val) => val === true, {
-    message: 'You must accept the terms and conditions',
+  username: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
+  email: z.string().email('Email inválido'),
+  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
+  companyName: z.string().min(1, 'Nombre de empresa requerido'),
+  termsAccepted: z.boolean().refine(val => val === true, {
+    message: "Debes aceptar los términos y condiciones",
   }),
-  planType: z.enum(['templates', 'chatbots']),
+  selections: z.array(z.object({
+    planType: z.enum(['templates', 'chatbots']),
+    quantity: z.number().min(1).max(10),
+  })).min(1, 'Debes seleccionar al menos un plan'),
 });
 
 export type RegisterData = z.infer<typeof registerSchema>;

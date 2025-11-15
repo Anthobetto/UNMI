@@ -33,87 +33,87 @@
     "logout": "Déconnexion"
   },
   "landing": {
-      "nav": {
-        "features": "Fonctionnalités",
-        "testimonials": "Témoignages",
-        "pricing": "Tarifs",
-        "faq": "FAQ"
-      },
-      "toggleTheme": "Changer de thème",
-      "access": "Accès",
-      "trial": "Commencez dès aujourd'hui"
+    "nav": {
+      "features": "Fonctionnalités",
+      "testimonials": "Témoignages",
+      "pricing": "Tarifs",
+      "faq": "FAQ"
     },
-    "hero": {
-      "badge": "Transformez votre entreprise",
-      "title": "Transformez la stratégie de communication de votre entreprise",
-      "subtitle": "Unmi intègre WhatsApp, SMS et gestion des appels dans une plateforme puissante.",
-      "cta": "Commencez dès aujourd'hui",
-      "features": {
-        "trial": "Commencez dès aujourd'hui",
-        "cancel": "Annulez à tout moment"
-      }
-    },
+    "toggleTheme": "Changer de thème",
+    "access": "Accès",
+    "trial": "Commencez dès aujourd'hui"
+  },
+  "hero": {
+    "badge": "Transformez votre entreprise",
+    "title": "Transformez la stratégie de communication de votre entreprise",
+    "subtitle": "Unmi intègre WhatsApp, SMS et gestion des appels dans une plateforme puissante.",
+    "cta": "Commencez dès aujourd'hui",
     "features": {
-      "badge": "Fonctionnalités",
-      "title": "Comparez UNMI et Chatbot",
-      "subtitle": "Basculez entre les automatisations d'UNMI et un chatbot IA complet.",
-      "unmi": {
-        "omnichannel": {
-          "title": "Messagerie omnicanal",
-          "description": "Gérez WhatsApp, SMS et appels depuis un tableau de bord unifié, garantissant qu'aucune demande ne reste sans réponse."
-        },
-        "routing": {
-          "title": "Routage intelligent des appels",
-          "description": "Notre système intelligent garantit que les appels atteignent le bon service, réduisant les occasions manquées et améliorant la satisfaction client."
-        },
-        "autoResponse": {
-          "title": "Réponses automatisées",
-          "description": "Interagissez instantanément avec les clients même en dehors des heures d'ouverture grâce à des modèles intelligents."
-        },
-        "analytics": {
-          "title": "Analyses de performance",
-          "description": "Obtenez des informations précieuses sur les volumes d'appels, les temps de réponse et les taux de conversion."
-        },
-        "multiLocation": {
-          "title": "Support multi-sites",
-          "description": "Gérez facilement plusieurs emplacements d'entreprise depuis un seul tableau de bord."
-        },
-        "revenueCalc": {
-          "title": "Calculateur de revenus",
-          "description": "Notre calculateur intégré vous aide à mesurer l'impact financier direct de vos améliorations de communication."
-        }
+      "trial": "Commencez dès aujourd'hui",
+      "cancel": "Annulez à tout moment"
+    }
+  },
+  "features": {
+    "badge": "Fonctionnalités",
+    "title": "Comparez UNMI et Chatbot",
+    "subtitle": "Basculez entre les automatisations d'UNMI et un chatbot IA complet.",
+    "unmi": {
+      "omnichannel": {
+        "title": "Messagerie omnicanal",
+        "description": "Gérez WhatsApp, SMS et appels depuis un tableau de bord unifié, garantissant qu'aucune demande ne reste sans réponse."
       },
-      "chatbot": {
-        "engagement": {
-          "title": "Engagement omnicanal",
-          "description": "Gérez les conversations sur WhatsApp et les appels vocaux à partir d'une seule interface."
-        },
-        "availability": {
-          "title": "Disponibilité 24h/24 et 7j/7",
-          "description": "Gérez les demandes des clients à tout moment sans intervention humaine."
-        },
-        "personalization": {
-          "title": "Personnalisation alimentée par l'IA",
-          "description": "Utilisez l'IA pour fournir des réponses adaptées selon le contexte et l'historique de l'utilisateur."
-        },
-        "scalable": {
-          "title": "Architecture évolutive",
-          "description": "S'adapte automatiquement pour gérer une augmentation du volume de discussions."
-        },
-        "analytics": {
-          "title": "Analyses en temps réel",
-          "description": "Obtenez des informations instantanées sur les temps de réponse, la satisfaction des utilisateurs et les taux de résolution."
-        },
-        "costCalc": {
-          "title": "Calculateur d'efficacité des coûts",
-          "description": "Estimez votre retour sur investissement et vos économies grâce à l'automatisation des flux de discussion."
-        }
+      "routing": {
+        "title": "Routage intelligent des appels",
+        "description": "Notre système intelligent garantit que les appels atteignent le bon service, réduisant les occasions manquées et améliorant la satisfaction client."
+      },
+      "autoResponse": {
+        "title": "Réponses automatisées",
+        "description": "Interagissez instantanément avec les clients même en dehors des heures d'ouverture grâce à des modèles intelligents."
+      },
+      "analytics": {
+        "title": "Analyses de performance",
+        "description": "Obtenez des informations précieuses sur les volumes d'appels, les temps de réponse et les taux de conversion."
+      },
+      "multiLocation": {
+        "title": "Support multi-sites",
+        "description": "Gérez facilement plusieurs emplacements d'entreprise depuis un seul tableau de bord."
+      },
+      "revenueCalc": {
+        "title": "Calculateur de revenus",
+        "description": "Notre calculateur intégré vous aide à mesurer l'impact financier direct de vos améliorations de communication."
       }
     },
-    "footer": {
-      "text": "Transformez la communication de votre entreprise avec notre plateforme tout-en-un.",
-      "rights": "Tous droits réservés."
-    },
+    "chatbot": {
+      "engagement": {
+        "title": "Engagement omnicanal",
+        "description": "Gérez les conversations sur WhatsApp et les appels vocaux à partir d'une seule interface."
+      },
+      "availability": {
+        "title": "Disponibilité 24h/24 et 7j/7",
+        "description": "Gérez les demandes des clients à tout moment sans intervention humaine."
+      },
+      "personalization": {
+        "title": "Personnalisation alimentée par l'IA",
+        "description": "Utilisez l'IA pour fournir des réponses adaptées selon le contexte et l'historique de l'utilisateur."
+      },
+      "scalable": {
+        "title": "Architecture évolutive",
+        "description": "S'adapte automatiquement pour gérer une augmentation du volume de discussions."
+      },
+      "analytics": {
+        "title": "Analyses en temps réel",
+        "description": "Obtenez des informations instantanées sur les temps de réponse, la satisfaction des utilisateurs et les taux de résolution."
+      },
+      "costCalc": {
+        "title": "Calculateur d'efficacité des coûts",
+        "description": "Estimez votre retour sur investissement et vos économies grâce à l'automatisation des flux de discussion."
+      }
+    }
+  },
+  "footer": {
+    "text": "Transformez la communication de votre entreprise avec notre plateforme tout-en-un.",
+    "rights": "Tous droits réservés."
+  },
   "auth": {
     "login": {
       "title": "Se Connecter",
@@ -136,7 +136,11 @@
       "loading": "Inscription en cours...",
       "tagline": "Transformez votre communication d'entreprise",
       "selectPlan": "Choisissez votre plan ",
-      "planRequired": "Vous devez sélectionner un plan"
+      "planRequired": "Vous devez sélectionner un plan",
+      "quantity": "Quantité",
+      "location": "emplacement",
+      "locations": "emplacements",
+      "addMore": "Ajouter plus"
     },
     "choosePlan": {
       "title": "Choisissez le Plan Parfait pour Votre Entreprise",
@@ -465,7 +469,10 @@
       "phonePlaceholder": "+34 600 123 456",
       "phoneHelp": "Optionnel. Pour les appels et messages",
       "timezone": "Fuseau horaire",
-      "timezoneHelp": "Utilisé pour planifier les messages et horaires"
+      "timezoneHelp": "Utilisé pour planifier les messages et horaires",
+      "planType": "Type de plan",
+      "planTypeHelp": "Choisissez le plan à utiliser pour cet emplacement",
+      "creditsAvailable": "crédits disponibles"
     },
     "dialog": {
       "editDesc": "Modifiez les détails de l'emplacement sélectionné",

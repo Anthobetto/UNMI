@@ -15,6 +15,7 @@ if (!STRIPE_SECRET_KEY) {
 
 export interface IStripeService {
   createCheckoutSession(params: CheckoutSessionParams): Promise<Stripe.Checkout.Session>;
+  createCheckoutSessionCustom(params: CheckoutSessionCustomParams): Promise<Stripe.Checkout.Session>; // ✅ AGREGADO
   createCustomer(email: string, metadata?: Record<string, string>): Promise<Stripe.Customer>;
   getSession(sessionId: string): Promise<Stripe.Checkout.Session | null>;
   constructWebhookEvent(body: any, signature: string): Stripe.Event;
@@ -28,6 +29,16 @@ export interface CheckoutSessionParams {
   successUrl?: string;
   cancelUrl?: string;
   metadata?: Record<string, string>;
+}
+
+// ✅ NUEVA INTERFAZ para múltiples selecciones
+export interface CheckoutSessionCustomParams {
+  email: string;
+  userId: string;
+  selections: { planType: 'templates' | 'chatbots'; quantity: number }[];
+  metadata?: Record<string, any>;
+  successUrl?: string;
+  cancelUrl?: string;
 }
 
 export class StripeService implements IStripeService {
@@ -55,7 +66,7 @@ export class StripeService implements IStripeService {
     const priceIdMap: Record<'templates' | 'chatbots' | 'initial_registration', string> = {
       templates: process.env.STRIPE_PRICE_TEMPLATES!,
       chatbots: process.env.STRIPE_PRICE_CHATBOTS!,
-      initial_registration: process.env.STRIPE_PRICE_TEMPLATES!, // Usa el de templates por defecto
+      initial_registration: process.env.STRIPE_PRICE_TEMPLATES!,
     };
 
     const priceId = priceIdMap[planType];
@@ -69,11 +80,11 @@ export class StripeService implements IStripeService {
         payment_method_types: ['card'],
         line_items: [
           {
-            price: priceId, // ✅ Usa el Price ID directamente
+            price: priceId,
             quantity: 1,
           },
         ],
-        mode: 'subscription', // O 'payment' si no son suscripciones
+        mode: 'subscription',
         customer_email: email,
         success_url: successUrl || `${FRONTEND_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}&success=true`,
         cancel_url: cancelUrl || `${FRONTEND_URL}/pricing?canceled=true`,
@@ -92,6 +103,36 @@ export class StripeService implements IStripeService {
     } catch (error) {
       console.error('Error creating checkout session:', error);
       throw new Error('Failed to create checkout session');
+    }
+  }
+
+  // ✅ Método para checkout con múltiples selecciones
+  async createCheckoutSessionCustom(params: CheckoutSessionCustomParams): Promise<Stripe.Checkout.Session> {
+    const line_items = params.selections.map(sel => {
+      const priceId = process.env[`STRIPE_PRICE_${sel.planType.toUpperCase()}`];
+      if (!priceId) throw new Error(`No price configured for ${sel.planType}`);
+      return { price: priceId, quantity: sel.quantity };
+    });
+
+    try {
+      const session = await this.stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items,
+        mode: 'subscription',
+        customer_email: params.email,
+        metadata: {
+          userId: params.userId,
+          ...params.metadata,
+        },
+        success_url: params.successUrl || `${FRONTEND_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}&success=true`,
+        cancel_url: params.cancelUrl || `${FRONTEND_URL}/pricing?canceled=true`,
+      });
+
+      if (!session.url) throw new Error('Failed to generate checkout session URL');
+      return session;
+    } catch (error) {
+      console.error('Error creating custom checkout session:', error);
+      throw new Error('Failed to create custom checkout session');
     }
   }
 
