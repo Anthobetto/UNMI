@@ -136,7 +136,11 @@
       "loading": "Registering...",
       "tagline": "Transform your business communication",
       "selectPlan": "Choose your plan",
-      "planRequired": "You must select a plan"
+      "planRequired": "You must select a plan",
+      "quantity": "Quantity",
+      "location": "location",
+      "locations": "locations",
+      "addMore": "Add more"
     },
     "choosePlan": {
       "title": "Choose the Perfect Plan for Your Business",
@@ -465,7 +469,10 @@
       "phonePlaceholder": "+34 600 123 456",
       "phoneHelp": "Optional. For calls and messages",
       "timezone": "Time Zone",
-      "timezoneHelp": "Used for scheduling messages and business hours"
+      "timezoneHelp": "Used for scheduling messages and business hours",
+      "planType": "Plan Type",
+      "planTypeHelp": "Choose which plan to use for this location",
+      "creditsAvailable": "credits available"
     },
     "dialog": {
       "editDesc": "Modify the selected location's details",

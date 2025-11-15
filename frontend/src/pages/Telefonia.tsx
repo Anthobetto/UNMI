@@ -177,7 +177,7 @@ export default function Telefonia() {
     };
   });
 
-  // Top ubicaciones por llamadas perdidas
+  // Top establecimientos por llamadas perdidas
   const locationStats = locations
     .map((location) => {
       const locationCalls = calls.filter((call) => call.routedToLocation === location.id);

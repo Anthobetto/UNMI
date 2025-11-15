@@ -146,7 +146,7 @@ export default function DashboardEnhanced() {
             <p className="text-gray-600 mt-1">
               {selectedLocationId 
                 ? `Mostrando datos de ${locations.find((l: any) => l.id === selectedLocationId)?.name}` 
-                : 'Vista agregada de todas las ubicaciones'}
+                : 'Vista agregada de todas los establecimientos'}
             </p>
           </div>
 
@@ -161,7 +161,7 @@ export default function DashboardEnhanced() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas las ubicaciones</SelectItem>
+                <SelectItem value="all">Todas los establecimientos</SelectItem>
                 {locations.map((location: any) => (
                   <SelectItem key={location.id} value={location.id.toString()}>
                     {location.name}
@@ -451,7 +451,7 @@ export default function DashboardEnhanced() {
             <Button asChild variant="outline" className="justify-start">
               <Link href="/locations">
                 <MapPin className="mr-2 h-4 w-4" />
-                Gestionar Ubicaciones
+                Gestionar Establecimientos
               </Link>
             </Button>
             <Button asChild variant="outline" className="justify-start">

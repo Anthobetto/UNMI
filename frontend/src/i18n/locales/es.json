@@ -28,7 +28,7 @@
     "telephony": "Telefonía",
     "templates": "Templates",
     "chatbots": "Chatbots",
-    "locations": "Ubicaciones",
+    "locations": "Establecimientos",
     "plan": "Mi Plan",
     "logout": "Cerrar Sesión"
   },
@@ -76,7 +76,7 @@
       },
       "multiLocation": {
         "title": "Soporte multiubicación",
-        "description": "Gestiona fácilmente múltiples ubicaciones comerciales desde un solo panel, con configuraciones y reportes personalizados por sitio."
+        "description": "Gestiona fácilmente múltiples establecimientos comerciales desde un solo panel, con configuraciones y reportes personalizados por sitio."
       },
       "revenueCalc": {
         "title": "Calculadora de ingresos",
@@ -136,7 +136,11 @@
       "loading": "Registrando...",
       "tagline": "Transforma tu comunicación empresarial",
       "selectPlan": "Elige tu plan",
-      "planRequired": "Debes seleccionar un plan"
+      "planRequired": "Debes seleccionar un plan",
+      "quantity": "Cantidad",
+      "location": "ubicación",
+      "locations": "establecimientos",
+      "addMore": "Agregar más"
     },
     "choosePlan": {
       "title": "Selecciona el Plan Perfecto para tu Negocio",
@@ -205,8 +209,8 @@
       }
     },
     "quickActions": {
-      "locations": "Ubicaciones",
-      "manageLocations": "Gestionar ubicaciones",
+      "locations": "Establecimientos",
+      "manageLocations": "Gestionar establecimientos",
       "templates": "Templates",
       "manageTemplates": "Gestionar plantillas",
       "yourPlan": "Tu Plan",
@@ -277,7 +281,7 @@
       "last7days": "Últimos 7 días",
       "last30days": "Últimos 30 días",
       "last90days": "Últimos 90 días",
-      "allLocations": "Todas las ubicaciones",
+      "allLocations": "Todas los establecimientos",
       "placeholder": "Filtrar por ubicación"
     },
     "metrics": {
@@ -299,9 +303,9 @@
     },
     "performance": {
       "title": "Rendimiento por Ubicación",
-      "subtitle": "Ubicaciones ordenadas por llamadas perdidas",
-      "noLocations": "No hay ubicaciones configuradas",
-      "addLocations": "Agrega ubicaciones para ver estadísticas detalladas"
+      "subtitle": "Establecimientos ordenadas por llamadas perdidas",
+      "noLocations": "No hay establecimientos configuradas",
+      "addLocations": "Agrega establecimientos para ver estadísticas detalladas"
     },
     "history": {
       "title": "Historial de Llamadas",
@@ -334,7 +338,7 @@
       "type": "Tipo de Plantilla",
       "channel": "Canal de Envío",
       "location": "Ubicación (Opcional)",
-      "allLocations": "Todas las ubicaciones",
+      "allLocations": "Todas los establecimientos",
       "content": "Contenido del Mensaje",
       "contentPlaceholder": "¡Hola! Vimos que nos llamaste pero no pudimos atenderte...",
       "variables": "Puedes usar variables como {nombre}, {empresa}, {fecha}",
@@ -446,8 +450,8 @@
     }
   },
   "locations": {
-    "title": "Ubicaciones",
-    "subtitle": "Gestiona las ubicaciones de tu negocio",
+    "title": "Establecimientos",
+    "subtitle": "Gestiona los establecimientos de tu negocio",
     "new": "Nueva Ubicación",
     "edit": "Editar Ubicación",
     "create": "Crear Nueva Ubicación",
@@ -465,13 +469,16 @@
       "phonePlaceholder": "+34 600 123 456",
       "phoneHelp": "Opcional. Para llamadas y mensajes",
       "timezone": "Zona Horaria",
-      "timezoneHelp": "Se usa para programar mensajes y horarios"
+      "timezoneHelp": "Se usa para programar mensajes y horarios",
+      "planType": "Tipo de plan",
+      "planTypeHelp": "Elige qué plan usar para esta ubicación",
+      "creditsAvailable": "créditos disponibles"
     },
     "dialog": {
       "editDesc": "Modifica los datos de la ubicación seleccionada",
       "createDesc": "Agrega una nueva ubicación para gestionar llamadas y mensajes"
     },
-    "noLocations": "No hay ubicaciones aún",
+    "noLocations": "No hay establecimientos aún",
     "firstLocation": "Crea tu primera ubicación para comenzar a recibir y gestionar llamadas",
     "details": {
       "main": "Principal",

@@ -53,6 +53,9 @@ const locationSchema = z.object({
   phoneNumber: z.string().optional(),
   address: z.string().min(5, 'locations.validation.addressMin').max(255),
   timezone: z.string().default('Europe/Madrid'),
+  planType: z.enum(['templates', 'chatbots'], {
+    required_error: 'locations.validation.planRequired',
+  }),
 });
 
 type LocationFormData = z.infer<typeof locationSchema>;
@@ -85,6 +88,7 @@ export default function Locations() {
       name: '',
       address: '',
       phoneNumber: '',
+      planType: 'templates',
       timezone: 'Europe/Madrid',
     },
   });
@@ -92,6 +96,25 @@ export default function Locations() {
   // ====================
   // Queries
   // ====================
+
+  const { data: credits } = useQuery({
+    queryKey: ['/api/user'],
+    queryFn: async () => {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch('/api/user', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error('Failed to fetch user');
+      const data = await response.json();
+
+      console.log('👤 User data:', data.user); // Para debugging
+      console.log('💳 Credits:', data.user.credits); // Para debugging
+
+      return data.user.credits || {};
+    },
+    enabled: !!user,
+  });
+
   const { data: locations = [], isLoading } = useQuery<Location[]>({
     queryKey: ['/api/locations'],
     queryFn: async () => {
@@ -159,6 +182,7 @@ export default function Locations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/locations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       toast({
         title: t('locations.toast.created.title'),
         description: t('locations.toast.created.description'),
@@ -252,6 +276,7 @@ export default function Locations() {
     const payload: any = {
       name: data.name,
       address: data.address,
+      planType: data.planType,
     };
 
     if (data.phoneNumber && /^\+?[1-9]\d{1,14}$/.test(data.phoneNumber)) {
@@ -332,6 +357,7 @@ export default function Locations() {
                     name: '',
                     address: '',
                     phoneNumber: '',
+                    planType: 'templates',
                     timezone: 'Europe/Madrid',
                   });
                 }
@@ -343,6 +369,7 @@ export default function Locations() {
                     name: '',
                     address: '',
                     phoneNumber: '',
+                    planType: 'templates',
                     timezone: 'Europe/Madrid',
                   });
                 }
@@ -407,6 +434,31 @@ export default function Locations() {
                             <Input placeholder={t('locations.form.phonePlaceholder')} {...field} />
                           </FormControl>
                           <FormDescription>{t('locations.form.phoneHelp')}</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="planType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('locations.form.planType')}</FormLabel>
+                          <FormControl>
+                            <select
+                              {...field}
+                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            >
+                              <option value="templates">
+                                Templates {credits?.templates > 0 ? `(${credits.templates} ${t('locations.form.creditsAvailable')})` : `(0 ${t('locations.form.creditsAvailable')})`}
+                              </option>
+                              <option value="chatbots">
+                                Chatbots {credits?.chatbots > 0 ? `(${credits.chatbots} ${t('locations.form.creditsAvailable')})` : `(0 ${t('locations.form.creditsAvailable')})`}
+                              </option>
+                            </select>
+                          </FormControl>
+                          <FormDescription>{t('locations.form.planTypeHelp')}</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -526,6 +578,7 @@ export default function Locations() {
                         name: location.name,
                         address: location.address || '',
                         phoneNumber: location.phoneNumber || '',
+                        planType: 'templates',
                         timezone: location.timezone || 'Europe/Madrid',
                       });
                       setDialogOpen(true);

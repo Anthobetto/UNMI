@@ -648,7 +648,7 @@ export const LocationOnboarding: React.FC<LocationOnboardingProps> = ({ onComple
                         <strong>{pricingCalculation?.dailyMessages}</strong>
                       </div>
                       <div className="flex justify-between">
-                        <span>Ubicaciones:</span>
+                        <span>Establecimientos:</span>
                         <strong>1</strong>
                       </div>
                       <div className="pt-2 border-t flex justify-between text-lg font-bold text-primary">

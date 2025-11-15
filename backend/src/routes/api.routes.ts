@@ -29,6 +29,24 @@ router.get('/locations/:id', requireAuth, asyncHandler(async (req: Authenticated
   res.json({ location });
 }));
 
+// ==================
+// LOCATIONS
+// ==================
+router.get('/locations', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const profile = await supabaseService.getUserByAuthId(req.user!.id);
+  if (!profile) throw new NotFoundError('User not found');
+
+  const locations = await supabaseService.getLocations(profile.id);
+  res.json({ locations });
+}));
+
+router.get('/locations/:id', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const location = await supabaseService.getLocationById(parseInt(req.params.id));
+  if (!location) throw new NotFoundError('Location not found');
+
+  res.json({ location });
+}));
+
 router.post('/locations', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const validation = createLocationSchema.safeParse(req.body);
   if (!validation.success) {
@@ -49,9 +67,7 @@ router.post('/locations', requireAuth, asyncHandler(async (req: AuthenticatedReq
 router.put('/locations/:id', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const locationId = parseInt(req.params.id);
   const validation = updateLocationSchema.safeParse(req.body);
-  if (!validation.success) {
-    throw new ValidationError('Invalid location data');
-  } if (!validation.success) throw new ValidationError('Invalid location data');
+  if (!validation.success) throw new ValidationError('Invalid location data');
 
   const profile = await supabaseService.getUserByAuthId(req.user!.id);
   if (!profile) throw new NotFoundError('User not found');
