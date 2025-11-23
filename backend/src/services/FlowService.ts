@@ -14,6 +14,8 @@
 
 import { providerService } from './ProviderService';
 import { z } from 'zod';
+import { supabaseService } from './SupabaseService';
+import { whatsAppCloudService } from './WhatsAppCloudService';
 
 // ==========================================
 // SCHEMAS
@@ -107,7 +109,7 @@ export class FlowService {
     const errors: string[] = [];
 
     console.log(`\n📞 [FlowService] Processing missed call: ${event.callId}`);
-    
+
     // Store call event
     this.callEvents.push(event);
 
@@ -258,6 +260,179 @@ export class FlowService {
       chatbots: preferences.preferredFlow === 'chatbot' || preferences.preferredFlow === 'both',
       both: preferences.preferredFlow === 'both',
     };
+  }
+  async handleMissedCallWithWhatsApp(callData: {
+    callerNumber: string;
+    phoneNumberId: number;
+    locationId: number;
+    userId: string;
+  }): Promise<{
+    success: boolean;
+    messageId?: string;
+    template?: string;
+    error?: string;
+  }> {
+    try {
+      console.log('📞 Processing missed call with WhatsApp from:', callData.callerNumber);
+
+      // 1. Obtener el número de teléfono (para el providerId de Meta)
+      const phoneNumber = await supabaseService.getPhoneNumberById(callData.phoneNumberId);
+
+      if (!phoneNumber) {
+        throw new Error('Phone number not found');
+      }
+
+      if (!phoneNumber.providerId) {
+        throw new Error('Phone number does not have a providerId (Meta phone_number_id)');
+      }
+
+      // 2. Obtener la location para ver qué template usar
+      const location = await supabaseService.getLocationById(callData.locationId);
+
+      if (!location) {
+        throw new Error('Location not found');
+      }
+
+      // 3. Buscar templates disponibles para esta location
+      const templates = await supabaseService.getTemplates(callData.userId);
+      const locationTemplates = templates.filter(t =>
+        t.locationId === callData.locationId &&
+        t.channel === 'whatsapp' &&
+        t.type === 'missed_call'
+      );
+
+      if (locationTemplates.length === 0) {
+        console.warn('⚠️ No WhatsApp template found for missed calls in this location');
+        return {
+          success: false,
+          error: 'No template configured',
+        };
+      }
+
+      // 4. Usar el primer template disponible
+      const template = locationTemplates[0];
+
+      // 5. Preparar variables para el template
+      const variables: Record<string, string> = {
+        business_name: location.name,
+        customer_phone: callData.callerNumber,
+        timestamp: new Date().toLocaleString('es-ES'),
+      };
+
+      // 6. Enviar template vía WhatsApp Cloud API
+      const result = await whatsAppCloudService.sendTemplate({
+        to: callData.callerNumber,
+        templateName: template.name,
+        languageCode: 'es',
+        variables: variables,
+        phoneNumberId: phoneNumber.providerId,
+      });
+
+      if (result.status === 'failed') {
+        console.error('❌ Failed to send WhatsApp template:', result.error);
+
+        // Guardar intento fallido en DB
+        await supabaseService.createMessage({
+          userId: callData.userId,
+          phoneNumberId: callData.phoneNumberId,
+          type: 'WhatsApp',
+          content: whatsAppCloudService.processTemplate(template, variables),
+          recipient: callData.callerNumber,
+          status: 'failed',
+          direction: 'outbound',
+          templateId: template.id,
+          errorMessage: result.error,
+        });
+
+        return {
+          success: false,
+          error: result.error,
+        };
+      }
+
+      // 7. Guardar mensaje enviado en DB
+      await supabaseService.createMessage({
+        userId: callData.userId,
+        phoneNumberId: callData.phoneNumberId,
+        type: 'WhatsApp',
+        content: whatsAppCloudService.processTemplate(template, variables),
+        recipient: callData.callerNumber,
+        status: 'sent',
+        direction: 'outbound',
+        whatsappMessageId: result.messageId,
+        templateId: template.id,
+      });
+
+      console.log('✅ WhatsApp template sent successfully:', result.messageId);
+
+      return {
+        success: true,
+        messageId: result.messageId,
+        template: template.name,
+      };
+
+    } catch (error: any) {
+      console.error('❌ Error handling missed call with WhatsApp:', error);
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+
+  /**
+   * Enviar mensaje de texto directo por WhatsApp (ventana 24h)
+   */
+  async sendDirectWhatsAppMessage(params: {
+    userId: string;
+    phoneNumberId: number;
+    recipient: string;
+    message: string;
+  }): Promise<{
+    success: boolean;
+    messageId?: string;
+    error?: string;
+  }> {
+    try {
+      const phoneNumber = await supabaseService.getPhoneNumberById(params.phoneNumberId);
+
+      if (!phoneNumber || !phoneNumber.providerId) {
+        throw new Error('Invalid phone number or missing providerId');
+      }
+
+      // Enviar mensaje de texto
+      const result = await whatsAppCloudService.sendTextMessage({
+        to: params.recipient,
+        message: params.message,
+        phoneNumberId: phoneNumber.providerId,
+      });
+
+      // Guardar en DB
+      await supabaseService.createMessage({
+        userId: params.userId,
+        phoneNumberId: params.phoneNumberId,
+        type: 'WhatsApp',
+        content: params.message,
+        recipient: params.recipient,
+        status: result.status === 'sent' ? 'sent' : 'failed',
+        direction: 'outbound',
+        whatsappMessageId: result.messageId,
+        errorMessage: result.error,
+      });
+
+      return {
+        success: result.status === 'sent',
+        messageId: result.messageId,
+        error: result.error,
+      };
+
+    } catch (error: any) {
+      console.error('Error sending direct WhatsApp message:', error);
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
   }
 }
 

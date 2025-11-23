@@ -2,7 +2,7 @@
 // Implementa SRP: Cada método tiene una responsabilidad única
 
 import { supabase } from '../config/database';
-import type { User, Location, Template, Call, Message, PhoneNumber, RoutingRule } from '../../../shared/schema';
+import type { User, Location, Template, Call, Message, PhoneNumber, RoutingRule, MessageStatus } from '../../../shared/schema';
 
 export interface ISupabaseService {
   // Users
@@ -33,14 +33,22 @@ export interface ISupabaseService {
   getCallStats(userId: string): Promise<any>;
   createCall(callData: Partial<Call>): Promise<Call>;
 
-  // Messages
+  // Messages 
   getMessages(userId: string): Promise<Message[]>;
+  getMessageById(messageId: number): Promise<Message | null>;
+  getMessageByWhatsAppId(whatsappMessageId: string): Promise<Message | null>;
   createMessage(messageData: Partial<Message>): Promise<Message>;
+  updateMessageStatus(whatsappMessageId: string, status: MessageStatus): Promise<void>;
+  updateMessageError(whatsappMessageId: string, errorMessage: string): Promise<void>;
   getMessageStats(userId: string): Promise<any>;
+  getConversationHistory(userId: string, recipient: string, limit?: number): Promise<Message[]>;
 
   // Phone Numbers
   getPhoneNumbers(userId: string): Promise<PhoneNumber[]>;
   createPhoneNumber(phoneData: Partial<PhoneNumber>): Promise<PhoneNumber>;
+  getPhoneNumberById(phoneNumberId: number): Promise<PhoneNumber | null>;
+  getPhoneNumberByProviderId(providerId: string): Promise<PhoneNumber | null>;
+  updatePhoneNumber(id: number, data: Partial<PhoneNumber>): Promise<PhoneNumber>;
 
   // Routing Rules
   getRoutingRules(userId: string): Promise<RoutingRule[]>;
@@ -498,6 +506,21 @@ export class SupabaseService implements ISupabaseService {
     return data.map(this.mapMessageFromDb);
   }
 
+  async getMessageById(messageId: number): Promise<Message | null> {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('id', messageId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching message by id:', error);
+      return null;
+    }
+
+    return data ? this.mapMessageFromDb(data) : null;
+  }
+
   async createMessage(messageData: Partial<Message>): Promise<Message> {
     const { data, error } = await supabase
       .from('messages')
@@ -508,6 +531,10 @@ export class SupabaseService implements ISupabaseService {
         content: messageData.content,
         recipient: messageData.recipient,
         status: messageData.status || 'pending',
+        direction: messageData.direction || 'outbound',
+        whatsapp_message_id: messageData.whatsappMessageId,
+        template_id: messageData.templateId,
+        error_message: messageData.errorMessage,
       }])
       .select()
       .single();
@@ -526,10 +553,77 @@ export class SupabaseService implements ISupabaseService {
       total: messages.length,
       sent: messages.filter(m => m.status === 'sent').length,
       delivered: messages.filter(m => m.status === 'delivered').length,
+      received: messages.filter(m => m.status === 'received').length,
+      read: messages.filter(m => m.status === 'read').length,
       failed: messages.filter(m => m.status === 'failed').length,
       pending: messages.filter(m => m.status === 'pending').length,
-      revenue: 0, // Calculate based on business logic
+      inbound: messages.filter(m => m.direction === 'inbound').length,
+      outbound: messages.filter(m => m.direction === 'outbound').length,
+      revenue: 0,
     };
+  }
+
+  async getConversationHistory(
+    userId: string,
+    recipient: string,
+    limit: number = 50
+  ): Promise<Message[]> {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('recipient', recipient)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching conversation history:', error);
+      return [];
+    }
+
+    return data.map(this.mapMessageFromDb);
+  }
+
+  async getMessageByWhatsAppId(whatsappMessageId: string): Promise<Message | null> {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('whatsapp_message_id', whatsappMessageId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching message by whatsapp_id:', error);
+      return null;
+    }
+
+    return data ? this.mapMessageFromDb(data) : null;
+  }
+
+  async updateMessageError(whatsappMessageId: string, errorMessage: string): Promise<void> {
+    const { error } = await supabase
+      .from('messages')
+      .update({
+        status: 'failed',
+        error_message: errorMessage
+      })
+      .eq('whatsapp_message_id', whatsappMessageId);
+
+    if (error) {
+      console.error('Error updating message error:', error);
+      throw new Error(`Failed to update message error: ${error.message}`);
+    }
+  }
+
+  async updateMessageStatus(whatsappMessageId: string, status: MessageStatus): Promise<void> {
+    const { error } = await supabase
+      .from('messages')
+      .update({ status })
+      .eq('whatsapp_message_id', whatsappMessageId);
+
+    if (error) {
+      console.error('Error updating message status:', error);
+      throw new Error(`Failed to update message status: ${error.message}`);
+    }
   }
 
   // ==================
@@ -549,6 +643,36 @@ export class SupabaseService implements ISupabaseService {
     return data.map(this.mapPhoneNumberFromDb);
   }
 
+  async getPhoneNumberById(phoneNumberId: number): Promise<PhoneNumber | null> {
+    const { data, error } = await supabase
+      .from('phone_numbers')
+      .select('*')
+      .eq('id', phoneNumberId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching phone number by id:', error);
+      return null;
+    }
+
+    return data ? this.mapPhoneNumberFromDb(data) : null;
+  }
+
+  async getPhoneNumberByProviderId(providerId: string): Promise<PhoneNumber | null> {
+    const { data, error } = await supabase
+      .from('phone_numbers')
+      .select('*')
+      .eq('provider_id', providerId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching phone number by provider_id:', error);
+      return null;
+    }
+
+    return data ? this.mapPhoneNumberFromDb(data) : null;
+  }
+
   async createPhoneNumber(phoneData: Partial<PhoneNumber>): Promise<PhoneNumber> {
     const { data, error } = await supabase
       .from('phone_numbers')
@@ -561,6 +685,7 @@ export class SupabaseService implements ISupabaseService {
         channel: phoneData.channel,
         active: phoneData.active !== undefined ? phoneData.active : true,
         forwarding_enabled: phoneData.forwardingEnabled !== undefined ? phoneData.forwardingEnabled : true,
+        provider_id: phoneData.providerId,
       }])
       .select()
       .single();
@@ -582,6 +707,7 @@ export class SupabaseService implements ISupabaseService {
         active: data.active,
         forwarding_enabled: data.forwardingEnabled,
         channel: data.channel,
+        provider_id: data.providerId,
       })
       .eq('id', id)
       .select()
@@ -590,6 +716,8 @@ export class SupabaseService implements ISupabaseService {
     if (error) throw new Error(`Failed to update phone number: ${error.message}`);
     return this.mapPhoneNumberFromDb(updated);
   }
+
+
 
   // ==================
   // ROUTING RULE OPERATIONS
@@ -699,6 +827,10 @@ export class SupabaseService implements ISupabaseService {
       recipient: dbMessage.recipient,
       status: dbMessage.status,
       createdAt: new Date(dbMessage.created_at),
+      direction: dbMessage.direction,
+      whatsappMessageId: dbMessage.whatsapp_message_id,
+      templateId: dbMessage.template_id,
+      errorMessage: dbMessage.error_message,
     };
   }
 
@@ -713,6 +845,7 @@ export class SupabaseService implements ISupabaseService {
       channel: dbPhone.channel,
       active: dbPhone.active,
       forwardingEnabled: dbPhone.forwarding_enabled,
+      providerId: dbPhone.provider_id,
     };
   }
 

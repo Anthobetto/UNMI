@@ -1,7 +1,7 @@
 // API Routes - RESTful endpoints
 // Organizado por recursos con SOLID principles
 
-import { Router, Response } from 'express';
+import { Router, Response, Request} from 'express';
 import { requireAuth, AuthenticatedRequest } from '../middleware/requireAuth';
 import { asyncHandler, NotFoundError, ValidationError } from '../middleware/errorHandler';
 import { supabaseService } from '../services/SupabaseService';
@@ -10,24 +10,6 @@ import { flowService, postCallEventSchema, templateCompletionSchema } from '../s
 import { providerService } from '../services/ProviderService';
 
 const router = Router();
-
-// ==================
-// LOCATIONS
-// ==================
-router.get('/locations', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const profile = await supabaseService.getUserByAuthId(req.user!.id);
-  if (!profile) throw new NotFoundError('User not found');
-
-  const locations = await supabaseService.getLocations(profile.id);
-  res.json({ locations });
-}));
-
-router.get('/locations/:id', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const location = await supabaseService.getLocationById(parseInt(req.params.id));
-  if (!location) throw new NotFoundError('Location not found');
-
-  res.json({ location });
-}));
 
 // ==================
 // LOCATIONS
@@ -78,7 +60,6 @@ router.put('/locations/:id', requireAuth, asyncHandler(async (req: Authenticated
   const updated = await supabaseService.updateLocation(locationId, validation.data);
   res.json({ location: updated });
 }));
-
 
 // ==================
 // TEMPLATES
@@ -207,6 +188,144 @@ router.post('/messages/whatsapp', requireAuth, asyncHandler(async (req: Authenti
 }));
 
 // ==================
+// WHATSAPP - ENVÍO DE TEMPLATES
+// ==================
+
+/**
+ * Enviar template de WhatsApp manualmente
+ */
+router.post('/whatsapp/send-template', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const profile = await supabaseService.getUserByAuthId(req.user!.id);
+  if (!profile) throw new NotFoundError('User not found');
+
+  const { 
+    templateId, 
+    recipient, 
+    phoneNumberId,
+    variables 
+  } = req.body;
+
+  // Validar datos
+  if (!templateId || !recipient || !phoneNumberId) {
+    throw new ValidationError('templateId, recipient, and phoneNumberId are required');
+  }
+
+  // Obtener template
+  const template = await supabaseService.getTemplateById(templateId);
+  if (!template || template.userId !== profile.id) {
+    throw new NotFoundError('Template not found');
+  }
+
+  // Obtener phone number
+  const phoneNumber = await supabaseService.getPhoneNumberById(phoneNumberId);
+  if (!phoneNumber || phoneNumber.userId !== profile.id) {
+    throw new NotFoundError('Phone number not found');
+  }
+
+  if (!phoneNumber.providerId) {
+    throw new ValidationError('Phone number does not have a WhatsApp provider ID configured');
+  }
+
+  // Enviar vía FlowService
+  const result = await flowService.sendDirectWhatsAppMessage({
+    userId: profile.id,
+    phoneNumberId: phoneNumber.id,
+    recipient: recipient,
+    message: template.content, // Procesar variables si es necesario
+  });
+
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to send WhatsApp message');
+  }
+
+  res.status(200).json({
+    success: true,
+    messageId: result.messageId,
+    message: 'Template sent successfully',
+  });
+}));
+
+/**
+ * Simular llamada perdida (para testing)
+ * Este endpoint dispara el flujo automático de envío de template
+ */
+router.post('/whatsapp/simulate-missed-call', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const profile = await supabaseService.getUserByAuthId(req.user!.id);
+  if (!profile) throw new NotFoundError('User not found');
+
+  const { 
+    callerNumber, 
+    phoneNumberId, 
+    locationId 
+  } = req.body;
+
+  // Validar datos
+  if (!callerNumber || !phoneNumberId || !locationId) {
+    throw new ValidationError('callerNumber, phoneNumberId, and locationId are required');
+  }
+
+  // Verificar que el phoneNumber pertenece al usuario
+  const phoneNumber = await supabaseService.getPhoneNumberById(phoneNumberId);
+  if (!phoneNumber || phoneNumber.userId !== profile.id) {
+    throw new NotFoundError('Phone number not found');
+  }
+
+  // Verificar que la location pertenece al usuario
+  const location = await supabaseService.getLocationById(locationId);
+  if (!location || location.userId !== profile.id) {
+    throw new NotFoundError('Location not found');
+  }
+
+  // Registrar la llamada perdida
+  await supabaseService.createCall({
+    userId: profile.id,
+    phoneNumberId: phoneNumber.id,
+    callerNumber: callerNumber,
+    status: 'missed',
+    duration: 0,
+    routedToLocation: location.id,
+    callType: 'inbound',
+  });
+
+  // Disparar el flujo automático de WhatsApp
+  const result = await flowService.handleMissedCallWithWhatsApp({
+    callerNumber: callerNumber,
+    phoneNumberId: phoneNumber.id,
+    locationId: location.id,
+    userId: profile.id,
+  });
+
+  res.status(200).json({
+    success: result.success,
+    messageId: result.messageId,
+    template: result.template,
+    error: result.error,
+    message: result.success 
+      ? 'Missed call processed and template sent successfully' 
+      : 'Missed call processed but template sending failed',
+  });
+}));
+
+/**
+ * Obtener historial de conversación con un cliente
+ */
+router.get('/whatsapp/conversation/:recipient', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const profile = await supabaseService.getUserByAuthId(req.user!.id);
+  if (!profile) throw new NotFoundError('User not found');
+
+  const recipient = req.params.recipient;
+  const limit = parseInt(req.query.limit as string) || 50;
+
+  const messages = await supabaseService.getConversationHistory(profile.id, recipient, limit);
+
+  res.json({ 
+    recipient,
+    messages,
+    count: messages.length,
+  });
+}));
+
+// ==================
 // PHONE NUMBERS
 // ==================
 router.get('/phone-numbers', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -237,7 +356,6 @@ router.put('/phone-numbers/:id', requireAuth, asyncHandler(async (req: Authentic
   const updated = await supabaseService.updatePhoneNumber(phoneNumberId, req.body);
   res.json(updated);
 }));
-
 
 // ==================
 // ROUTING RULES
@@ -382,7 +500,3 @@ router.post('/providers/send-message', requireAuth, asyncHandler(async (req: Aut
 }));
 
 export default router;
-
-
-
-

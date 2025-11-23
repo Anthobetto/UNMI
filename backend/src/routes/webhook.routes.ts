@@ -1,15 +1,19 @@
-// Webhook Routes - Stripe events
+// Webhook Routes - Stripe + WhatsApp events
 // Implementa SRP: Solo manejo de webhooks externos
 import { Router, Request, Response } from 'express';
 import express from 'express';
 import Stripe from 'stripe';
 import supabase from '../config/database';
-import { supabaseService } from '@/services/SupabaseService';
+import { supabaseService } from '../services/SupabaseService';
 import { stripeService } from '../services/StripeService';
+import { asyncHandler, ValidationError } from '../middleware/errorHandler';
 
 const router = Router();
 
-// Stripe webhook - requiere raw body
+// ==================
+// STRIPE WEBHOOK
+// ==================
+
 router.post(
   '/stripe',
   express.raw({ type: 'application/json' }),
@@ -69,7 +73,68 @@ router.post(
 );
 
 // ==================
-// WEBHOOK HANDLERS
+// WHATSAPP WEBHOOK
+// ==================
+
+// Verificación del webhook (GET) - Meta lo llama para verificar
+router.get(
+  '/whatsapp',
+  asyncHandler(async (req: Request, res: Response) => {
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
+
+    console.log('🔍 Webhook verification request:', { mode, token: token ? '***' : 'missing' });
+
+    if (mode === 'subscribe' && token === process.env.WHATSAPP_VERIFY_TOKEN) {
+      console.log('✅ Webhook verified successfully');
+      res.status(200).send(challenge);
+      return;
+    }
+
+    console.error('❌ Webhook verification failed');
+    throw new ValidationError('Invalid verification token');
+  })
+);
+
+// Recepción de eventos (POST) - Meta envía mensajes y estados aquí
+router.post(
+  '/whatsapp',
+  asyncHandler(async (req: Request, res: Response) => {
+    const body = req.body;
+
+    console.log('📬 Webhook received:', JSON.stringify(body, null, 2));
+
+    if (!body?.entry || !Array.isArray(body.entry)) {
+      console.error('❌ Invalid webhook payload structure');
+      throw new ValidationError('Invalid webhook payload');
+    }
+
+    for (const entry of body.entry) {
+      const changes = entry.changes;
+      if (!changes || !Array.isArray(changes)) continue;
+
+      for (const change of changes) {
+        const value = change.value;
+
+        // 📨 MENSAJES ENTRANTES
+        if (value?.messages && Array.isArray(value.messages)) {
+          await handleIncomingMessages(value);
+        }
+
+        // ✅ CAMBIOS DE ESTADO
+        if (value?.statuses && Array.isArray(value.statuses)) {
+          await handleMessageStatuses(value);
+        }
+      }
+    }
+
+    res.status(200).json({ success: true });
+  })
+);
+
+// ==================
+// STRIPE HANDLERS
 // ==================
 
 async function handleCheckoutCompleted(event: Stripe.Event) {
@@ -92,7 +157,6 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
     stripe_customer_id: session.customer ?? null,
   };
 
-  // 1️⃣ Crear usuario en Supabase Auth o recuperar existente
   let authUser;
   try {
     const { data, error } = await supabase.auth.admin.createUser({
@@ -123,8 +187,7 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
   if (!authUser) throw new Error('Could not obtain auth user');
   const authId = authUser.id;
 
-  // 2️⃣ Buscar usuario en tabla `users`
-  const { data: existingUser, error: fetchError } = await supabase
+  const { data: existingUser } = await supabase
     .from('users')
     .select('*')
     .eq('email', email)
@@ -132,7 +195,6 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
 
   let userRecord = existingUser;
 
-  // 3️⃣ Si existe, actualizar auth_id si falta
   if (userRecord) {
     if (authId && userRecord.auth_id !== authId) {
       await supabase
@@ -142,7 +204,6 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
       userRecord.auth_id = authId;
     }
   } else {
-    // 4️⃣ Crear nuevo usuario (sin planType, solo datos básicos)
     userRecord = await supabaseService.createUser({
       auth_id: authId,
       username: session.metadata?.username || email.split('@')[0],
@@ -154,10 +215,9 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
     });
   }
 
-  // 5️⃣ Registrar purchased_locations según las selecciones
   const purchasedSelections = selections.length > 0 
     ? selections 
-    : [{ planType: 'templates', quantity: 1 }]; // fallback
+    : [{ planType: 'templates', quantity: 1 }];
 
   await supabaseService.recordPurchasedLocations(userRecord.id, purchasedSelections);
 
@@ -166,8 +226,6 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
   console.log('🆔 User ID:', userRecord.id);
   console.log('🔑 Auth ID:', authId);
 }
-
-
 
 async function handlePaymentSucceeded(event: Stripe.Event) {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
@@ -200,6 +258,112 @@ async function handleSubscriptionUpdated(event: Stripe.Event) {
 async function handleSubscriptionDeleted(event: Stripe.Event) {
   const subscription = event.data.object as Stripe.Subscription;
   console.log('❌ Subscription deleted:', subscription.id);
+}
+
+// ==================
+// WHATSAPP HANDLERS
+// ==================
+
+async function handleIncomingMessages(value: any) {
+  const phoneNumberId = value.metadata?.phone_number_id;
+  const messages = value.messages;
+
+  if (!phoneNumberId || !messages || messages.length === 0) return;
+
+  console.log(`📨 Processing ${messages.length} incoming message(s)`);
+
+  for (const messageEvent of messages) {
+    try {
+      const from = messageEvent.from;
+      const messageId = messageEvent.id;
+
+      let content = '';
+      if (messageEvent.type === 'text' && messageEvent.text?.body) {
+        content = messageEvent.text.body;
+      } else if (messageEvent.type === 'interactive') {
+        if (messageEvent.interactive?.button_reply) {
+          content = messageEvent.interactive.button_reply.title;
+        } else if (messageEvent.interactive?.list_reply) {
+          content = messageEvent.interactive.list_reply.title;
+        }
+      } else if (messageEvent.type === 'image') {
+        content = '[Imagen recibida]';
+      } else if (messageEvent.type === 'document') {
+        content = '[Documento recibido]';
+      } else if (messageEvent.type === 'audio') {
+        content = '[Audio recibido]';
+      } else if (messageEvent.type === 'video') {
+        content = '[Video recibido]';
+      } else {
+        content = `[Mensaje tipo: ${messageEvent.type}]`;
+      }
+
+      console.log(`📩 Message from ${from}: ${content.substring(0, 50)}`);
+
+      const phoneNumber = await supabaseService.getPhoneNumberByProviderId(phoneNumberId);
+
+      if (!phoneNumber) {
+        console.error(`❌ Phone number not found for provider_id: ${phoneNumberId}`);
+        continue;
+      }
+
+      await supabaseService.createMessage({
+        userId: phoneNumber.userId,
+        phoneNumberId: phoneNumber.id,
+        type: 'WhatsApp',
+        content: content,
+        recipient: from,
+        status: 'received',
+        direction: 'inbound',
+        whatsappMessageId: messageId,
+      });
+
+      console.log(`✅ Message saved to database`);
+
+    } catch (error) {
+      console.error('Error processing incoming message:', error);
+    }
+  }
+}
+
+async function handleMessageStatuses(value: any) {
+  const statuses = value.statuses;
+
+  if (!statuses || statuses.length === 0) return;
+
+  console.log(`📊 Processing ${statuses.length} status update(s)`);
+
+  for (const status of statuses) {
+    try {
+      const messageId = status.id;
+      const newStatus = status.status;
+
+      console.log(`📈 Status update for message ${messageId}: ${newStatus}`);
+
+      let mappedStatus: 'sent' | 'delivered' | 'read' | 'failed' = 'sent';
+      
+      if (newStatus === 'sent') mappedStatus = 'sent';
+      else if (newStatus === 'delivered') mappedStatus = 'delivered';
+      else if (newStatus === 'read') mappedStatus = 'read';
+      else if (newStatus === 'failed') mappedStatus = 'failed';
+
+      await supabaseService.updateMessageStatus(messageId, mappedStatus);
+
+      console.log(`✅ Message status updated to: ${mappedStatus}`);
+
+      if (newStatus === 'failed' && status.errors) {
+        const errorMessage = status.errors
+          .map((e: any) => `${e.code}: ${e.title}`)
+          .join(', ');
+
+        await supabaseService.updateMessageError(messageId, errorMessage);
+        console.error(`❌ Message failed: ${errorMessage}`);
+      }
+
+    } catch (error) {
+      console.error('Error processing status update:', error);
+    }
+  }
 }
 
 export default router;
