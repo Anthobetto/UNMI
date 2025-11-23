@@ -44,17 +44,15 @@ app.use(cors({
 }));
 
 // ==================
-// WEBHOOK ROUTES (BEFORE JSON PARSER)
-// ==================
-// Stripe webhooks necesitan raw body
-app.use('/api/webhooks', webhookRoutes);
-
-// ==================
 // BODY PARSERS
 // ==================
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+
+// WEBHOOK ROUTES
+app.use('/api/webhooks', webhookRoutes);
+
 
 // ==================
 // REQUEST LOGGING

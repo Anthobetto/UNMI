@@ -75,6 +75,7 @@ export const phoneNumberSchema = z.object({
   channel: messageChannelEnum,
   active: z.boolean().default(true),
   forwardingEnabled: z.boolean().default(true),
+  providerId: z.string(),
 });
 
 export type PhoneNumber = z.infer<typeof phoneNumberSchema>;
@@ -83,7 +84,7 @@ export type PhoneNumber = z.infer<typeof phoneNumberSchema>;
 // CALL SCHEMA
 // ==================
 export const callStatusEnum = z.enum(['answered', 'missed', 'rejected']);
-export const callTypeEnum = z.enum(['direct', 'forwarded', 'ivr']);
+export const callTypeEnum = z.enum(['direct', 'forwarded', 'ivr', 'inbound']);
 
 export const callSchema = z.object({
   id: z.number(),
@@ -105,7 +106,8 @@ export type CallType = z.infer<typeof callTypeEnum>;
 // MESSAGE SCHEMA
 // ==================
 export const messageTypeEnum = z.enum(['SMS', 'WhatsApp']);
-export const messageStatusEnum = z.enum(['sent', 'delivered', 'failed', 'pending']);
+export const messageStatusEnum = z.enum(['pending', 'sent', 'delivered', 'received', 'read', 'failed']);
+export const messageDirectionEnum = z.enum(['inbound', 'outbound']);
 
 export const messageSchema = z.object({
   id: z.number(),
@@ -116,11 +118,18 @@ export const messageSchema = z.object({
   recipient: z.string(),
   status: messageStatusEnum,
   createdAt: z.date(),
+
+  // ✅ Campos nuevos para WhatsApp
+  direction: messageDirectionEnum.optional(),
+  whatsappMessageId: z.string().optional(), // ID de Meta para tracking
+  templateId: z.number().optional(), // Si fue enviado desde un template
+  errorMessage: z.string().optional(), // Para guardar errores si falla
 });
 
 export type Message = z.infer<typeof messageSchema>;
 export type MessageType = z.infer<typeof messageTypeEnum>;
 export type MessageStatus = z.infer<typeof messageStatusEnum>;
+export type MessageDirection = z.infer<typeof messageDirectionEnum>;
 
 // ==================
 // ROUTING RULE SCHEMA
