@@ -49,19 +49,23 @@ export class WhatsAppCloudService {
   /**
    * Enviar template de WhatsApp (requiere aprobación previa en Meta)
    */
-  async sendTemplate(params: SendTemplateParams): Promise<WhatsAppResponse> {
+  async sendTemplate(params: SendTemplateParams & { template: Template }): Promise<WhatsAppResponse> {
     try {
       const url = `${this.baseUrl}/${params.phoneNumberId}/messages`;
 
       // Construir componentes del template
       const components = [];
-      
-      if (params.variables && Object.keys(params.variables).length > 0) {
+
+      if (
+        params.template.variables &&
+        params.template.variables.length > 0 &&
+        params.variables
+      ) {
         components.push({
           type: 'body',
-          parameters: Object.values(params.variables).map(value => ({
+          parameters: params.template.variables.map((key) => ({
             type: 'text',
-            text: value,
+            text: params.variables?.[key] ?? '',
           })),
         });
       }
@@ -184,19 +188,17 @@ export class WhatsAppCloudService {
    */
   processTemplate(template: Template, variables?: Record<string, string>): string {
     let content = template.content;
-    
-    const allVariables = {
-      ...template.variables,
-      ...variables,
-    };
 
-    Object.entries(allVariables).forEach(([key, value]) => {
+    if (!variables) return content;
+
+    Object.entries(variables).forEach(([key, value]) => {
       const placeholder = new RegExp(`{{${key}}}`, 'g');
-      content = content.replace(placeholder, value as string);
+      content = content.replace(placeholder, value);
     });
 
     return content;
   }
+
 
   /**
    * Verificar si el servicio está configurado correctamente

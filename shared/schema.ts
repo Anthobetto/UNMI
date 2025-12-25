@@ -46,17 +46,17 @@ export const updateLocationSchema = locationSchema.partial();
 export const templateTypeEnum = z.enum(['missed_call', 'after_hours', 'welcome', 'follow_up']);
 export const messageChannelEnum = z.enum(['sms', 'whatsapp', 'both']);
 
-export const templateSchema = z.object({
-  id: z.number(),
-  userId: z.string().uuid(),
-  locationId: z.number().optional(),
-  groupId: z.number().optional(),
-  name: z.string().min(1),
-  content: z.string().min(1),
-  type: templateTypeEnum,
-  channel: messageChannelEnum,
-  variables: z.record(z.any()).optional(),
-});
+ export const templateSchema = z.object({
+   id: z.number(),
+   userId: z.string().uuid(),
+   locationId: z.number().optional(),
+   groupId: z.number().optional(),
+   name: z.string().min(1),
+   content: z.string().min(1),
+   type: templateTypeEnum,
+   channel: messageChannelEnum,
+   variables: z.array(z.string()).optional(),
+ });
 
 export type Template = z.infer<typeof templateSchema>;
 export type TemplateType = z.infer<typeof templateTypeEnum>;
