@@ -156,7 +156,7 @@ export interface MessageRequest {
   content: string;
   channel: 'sms' | 'whatsapp' | 'both';
   templateId?: number;
-  variables?: Record<string, string>;
+  variables?: string[];
 }
 
 export interface MessageResponse {

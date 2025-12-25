@@ -8,6 +8,7 @@ import { supabaseService } from '../services/SupabaseService';
 import { createLocationSchema, createTemplateSchema, updateLocationSchema} from '../../../shared/schema';
 import { flowService, postCallEventSchema, templateCompletionSchema } from '../services/FlowService';
 import { providerService } from '../services/ProviderService';
+import { validateMetaTemplate, MetaTemplateValidationError} from '@/utils/validateMetaTemplate';
 
 const router = Router();
 
@@ -64,6 +65,7 @@ router.put('/locations/:id', requireAuth, asyncHandler(async (req: Authenticated
 // ==================
 // TEMPLATES
 // ==================
+
 router.get('/templates', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const profile = await supabaseService.getUserByAuthId(req.user!.id);
   if (!profile) throw new NotFoundError('User not found');
@@ -73,8 +75,14 @@ router.get('/templates', requireAuth, asyncHandler(async (req: AuthenticatedRequ
 }));
 
 router.get('/templates/:id', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  const template = await supabaseService.getTemplateById(parseInt(req.params.id));
-  if (!template) throw new NotFoundError('Template not found');
+  const templateId = parseInt(req.params.id);
+  if (isNaN(templateId)) throw new ValidationError('Invalid template ID');
+
+  const profile = await supabaseService.getUserByAuthId(req.user!.id);
+  if (!profile) throw new NotFoundError('User not found');
+
+  const template = await supabaseService.getTemplateById(templateId);
+  if (!template || template.userId !== profile.id) throw new NotFoundError('Template not found');
 
   res.json({ template });
 }));
@@ -88,6 +96,17 @@ router.post('/templates', requireAuth, asyncHandler(async (req: AuthenticatedReq
   const profile = await supabaseService.getUserByAuthId(req.user!.id);
   if (!profile) throw new NotFoundError('User not found');
 
+  // ======== VALIDACIÓN META-SAFE ========
+  try {
+    validateMetaTemplate(validation.data.content, validation.data.variables || []);
+  } catch (err) {
+    if (err instanceof MetaTemplateValidationError) {
+      return res.status(400).json({ error: err.message });
+    }
+    throw err;
+  }
+  // ======================================
+
   const template = await supabaseService.createTemplate({
     ...validation.data,
     userId: profile.id,
@@ -98,15 +117,48 @@ router.post('/templates', requireAuth, asyncHandler(async (req: AuthenticatedReq
 
 router.put('/templates/:id', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const templateId = parseInt(req.params.id);
-  const template = await supabaseService.updateTemplate(templateId, req.body);
+  if (isNaN(templateId)) throw new ValidationError('Invalid template ID');
+
+  const validation = createTemplateSchema.safeParse(req.body);
+  if (!validation.success) {
+    throw new ValidationError('Invalid template data');
+  }
+
+  const profile = await supabaseService.getUserByAuthId(req.user!.id);
+  if (!profile) throw new NotFoundError('User not found');
+
+  const existing = await supabaseService.getTemplateById(templateId);
+  if (!existing || existing.userId !== profile.id) throw new NotFoundError('Template not found');
+
+  // VALIDACIÓN META-SAFE AL ACTUALIZAR
+  try {
+    validateMetaTemplate(validation.data.content, validation.data.variables || []);
+  } catch (err) {
+    if (err instanceof MetaTemplateValidationError) {
+      return res.status(400).json({ error: err.message });
+    }
+    throw err;
+  }
+
+  const template = await supabaseService.updateTemplate(templateId, {
+    ...validation.data,
+    userId: profile.id,
+  });
 
   res.json(template);
 }));
 
 router.delete('/templates/:id', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const templateId = parseInt(req.params.id);
-  await supabaseService.deleteTemplate(templateId);
+  if (isNaN(templateId)) throw new ValidationError('Invalid template ID');
 
+  const profile = await supabaseService.getUserByAuthId(req.user!.id);
+  if (!profile) throw new NotFoundError('User not found');
+
+  const existing = await supabaseService.getTemplateById(templateId);
+  if (!existing || existing.userId !== profile.id) throw new NotFoundError('Template not found');
+
+  await supabaseService.deleteTemplate(templateId);
   res.status(204).send();
 }));
 
@@ -115,11 +167,15 @@ router.get('/locations/:locationId/templates', requireAuth, asyncHandler(async (
   const profile = await supabaseService.getUserByAuthId(req.user!.id);
   if (!profile) throw new NotFoundError('User not found');
 
+  const locationId = parseInt(req.params.locationId);
+  if (isNaN(locationId)) throw new ValidationError('Invalid location ID');
+
   const templates = await supabaseService.getTemplates(profile.id);
-  const filtered = templates.filter(t => t.locationId === parseInt(req.params.locationId));
+  const filtered = templates.filter(t => t.locationId === locationId);
 
   res.json({ templates: filtered });
 }));
+
 
 // ==================
 // CALLS
@@ -194,18 +250,20 @@ router.post('/messages/whatsapp', requireAuth, asyncHandler(async (req: Authenti
 /**
  * Enviar template de WhatsApp manualmente
  */
+// ==================
+// WHATSAPP - ENVÍO DE TEMPLATES
+// ==================
+
+/**
+ * Enviar template de WhatsApp manualmente con validación Meta-safe y de variables
+ */
 router.post('/whatsapp/send-template', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const profile = await supabaseService.getUserByAuthId(req.user!.id);
   if (!profile) throw new NotFoundError('User not found');
 
-  const { 
-    templateId, 
-    recipient, 
-    phoneNumberId,
-    variables 
-  } = req.body;
+  const { templateId, recipient, phoneNumberId, variables } = req.body;
 
-  // Validar datos
+  // Validar datos obligatorios
   if (!templateId || !recipient || !phoneNumberId) {
     throw new ValidationError('templateId, recipient, and phoneNumberId are required');
   }
@@ -216,7 +274,23 @@ router.post('/whatsapp/send-template', requireAuth, asyncHandler(async (req: Aut
     throw new NotFoundError('Template not found');
   }
 
-  // Obtener phone number
+  // VALIDACIÓN META-SAFE
+  try {
+    validateMetaTemplate(template.content, template.variables || []);
+  } catch (err) {
+    if (err instanceof MetaTemplateValidationError) {
+      return res.status(400).json({ error: `Meta validation failed: ${err.message}` });
+    }
+    throw err;
+  }
+
+  // Validar que todas las variables requeridas estén presentes
+  const missingVars = (template.variables || []).filter(v => !(v in (variables || {})));
+  if (missingVars.length > 0) {
+    return res.status(400).json({ error: `Missing variables: ${missingVars.join(', ')}` });
+  }
+
+  // Obtener phone number y validar ownership
   const phoneNumber = await supabaseService.getPhoneNumberById(phoneNumberId);
   if (!phoneNumber || phoneNumber.userId !== profile.id) {
     throw new NotFoundError('Phone number not found');
@@ -226,12 +300,21 @@ router.post('/whatsapp/send-template', requireAuth, asyncHandler(async (req: Aut
     throw new ValidationError('Phone number does not have a WhatsApp provider ID configured');
   }
 
+  // Reemplazar variables en el contenido del template
+  let contentToSend = template.content;
+  if (variables && Object.keys(variables).length > 0) {
+    Object.entries(variables).forEach(([key, value]) => {
+  const placeholder = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
+  contentToSend = contentToSend.replace(placeholder, String(value));
+});
+  }
+
   // Enviar vía FlowService
   const result = await flowService.sendDirectWhatsAppMessage({
     userId: profile.id,
     phoneNumberId: phoneNumber.id,
     recipient: recipient,
-    message: template.content, // Procesar variables si es necesario
+    message: contentToSend,
   });
 
   if (!result.success) {
@@ -245,10 +328,6 @@ router.post('/whatsapp/send-template', requireAuth, asyncHandler(async (req: Aut
   });
 }));
 
-/**
- * Simular llamada perdida (para testing)
- * Este endpoint dispara el flujo automático de envío de template
- */
 router.post('/whatsapp/simulate-missed-call', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const profile = await supabaseService.getUserByAuthId(req.user!.id);
   if (!profile) throw new NotFoundError('User not found');

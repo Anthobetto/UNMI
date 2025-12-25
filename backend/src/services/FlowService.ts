@@ -324,9 +324,11 @@ export class FlowService {
         to: callData.callerNumber,
         templateName: template.name,
         languageCode: 'es',
-        variables: variables,
+        variables,
         phoneNumberId: phoneNumber.providerId,
+        template,
       });
+
 
       if (result.status === 'failed') {
         console.error('❌ Failed to send WhatsApp template:', result.error);
