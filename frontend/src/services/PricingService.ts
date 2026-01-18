@@ -4,7 +4,7 @@
  */
 
 export interface PricingTier {
-  id: 'starter' | 'professional' | 'enterprise';
+  id: 'templetes' | 'chatbots';
   name: string;
   basePrice: number;
   messageRate: number;
@@ -29,8 +29,8 @@ export interface PricingCalculation {
 
 export const PRICING_TIERS: PricingTier[] = [
   {
-    id: 'starter',
-    name: 'Starter',
+    id: 'templetes',
+    name: 'templetes',
     basePrice: 60,
     messageRate: 0.15,
     dailyMessageCap: 10,
@@ -45,8 +45,8 @@ export const PRICING_TIERS: PricingTier[] = [
     locationMultiplier: 1.0,
   },
   {
-    id: 'professional',
-    name: 'Professional',
+    id: 'chatbots',
+    name: 'chatbots',
     basePrice: 120,
     messageRate: 0.10,
     dailyMessageCap: 30,
@@ -61,39 +61,18 @@ export const PRICING_TIERS: PricingTier[] = [
     ],
     locationMultiplier: 0.85,
     popular: true,
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    basePrice: 250,
-    messageRate: 0.05,
-    dailyMessageCap: 60,
-    minMessages: 1,
-    features: [
-      'Up to 60 daily WhatsApp messages',
-      'Unlimited locations',
-      'Custom routing rules',
-      '24/7 phone support',
-      'Custom analytics dashboard',
-      'Dedicated account manager',
-      'API access',
-    ],
-    locationMultiplier: 0.70,
-  },
+  }
 ];
 
 export class PricingService {
   calculateMonthly(
-    tierId: 'starter' | 'professional' | 'enterprise',
+    tierId: 'templetes' | 'chatbots',
     dailyMessages: number,
     locations: number = 1
   ): PricingCalculation {
     const tier = PRICING_TIERS.find(t => t.id === tierId);
-    if (!tier) {
-      throw new Error(`Invalid tier ID: ${tierId}`);
-    }
+    if (!tier) throw new Error(`Invalid tier ID: ${tierId}`);
 
-    // Validate and clamp inputs
     dailyMessages = Math.max(tier.minMessages, Math.min(dailyMessages, tier.dailyMessageCap));
     locations = Math.max(1, locations);
 
@@ -102,15 +81,12 @@ export class PricingService {
     const messagesCost = monthlyMessages * tier.messageRate;
 
     let locationMultiplier = 1.0;
-    if (locations > 1) {
-      const additionalLocations = locations - 1;
-      locationMultiplier = 1 + (additionalLocations * tier.locationMultiplier);
-    }
+    if (locations > 1) locationMultiplier = 1 + ((locations - 1) * tier.locationMultiplier);
 
     const subtotal = (basePrice + messagesCost) * locationMultiplier;
     const locationDiscount = (basePrice + messagesCost) * locations - subtotal;
     const totalMonthly = subtotal;
-    const totalYearly = totalMonthly * 12 * 0.90;
+    const totalYearly = totalMonthly * 12 * 0.9;
 
     return {
       tier,
@@ -124,6 +100,15 @@ export class PricingService {
     };
   }
 
+  // Alias para que tu código siga usando "calculatePrice"
+  calculatePrice(
+    tierId: 'templetes' | 'chatbots',
+    dailyMessages: number,
+    locations: number = 1
+  ) {
+    return this.calculateMonthly(tierId, dailyMessages, locations);
+  }
+
   recommendTier(dailyMessages: number, locations: number): PricingTier {
     if (dailyMessages <= 10 && locations <= 1) return PRICING_TIERS[0];
     if (dailyMessages <= 30 && locations <= 5) return PRICING_TIERS[1];
@@ -131,23 +116,17 @@ export class PricingService {
   }
 
   compareAllTiers(dailyMessages: number, locations: number): PricingCalculation[] {
-    return PRICING_TIERS.map(tier => 
-      this.calculateMonthly(tier.id, dailyMessages, locations)
-    );
+    return PRICING_TIERS.map(tier => this.calculateMonthly(tier.id, dailyMessages, locations));
   }
 
   calculateBundleDiscount(
-    tierId: 'starter' | 'professional' | 'enterprise',
+    tierId: 'templetes' | 'chatbots',
     dailyMessages: number,
     currentLocations: number,
     additionalLocations: number
   ) {
     const current = this.calculateMonthly(tierId, dailyMessages, currentLocations);
-    const withAdditional = this.calculateMonthly(
-      tierId,
-      dailyMessages,
-      currentLocations + additionalLocations
-    );
+    const withAdditional = this.calculateMonthly(tierId, dailyMessages, currentLocations + additionalLocations);
 
     const linearPrice = current.totalMonthly * (currentLocations + additionalLocations) / currentLocations;
     const discount = linearPrice - withAdditional.totalMonthly;
@@ -163,4 +142,3 @@ export class PricingService {
 }
 
 export const pricingService = new PricingService();
-

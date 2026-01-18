@@ -18,7 +18,7 @@ export interface LocationMetric {
   totalCalls: number;
   missedCalls: number;
   answeredCalls: number;
-  messagesS sent: number;
+  messagesSent: number;
   messagesSentWhatsApp: number;
   messagesSentSMS: number;
   recoveryRate: number; // Percentage of missed calls recovered

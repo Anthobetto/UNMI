@@ -1,9 +1,5 @@
-// Custom Hook para métricas de llamadas
-// Implementa SRP (Single Responsibility) - Solo gestión de métricas de llamadas
-// Extraído del dashboard para reutilización en Telefonía
-
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
-import { fetchWithAuth } from '@/services/ApiService';
+import { fetchJsonWithAuth } from '@/services/ApiService';
 import type { CallMetrics, RevenueMetrics } from '@/types';
 
 interface CallStats {
@@ -15,23 +11,30 @@ interface CallStats {
   yesterdayCallsCount: number;
 }
 
+interface MessageStats {
+  total: number;
+  revenue: number;
+}
+
 interface DateRange {
   start: Date;
   end: Date;
 }
 
-// Hook principal para métricas de llamadas
-export function useCallMetrics(userId: string, dateRange?: DateRange): UseQueryResult<CallMetrics> {
+export function useCallMetrics(
+  userId: string,
+  dateRange?: DateRange
+): UseQueryResult<CallMetrics> {
   return useQuery({
     queryKey: ['call-metrics', userId, dateRange],
     queryFn: async () => {
-      const stats: CallStats = await fetchWithAuth('/api/calls/stats');
-      
-      // Transform API response to CallMetrics format
+      const stats = await fetchJsonWithAuth<CallStats>('/api/calls/stats');
+
       const totalCalls = stats.todayCallsCount;
       const answeredCalls = stats.answered;
       const missedCalls = stats.missed;
-      const recoveryRate = totalCalls > 0 ? (answeredCalls / totalCalls) * 100 : 0;
+      const recoveryRate =
+        totalCalls > 0 ? (answeredCalls / totalCalls) * 100 : 0;
 
       return {
         totalCalls,
@@ -39,26 +42,27 @@ export function useCallMetrics(userId: string, dateRange?: DateRange): UseQueryR
         missedCalls,
         recoveryRate,
         averageResponseTime: stats.averageDuration,
-        peakHours: [], // Calculate from detailed data if available
+        peakHours: [],
       };
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchInterval: 10 * 60 * 1000, // 10 minutes
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 10 * 60 * 1000,
     enabled: !!userId,
   });
 }
 
-// Hook para métricas de ingresos/rentabilidad
 export function useRevenueMetrics(userId: string): UseQueryResult<RevenueMetrics> {
   return useQuery({
     queryKey: ['revenue-metrics', userId],
     queryFn: async () => {
-      const messageStats = await fetchWithAuth('/api/messages/stats');
-      
+      const messageStats =
+        await fetchJsonWithAuth<MessageStats>('/api/messages/stats');
+
       const messagesSent = messageStats.total || 0;
-      const conversionRate = 0.18; // 18% default conversion rate
-      const averageOrderValue = 50; // Default AOV
-      const potentialRevenue = messagesSent * averageOrderValue * conversionRate;
+      const conversionRate = 0.18;
+      const averageOrderValue = 50;
+      const potentialRevenue =
+        messagesSent * averageOrderValue * conversionRate;
 
       return {
         totalRevenue: messageStats.revenue || 0,
@@ -66,16 +70,16 @@ export function useRevenueMetrics(userId: string): UseQueryResult<RevenueMetrics
         conversionRate,
         averageOrderValue,
         messagesSent,
-        revenuePerMessage: messagesSent > 0 ? potentialRevenue / messagesSent : 0,
+        revenuePerMessage:
+          messagesSent > 0 ? potentialRevenue / messagesSent : 0,
       };
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchInterval: 15 * 60 * 1000, // 15 minutes
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 15 * 60 * 1000,
     enabled: !!userId,
   });
 }
 
-// Hook combinado para dashboard completo
 export function useCombinedMetrics(userId: string, dateRange?: DateRange) {
   const callMetrics = useCallMetrics(userId, dateRange);
   const revenueMetrics = useRevenueMetrics(userId);
@@ -92,13 +96,12 @@ export function useCombinedMetrics(userId: string, dateRange?: DateRange) {
   };
 }
 
-// Hook para métricas en tiempo real (con refetch más frecuente)
 export function useRealtimeCallMetrics(userId: string) {
   return useQuery({
     queryKey: ['realtime-call-metrics', userId],
     queryFn: async () => {
-      const stats: CallStats = await fetchWithAuth('/api/calls/stats');
-      
+      const stats = await fetchJsonWithAuth<CallStats>('/api/calls/stats');
+
       return {
         todayCalls: stats.todayCallsCount,
         missedCalls: stats.missed,
@@ -106,23 +109,23 @@ export function useRealtimeCallMetrics(userId: string) {
         avgDuration: stats.averageDuration,
       };
     },
-    staleTime: 30 * 1000, // 30 seconds
-    refetchInterval: 60 * 1000, // 1 minute
+    staleTime: 30 * 1000,
+    refetchInterval: 60 * 1000,
     enabled: !!userId,
   });
 }
 
-// Hook para estadísticas de períodos comparativos
 export function useComparativeMetrics(userId: string) {
   return useQuery({
     queryKey: ['comparative-metrics', userId],
     queryFn: async () => {
-      const stats: CallStats = await fetchWithAuth('/api/calls/stats');
-      
+      const stats = await fetchJsonWithAuth<CallStats>('/api/calls/stats');
+
       const today = stats.todayCallsCount;
       const yesterday = stats.yesterdayCallsCount;
-      const diff = yesterday === 0 ? 100 : ((today - yesterday) / yesterday) * 100;
-      
+      const diff =
+        yesterday === 0 ? 100 : ((today - yesterday) / yesterday) * 100;
+
       return {
         today,
         yesterday,
@@ -135,7 +138,3 @@ export function useComparativeMetrics(userId: string) {
     enabled: !!userId,
   });
 }
-
-
-
-

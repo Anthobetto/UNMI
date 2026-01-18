@@ -2,7 +2,7 @@
 // Implementa SRP: Cada método tiene una responsabilidad única
 
 import { supabase } from '../config/database';
-import type { User, Location, Template, Call, Message, PhoneNumber, RoutingRule, MessageStatus } from '../../../shared/schema';
+import type { User, Location, Template, Call, Message, PhoneNumber, RoutingRule, MessageStatus } from '../../shared/schema';
 
 export interface ISupabaseService {
   // Users
@@ -859,6 +859,10 @@ export class SupabaseService implements ISupabaseService {
       forwardingNumber: dbRule.forwarding_number,
       ivrOptions: dbRule.ivr_options,
     };
+  }
+
+  public getClient() {
+    return supabase; // mantiene la instancia que ya estás usando en todos los métodos
   }
 }
 

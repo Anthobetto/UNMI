@@ -43,7 +43,7 @@ import {
   Edit2,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { PhoneNumber } from '@shared/schema';
+import { PhoneNumber } from '../../../backend/shared/schema';
 import { useTranslation } from 'react-i18next';
 import { LanguageSelector } from '@/components/LanguageSelector';
 

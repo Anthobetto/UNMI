@@ -1,24 +1,3 @@
-// Re-export shared types
-export type {
-  User,
-  Location,
-  Template,
-  TemplateType,
-  MessageChannel,
-  PhoneNumber,
-  Call,
-  CallStatus,
-  CallType,
-  Message,
-  MessageType,
-  MessageStatus,
-  RoutingRule,
-  LoginData,
-  RegisterData,
-  CreateLocationData,
-  CreateTemplateData,
-} from '../../../shared/schema';
-
 // Frontend-specific types
 
 // Analytics and metrics

@@ -67,7 +67,7 @@ export class ApiService {
       );
     }
 
-    // Si no hay content (204), retornar null
+    // 204 No Content
     if (response.status === 204) {
       return null as T;
     }
@@ -137,7 +137,7 @@ export class ApiService {
 
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method: 'POST',
-      headers, // No Content-Type, browser lo setea automáticamente con boundary
+      headers,
       body: formData,
     });
 
@@ -147,3 +147,44 @@ export class ApiService {
 
 // Singleton instance
 export const apiService = new ApiService('/api');
+
+// ==========================================
+// Legacy helper (MVP compatibility)
+// ==========================================
+export async function fetchWithAuth(
+  input: RequestInfo,
+  init: RequestInit = {}
+): Promise<Response> {
+  const token = localStorage.getItem('accessToken');
+
+  const headers: HeadersInit = {
+    ...(init.headers || {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  return fetch(input, {
+    ...init,
+    headers,
+  });
+}
+
+/**
+ * Fetch helper that returns JSON typed
+ */
+export async function fetchJsonWithAuth<T>(
+  input: RequestInfo,
+  init: RequestInit = {}
+): Promise<T> {
+  const response = await fetchWithAuth(input, init);
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new ApiServiceError(
+      error.message || `HTTP Error ${response.status}`,
+      response.status,
+      error.code
+    );
+  }
+
+  return response.json() as Promise<T>;
+}
