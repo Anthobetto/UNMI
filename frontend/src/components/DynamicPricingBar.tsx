@@ -106,7 +106,7 @@ export function DynamicPricingBar({
               value={[locationCount]}
               onValueChange={handleLocationsChange}
               min={1}
-              max={tier.id === 'starter' ? 1 : tier.id === 'professional' ? 5 : 20}
+              max={tier.id === 'templetes' ? 1 : tier.id === 'chatbots' ? 5 : 20}
               step={1}
               className="w-full"
             />
@@ -116,7 +116,7 @@ export function DynamicPricingBar({
                 {locationCount > 1 && `${savingsPercent}% discount applied`}
               </span>
               <span>
-                {tier.id === 'starter' ? '1 max' : tier.id === 'professional' ? '5 max' : 'Unlimited'}
+                {tier.id === 'templetes' ? '1 max' : tier.id === 'chatbots' ? '5 max' : 'Unlimited'}
               </span>
             </div>
           </CardContent>
@@ -169,9 +169,9 @@ export function DynamicPricingBar({
               <TrendingUp className="h-4 w-4 text-green-600" />
               <AlertDescription className="text-green-800">
                 <strong>You're saving €{calculation.locationDiscount.toFixed(2)}/month</strong> with {locationCount} locations!
-                {locationCount < (tier.id === 'professional' ? 5 : 20) && (
+                {locationCount < (tier.id === 'chatbots' ? 5 : 20) && (
                   <span className="block mt-1 text-sm">
-                    Add {(tier.id === 'professional' ? 5 : 20) - locationCount} more location(s) for even bigger savings.
+                    Add {(tier.id === 'chatbots' ? 5 : 20) - locationCount} more location(s) for even bigger savings.
                   </span>
                 )}
               </AlertDescription>

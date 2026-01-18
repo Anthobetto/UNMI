@@ -3,16 +3,20 @@
 
 import { useQuery, useMutation, useQueryClient, UseQueryResult, UseMutationResult } from '@tanstack/react-query';
 import { fetchWithAuth } from '@/services/ApiService';
-import type { Template, CreateTemplateData } from '../../../shared/schema';
+import { Template, CreateTemplateData } from '../../../backend/shared/schema';
+import { fetchJsonWithAuth } from '@/services/ApiService';
 
 // Hook para obtener todos los templates del usuario
 export function useTemplates(userId: string): UseQueryResult<Template[]> {
   return useQuery({
     queryKey: ['templates', userId],
     queryFn: async () => {
-      const response = await fetchWithAuth('/api/templates');
-      return response.templates || [];
+      const response = await fetchJsonWithAuth<{ templates: Template[] }>(
+        '/api/templates'
+      );
+      return response.templates;
     },
+
     staleTime: 2 * 60 * 1000, // 2 minutes
     enabled: !!userId,
   });
@@ -23,9 +27,12 @@ export function useLocationTemplates(locationId: number): UseQueryResult<Templat
   return useQuery({
     queryKey: ['templates', 'location', locationId],
     queryFn: async () => {
-      const response = await fetchWithAuth(`/api/locations/${locationId}/templates`);
-      return response.templates || [];
+      const response = await fetchJsonWithAuth<{ templates: Template[] }>(
+        '/api/templates'
+      );
+      return response.templates;
     },
+
     staleTime: 2 * 60 * 1000,
     enabled: !!locationId,
   });
@@ -36,9 +43,12 @@ export function useGroupTemplates(groupId: number): UseQueryResult<Template[]> {
   return useQuery({
     queryKey: ['templates', 'group', groupId],
     queryFn: async () => {
-      const response = await fetchWithAuth(`/api/groups/${groupId}/templates`);
-      return response.templates || [];
+      const response = await fetchJsonWithAuth<{ templates: Template[] }>(
+        '/api/templates'
+      );
+      return response.templates;
     },
+
     staleTime: 2 * 60 * 1000,
     enabled: !!groupId,
   });
@@ -49,28 +59,28 @@ export function useCreateTemplate(): UseMutationResult<Template, Error, CreateTe
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: CreateTemplateData & { userId: string }) => {
-      const response = await fetchWithAuth('/api/templates', {
+    mutationFn: async (data) => {
+      return fetchJsonWithAuth<Template>('/api/templates', {
         method: 'POST',
         body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
       });
-      return response;
     },
     onSuccess: (_, variables) => {
       // Invalidate all template queries for this user
-      queryClient.invalidateQueries({ 
-        queryKey: ['templates', variables.userId] 
+      queryClient.invalidateQueries({
+        queryKey: ['templates', variables.userId]
       });
-      
+
       // Also invalidate location/group specific queries if applicable
       if (variables.locationId) {
-        queryClient.invalidateQueries({ 
-          queryKey: ['templates', 'location', variables.locationId] 
+        queryClient.invalidateQueries({
+          queryKey: ['templates', 'location', variables.locationId]
         });
       }
       if (variables.groupId) {
-        queryClient.invalidateQueries({ 
-          queryKey: ['templates', 'group', variables.groupId] 
+        queryClient.invalidateQueries({
+          queryKey: ['templates', 'group', variables.groupId]
         });
       }
     },
@@ -83,16 +93,16 @@ export function useUpdateTemplate(): UseMutationResult<Template, Error, { id: nu
 
   return useMutation({
     mutationFn: async ({ id, data }) => {
-      const response = await fetchWithAuth(`/api/templates/${id}`, {
+      return fetchJsonWithAuth<Template>(`/api/templates/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
       });
-      return response;
     },
     onSuccess: () => {
       // Invalidate all template queries
-      queryClient.invalidateQueries({ 
-        queryKey: ['templates'] 
+      queryClient.invalidateQueries({
+        queryKey: ['templates']
       });
     },
   });
@@ -104,13 +114,13 @@ export function useDeleteTemplate(): UseMutationResult<void, Error, number> {
 
   return useMutation({
     mutationFn: async (id: number) => {
-      await fetchWithAuth(`/api/templates/${id}`, {
+      await fetchJsonWithAuth<void>(`/api/templates/${id}`, {
         method: 'DELETE',
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['templates'] 
+      queryClient.invalidateQueries({
+        queryKey: ['templates']
       });
     },
   });
@@ -145,8 +155,9 @@ export function useTemplatesByType(userId: string, type: string): UseQueryResult
   return useQuery({
     queryKey: ['templates', userId, 'type', type],
     queryFn: async () => {
-      const response = await fetchWithAuth('/api/templates');
-      const allTemplates = response.templates || [];
+      const response = await fetchJsonWithAuth<{ templates: Template[] }>(
+        '/api/templates'
+      ); const allTemplates = response.templates || [];
       return allTemplates.filter((template: Template) => template.type === type);
     },
     staleTime: 2 * 60 * 1000,
@@ -159,9 +170,11 @@ export function useTemplatesByChannel(userId: string, channel: string): UseQuery
   return useQuery({
     queryKey: ['templates', userId, 'channel', channel],
     queryFn: async () => {
-      const response = await fetchWithAuth('/api/templates');
-      const allTemplates = response.templates || [];
-      return allTemplates.filter((template: Template) => 
+      const response = await fetchJsonWithAuth<{ templates: Template[] }>(
+  '/api/templates'
+);
+      const allTemplates = response.templates;
+      return allTemplates.filter((template: Template) =>
         template.channel === channel || template.channel === 'both'
       );
     },

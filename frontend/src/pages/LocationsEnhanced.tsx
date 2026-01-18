@@ -133,16 +133,14 @@ export default function LocationsEnhanced() {
   });
 
   // Get user's current plan
-  const currentTier = user?.planType === 'professional' 
-    ? PRICING_TIERS[1] 
-    : user?.planType === 'enterprise' 
-      ? PRICING_TIERS[2] 
-      : PRICING_TIERS[0];
+  const currentTier = user?.planType === 'chatbots'
+    ? PRICING_TIERS[1]
+    : PRICING_TIERS[0];
 
   // Calculate pricing for additional locations
   const locationCount = locations.length;
-  const calculation = pricingService.calculatePrice(currentTier, 15, locationCount);
-  const nextLocationCalculation = pricingService.calculatePrice(currentTier, 15, locationCount + 1);
+  const calculation = pricingService.calculatePrice(currentTier.id, 15, locationCount);
+  const nextLocationCalculation = pricingService.calculatePrice(currentTier.id, 15, locationCount + 1);
   const additionalCost = nextLocationCalculation.totalMonthly - calculation.totalMonthly;
 
   // Bundle discount check
@@ -330,8 +328,8 @@ export default function LocationsEnhanced() {
                   {editingLocation ? 'Editar Ubicación' : 'Añadir Nueva Ubicación'}
                 </DialogTitle>
                 <DialogDescription>
-                  {editingLocation 
-                    ? 'Modifica los detalles de la ubicación' 
+                  {editingLocation
+                    ? 'Modifica los detalles de la ubicación'
                     : 'Añade un nuevo establecimiento a tu cuenta'}
                 </DialogDescription>
               </DialogHeader>
@@ -500,7 +498,7 @@ export default function LocationsEnhanced() {
                 </div>
 
                 {/* Upsell CTA */}
-                {currentTier.id === 'starter' && locationCount >= 1 && (
+                {currentTier.id === 'templetes' && locationCount >= 1 && (
                   <Alert className="bg-blue-50 border-blue-200">
                     <Sparkles className="h-4 w-4 text-blue-600" />
                     <AlertDescription>
@@ -705,7 +703,7 @@ export default function LocationsEnhanced() {
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Código de País</Label>
+              <FormLabel>Código de País</FormLabel>
               <Select value={selectedCountryCode} onValueChange={setSelectedCountryCode}>
                 <SelectTrigger>
                   <SelectValue />

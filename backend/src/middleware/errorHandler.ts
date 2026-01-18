@@ -51,22 +51,22 @@ export class ForbiddenError extends Error {
 
 export function errorHandler(
   err: AppError,
-  req: Request,
-  res: Response,
-  next: NextFunction
+  _req: Request,
+  _res: Response,
+  _next: NextFunction
 ): void {
   // Log error for debugging
   console.error('Error occurred:', {
     name: err.name,
     message: err.message,
     stack: err.stack,
-    url: req.url,
-    method: req.method,
+    url: _req.url,
+    method: _req.method,
   });
 
   // Handle Zod validation errors
   if (err instanceof ZodError) {
-    res.status(400).json({
+    _res.status(400).json({
       error: 'Validation Error',
       message: 'Invalid request data',
       details: err.errors.map(e => ({
@@ -83,7 +83,7 @@ export function errorHandler(
     ? err.message 
     : 'An unexpected error occurred';
 
-  res.status(statusCode).json({
+  _res.status(statusCode).json({
     error: err.name || 'Error',
     message,
     ...(process.env.NODE_ENV === 'development' && {

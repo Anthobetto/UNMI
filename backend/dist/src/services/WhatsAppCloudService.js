@@ -1,0 +1,179 @@
+// WhatsApp Cloud API Service - Integración con Meta
+// Implementa envío de templates y mensajes de texto
+// Path: server/src/services/WhatsAppCloudService.ts
+export class WhatsAppCloudService {
+    accessToken;
+    apiVersion;
+    baseUrl;
+    constructor() {
+        this.accessToken = process.env.WHATSAPP_ACCESS_TOKEN || '';
+        this.apiVersion = process.env.WHATSAPP_API_VERSION || 'v21.0';
+        this.baseUrl = `https://graph.facebook.com/${this.apiVersion}`;
+        if (!this.accessToken) {
+            console.warn('⚠️ WHATSAPP_ACCESS_TOKEN not configured');
+        }
+    }
+    /**
+     * Enviar template de WhatsApp (requiere aprobación previa en Meta)
+     */
+    async sendTemplate(params) {
+        try {
+            const url = `${this.baseUrl}/${params.phoneNumberId}/messages`;
+            // Construir componentes del template
+            const components = [];
+            if (params.template.variables &&
+                params.template.variables.length > 0 &&
+                params.variables) {
+                components.push({
+                    type: 'body',
+                    parameters: params.template.variables.map((key) => ({
+                        type: 'text',
+                        text: params.variables?.[key] ?? '',
+                    })),
+                });
+            }
+            const payload = {
+                messaging_product: 'whatsapp',
+                to: params.to,
+                type: 'template',
+                template: {
+                    name: params.templateName,
+                    language: {
+                        code: params.languageCode || 'es',
+                    },
+                    components: components.length > 0 ? components : undefined,
+                },
+            };
+            console.log('📤 Sending WhatsApp template:', {
+                to: params.to,
+                template: params.templateName,
+            });
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                console.error('❌ WhatsApp API error:', data);
+                return {
+                    messageId: '',
+                    status: 'failed',
+                    error: data.error?.message || 'Unknown error',
+                };
+            }
+            console.log('✅ Template sent successfully:', data.messages[0].id);
+            return {
+                messageId: data.messages[0].id,
+                status: 'sent',
+            };
+        }
+        catch (error) {
+            console.error('❌ Error sending WhatsApp template:', error);
+            return {
+                messageId: '',
+                status: 'failed',
+                error: error.message,
+            };
+        }
+    }
+    /**
+     * Enviar mensaje de texto simple (solo válido dentro de ventana de 24h)
+     */
+    async sendTextMessage(params) {
+        try {
+            const url = `${this.baseUrl}/${params.phoneNumberId}/messages`;
+            const payload = {
+                messaging_product: 'whatsapp',
+                to: params.to,
+                type: 'text',
+                text: {
+                    body: params.message,
+                },
+            };
+            console.log('📤 Sending WhatsApp text message:', {
+                to: params.to,
+                preview: params.message.substring(0, 50),
+            });
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                console.error('❌ WhatsApp API error:', data);
+                return {
+                    messageId: '',
+                    status: 'failed',
+                    error: data.error?.message || 'Unknown error',
+                };
+            }
+            console.log('✅ Text message sent successfully:', data.messages[0].id);
+            return {
+                messageId: data.messages[0].id,
+                status: 'sent',
+            };
+        }
+        catch (error) {
+            console.error('❌ Error sending WhatsApp text:', error);
+            return {
+                messageId: '',
+                status: 'failed',
+                error: error.message,
+            };
+        }
+    }
+    /**
+     * Procesar template: reemplazar variables
+     */
+    processTemplate(template, variables) {
+        let content = template.content;
+        if (!variables)
+            return content;
+        Object.entries(variables).forEach(([key, value]) => {
+            const placeholder = new RegExp(`{{${key}}}`, 'g');
+            content = content.replace(placeholder, value);
+        });
+        return content;
+    }
+    /**
+     * Verificar si el servicio está configurado correctamente
+     */
+    isConfigured() {
+        return !!this.accessToken;
+    }
+    /**
+     * Marcar mensaje como leído (para notificar al usuario que viste su mensaje)
+     */
+    async markAsRead(messageId, phoneNumberId) {
+        try {
+            const url = `${this.baseUrl}/${phoneNumberId}/messages`;
+            const payload = {
+                messaging_product: 'whatsapp',
+                status: 'read',
+                message_id: messageId,
+            };
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+            return response.ok;
+        }
+        catch (error) {
+            console.error('Error marking message as read:', error);
+            return false;
+        }
+    }
+}
+export const whatsAppCloudService = new WhatsAppCloudService();
