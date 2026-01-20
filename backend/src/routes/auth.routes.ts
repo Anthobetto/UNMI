@@ -8,7 +8,7 @@ import { supabaseService } from '../services/SupabaseService';
 import { stripeService } from '../services/StripeService';
 import { requireAuth, AuthenticatedRequest } from '../middleware/requireAuth';
 import { asyncHandler, ValidationError } from '../middleware/errorHandler';
-import { loginSchema, registerSchema } from '../../shared/schema';
+import { loginSchema, registerSchema } from '../shared/schema';
 
 const router = Router();
 
