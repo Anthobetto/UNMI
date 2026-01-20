@@ -2,8 +2,7 @@
 // Implementa SRP: Cada método tiene una responsabilidad única
 
 import { supabase } from '../config/database';
-import { User, Location, Template, Call, Message, PhoneNumber, RoutingRule, MessageStatus } from '../../shared/schema';
-import { locationSchema } from '../../shared/schema';
+import { User, Location, Template, Call, Message, PhoneNumber, RoutingRule, MessageStatus } from '../shared/schema';
 
 export interface ISupabaseService {
   // Users

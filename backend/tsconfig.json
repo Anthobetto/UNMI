@@ -7,7 +7,7 @@
     "resolveJsonModule": true,
     "allowJs": true,
     "outDir": "./dist",
-    "rootDir": "./src",        
+    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -19,12 +19,11 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@shared/*": ["../shared/*"]   
+      "@shared/*": ["./src/shared/types/*"]
     }
   },
   "include": [
-    "src/**/*",
-    "../shared/**/*"               
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",

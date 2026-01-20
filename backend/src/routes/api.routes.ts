@@ -5,7 +5,7 @@ import { Router, Response, Request} from 'express';
 import { requireAuth, AuthenticatedRequest } from '../middleware/requireAuth';
 import { asyncHandler, NotFoundError, ValidationError } from '../middleware/errorHandler';
 import { supabaseService } from '../services/SupabaseService';
-import { createLocationSchema, createTemplateSchema, updateLocationSchema} from '../../shared/schema';
+import { createLocationSchema, createTemplateSchema, updateLocationSchema} from '../shared/schema';
 import { flowService, postCallEventSchema, templateCompletionSchema } from '../services/FlowService';
 import { providerService } from '../services/ProviderService';
 import { validateMetaTemplate, MetaTemplateValidationError} from '@/utils/validateMetaTemplate';
