@@ -1,7 +1,7 @@
 // Slack Service - Notificaciones internas
 // Implementa SRP: Solo manejo de notificaciones Slack
 
-import type { Call } from '../shared/schema';
+import { Call } from '@/shared/types/schema';
 
 export interface ISlackService {
   sendCallNotification(call: Call): Promise<void>;

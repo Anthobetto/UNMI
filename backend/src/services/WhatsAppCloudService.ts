@@ -2,7 +2,7 @@
 // Implementa envío de templates y mensajes de texto
 // Path: server/src/services/WhatsAppCloudService.ts
 
-import type { Message, Template } from '../shared/schema';
+import { Message, Template } from '@/shared/types/schema';
 
 export interface WhatsAppCloudConfig {
   accessToken: string;

@@ -2,7 +2,7 @@
 // Servicio para procesamiento de mensajes de recuperación con múltiples canales
 
 import { MessageRequest, MessageResponse } from '@/types';
-import { Template, Call, MessageChannel } from '../../../backend/shared/schema';
+import { Template, Call, MessageChannel } from '@/shared/schema';
 // Strategy Interface para canales de mensajería
 interface IMessageChannel {
   send(recipient: string, content: string): Promise<MessageResponse>;

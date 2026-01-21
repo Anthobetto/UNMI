@@ -3,7 +3,7 @@
 
 import { useQuery, useMutation, useQueryClient, UseQueryResult, UseMutationResult } from '@tanstack/react-query';
 import { fetchWithAuth } from '@/services/ApiService';
-import { Template, CreateTemplateData } from '../../../backend/shared/schema';
+import { Template, CreateTemplateData } from '@/shared/schema';
 import { fetchJsonWithAuth } from '@/services/ApiService';
 
 // Hook para obtener todos los templates del usuario
