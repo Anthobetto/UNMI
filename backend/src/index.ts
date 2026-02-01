@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import express, { Express } from 'express';
+import express, { Express, Request, Response } from 'express';
 import path, { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
@@ -22,29 +22,34 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const FRONTEND_DIST_PATH = join(__dirname, '../../frontend/dist');
 
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", 'data:', 'https:'],
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+      },
     },
-  },
-}));
+  })
+);
 
-app.use(cors({
-  origin: FRONTEND_URL,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+app.use(
+  cors({
+    origin: FRONTEND_URL,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 
+
+app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(cookieParser());
-
 app.use('/api/webhooks', webhookRoutes);
+
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -60,24 +65,25 @@ app.use((req, res, next) => {
     const duration = Date.now() - start;
     if (req.path.startsWith('/api')) {
       let logLine = `${req.method} ${req.path} ${res.statusCode} in ${duration}ms`;
-      
+
       if (capturedJsonResponse) {
         const sanitized = { ...capturedJsonResponse };
         delete sanitized.password;
         delete sanitized.token;
         delete sanitized.accessToken;
         delete sanitized.refreshToken;
-        
+
         const jsonStr = JSON.stringify(sanitized);
         logLine += ` :: ${jsonStr.length > 100 ? jsonStr.slice(0, 97) + '...' : jsonStr}`;
       }
-      
+
       console.log(logLine);
     }
   });
 
   next();
 });
+
 
 app.get('/health', (req, res) => {
   res.json({
@@ -90,6 +96,7 @@ app.get('/health', (req, res) => {
 
 app.use('/api', authRoutes);
 app.use('/api', apiRoutes);
+
 
 app.use(express.static(FRONTEND_DIST_PATH));
 app.get('*', (req, res) => {
@@ -135,6 +142,7 @@ process.on('SIGINT', () => {
   console.log('SIGINT signal received: closing HTTP server');
   server.close(() => process.exit(0));
 });
+
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
