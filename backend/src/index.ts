@@ -1,30 +1,27 @@
-// Main Server Entry Point
-// Configuración completa del servidor Express con SOLID principles
-
 import dotenv from 'dotenv';
 dotenv.config();
 
 import express, { Express } from 'express';
+import path, { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
 
-// Routes
 import authRoutes from './routes/auth.routes';
 import apiRoutes from './routes/api.routes';
 import webhookRoutes from './routes/webhook.routes';
-
-// Middleware
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
 const app: Express = express();
 const PORT = process.env.PORT || 5001;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
-// ==================
-// SECURITY MIDDLEWARE
-// ==================
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const FRONTEND_DIST_PATH = join(__dirname, '../../frontend/dist');
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -43,20 +40,12 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// ==================
-// BODY PARSERS
-// ==================
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// WEBHOOK ROUTES
 app.use('/api/webhooks', webhookRoutes);
 
-
-// ==================
-// REQUEST LOGGING
-// ==================
 app.use((req, res, next) => {
   const start = Date.now();
   let capturedJsonResponse: Record<string, any> | undefined;
@@ -90,9 +79,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// ==================
-// HEALTH CHECK
-// ==================
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -102,21 +88,18 @@ app.get('/health', (req, res) => {
   });
 });
 
-// ==================
-// API ROUTES
-// ==================
 app.use('/api', authRoutes);
 app.use('/api', apiRoutes);
 
-// ==================
-// ERROR HANDLING
-// ==================
+app.use(express.static(FRONTEND_DIST_PATH));
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api')) return;
+  res.sendFile(join(FRONTEND_DIST_PATH, 'index.html'));
+});
+
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-// ==================
-// SERVER STARTUP
-// ==================
 const server = createServer(app);
 
 server.listen(PORT, () => {
@@ -143,28 +126,16 @@ server.listen(PORT, () => {
   console.log('');
 });
 
-// ==================
-// GRACEFUL SHUTDOWN
-// ==================
 process.on('SIGTERM', () => {
   console.log('SIGTERM signal received: closing HTTP server');
-  server.close(() => {
-    console.log('HTTP server closed');
-    process.exit(0);
-  });
+  server.close(() => process.exit(0));
 });
 
 process.on('SIGINT', () => {
   console.log('SIGINT signal received: closing HTTP server');
-  server.close(() => {
-    console.log('HTTP server closed');
-    process.exit(0);
-  });
+  server.close(() => process.exit(0));
 });
 
-// ==================
-// UNHANDLED ERRORS
-// ==================
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
@@ -175,5 +146,3 @@ process.on('uncaughtException', (error) => {
 });
 
 export default app;
-
-
