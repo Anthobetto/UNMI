@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import express, { Express, Request, Response } from 'express';
+import express, { Express } from 'express';
 import path, { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
@@ -22,6 +22,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const FRONTEND_DIST_PATH = join(__dirname, '../../frontend/dist');
 
+// ==========================================
+// 1. SEGURIDAD
+// ==========================================
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -44,47 +47,72 @@ app.use(
   })
 );
 
-
 app.use(cookieParser());
+
+// ==========================================
+// 2. PARSEO DEL BODY (Orden Crítico)
+// ==========================================
+
+// 🚨 1. STRIPE: RAW BUFFER
+// Definimos esto PRIMERO y ESPECÍFICAMENTE para la ruta de Stripe.
+// Usamos type: '*/*' para forzar que CUALQUIER cosa que llegue a esta URL
+// se convierta en un Buffer (req.body será un Buffer).
+app.use(
+  '/api/webhooks/stripe', 
+  express.raw({ type: '*/*' }) 
+);
+
+// 🚨 2. JSON GLOBAL
+// Esto aplicará para todas las rutas que NO sean la de arriba
+// (o si la de arriba pasa el control, pero como express.raw consume el stream, es seguro).
 app.use(express.json({ limit: '10mb' }));
+
+// 🚨 3. URL ENCODED
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+
+// ==========================================
+// 3. RUTAS
+// ==========================================
+
+// Webhooks
 app.use('/api/webhooks', webhookRoutes);
 
-
+// Logging Middleware
 app.use((req, res, next) => {
   const start = Date.now();
   let capturedJsonResponse: Record<string, any> | undefined;
 
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
+  // Solo interceptamos la respuesta JSON si NO es un webhook
+  if (!req.path.includes('webhooks')) {
+    const originalResJson = res.json;
+    res.json = function (bodyJson, ...args) {
+      capturedJsonResponse = bodyJson;
+      return originalResJson.apply(res, [bodyJson, ...args]);
+    };
+  }
 
   res.on('finish', () => {
     const duration = Date.now() - start;
     if (req.path.startsWith('/api')) {
       let logLine = `${req.method} ${req.path} ${res.statusCode} in ${duration}ms`;
-
-      if (capturedJsonResponse) {
+      
+      if (req.path.includes('webhooks')) {
+        logLine += ` (Webhook Payload Hidden)`;
+      } else if (capturedJsonResponse) {
         const sanitized = { ...capturedJsonResponse };
-        delete sanitized.password;
+        delete sanitized.password; 
         delete sanitized.token;
-        delete sanitized.accessToken;
-        delete sanitized.refreshToken;
-
         const jsonStr = JSON.stringify(sanitized);
         logLine += ` :: ${jsonStr.length > 100 ? jsonStr.slice(0, 97) + '...' : jsonStr}`;
       }
-
       console.log(logLine);
     }
   });
-
   next();
 });
 
-
+// Health Check
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -94,63 +122,34 @@ app.get('/health', (req, res) => {
   });
 });
 
+// API Routes
 app.use('/api', authRoutes);
 app.use('/api', apiRoutes);
 
-
+// ==========================================
+// 4. FRONTEND STATIC
+// ==========================================
 app.use(express.static(FRONTEND_DIST_PATH));
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api')) return;
   res.sendFile(join(FRONTEND_DIST_PATH, 'index.html'));
 });
 
+// Error Handling
 app.use(notFoundHandler);
 app.use(errorHandler);
 
+// ==========================================
+// 5. SERVER START
+// ==========================================
 const server = createServer(app);
 
 server.listen(PORT, () => {
-  console.log('');
-  console.log('╔════════════════════════════════════════╗');
-  console.log('║   🚀 UNMI Backend Server Started     ║');
-  console.log('╠════════════════════════════════════════╣');
-  console.log(`║   Port:        ${PORT.toString().padEnd(24)}║`);
-  console.log(`║   Environment: ${(process.env.NODE_ENV || 'development').padEnd(24)}║`);
-  console.log(`║   Frontend:    ${FRONTEND_URL.slice(0, 24).padEnd(24)}║`);
-  console.log('╠════════════════════════════════════════╣');
-  console.log('║   Routes:                             ║');
-  console.log('║   GET  /health                        ║');
-  console.log('║   POST /api/register                  ║');
-  console.log('║   POST /api/login                     ║');
-  console.log('║   POST /api/logout                    ║');
-  console.log('║   GET  /api/user                      ║');
-  console.log('║   GET  /api/locations                 ║');
-  console.log('║   GET  /api/templates                 ║');
-  console.log('║   GET  /api/calls                     ║');
-  console.log('║   GET  /api/messages                  ║');
-  console.log('║   POST /api/webhooks/stripe           ║');
-  console.log('╚════════════════════════════════════════╝');
-  console.log('');
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`👉 Webhook endpoint: POST /api/webhooks/stripe`);
 });
 
-process.on('SIGTERM', () => {
-  console.log('SIGTERM signal received: closing HTTP server');
-  server.close(() => process.exit(0));
-});
-
-process.on('SIGINT', () => {
-  console.log('SIGINT signal received: closing HTTP server');
-  server.close(() => process.exit(0));
-});
-
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-});
-
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
-  process.exit(1);
-});
+process.on('SIGTERM', () => { server.close(() => process.exit(0)); });
+process.on('SIGINT', () => { server.close(() => process.exit(0)); });
 
 export default app;

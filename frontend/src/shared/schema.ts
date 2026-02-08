@@ -1,5 +1,18 @@
-// Copiado y mejorado del código base UNMI
+// FRONTEND: schema.ts
 import { z } from "zod";
+
+// ==================
+// ENUMS (Actualizados y Coherentes con Backend)
+// ==================
+export const planTypeEnum = z.enum(['small', 'pro']); // ✅ CAMBIO CLAVE
+export const subscriptionStatusEnum = z.enum(['active', 'inactive', 'trial', 'cancelled']);
+export const templateTypeEnum = z.enum(['missed_call', 'after_hours', 'welcome', 'follow_up']);
+export const messageChannelEnum = z.enum(['sms', 'whatsapp', 'both']);
+export const callStatusEnum = z.enum(['answered', 'missed', 'rejected']);
+export const callTypeEnum = z.enum(['direct', 'forwarded', 'ivr', 'inbound']);
+export const messageTypeEnum = z.enum(['SMS', 'WhatsApp']);
+export const messageStatusEnum = z.enum(['pending', 'sent', 'delivered', 'received', 'read', 'failed']);
+export const messageDirectionEnum = z.enum(['inbound', 'outbound']);
 
 // ==================
 // USER SCHEMA
@@ -12,10 +25,9 @@ export const userSchema = z.object({
   companyName: z.string().min(1),
   termsAccepted: z.boolean(),
   termsAcceptedAt: z.date().optional(),
-  planType: z.enum(['templates', 'chatbots']).optional(),
-  subscriptionStatus: z.enum(['active', 'inactive', 'trial', 'cancelled']).optional(),
+  planType: planTypeEnum.optional(), // ✅ Actualizado
+  subscriptionStatus: subscriptionStatusEnum.optional(),
 });
-
 export type User = z.infer<typeof userSchema>;
 
 // ==================
@@ -32,21 +44,13 @@ export const locationSchema = z.object({
   trialStartDate: z.date().optional(),
   isFirstLocation: z.boolean().default(false),
 });
-
 export type Location = z.infer<typeof locationSchema>;
-
-// ==================
-// UPDATE LOCATION SCHEMA
-// ==================
 export const updateLocationSchema = locationSchema.partial();
 
 // ==================
 // TEMPLATE SCHEMA
 // ==================
-export const templateTypeEnum = z.enum(['missed_call', 'after_hours', 'welcome', 'follow_up']);
-export const messageChannelEnum = z.enum(['sms', 'whatsapp', 'both']);
-
- export const templateSchema = z.object({
+export const templateSchema = z.object({
    id: z.number(),
    userId: z.string().uuid(),
    locationId: z.number().optional(),
@@ -57,7 +61,6 @@ export const messageChannelEnum = z.enum(['sms', 'whatsapp', 'both']);
    channel: messageChannelEnum,
    variables: z.array(z.string()).optional(),
  });
-
 export type Template = z.infer<typeof templateSchema>;
 export type TemplateType = z.infer<typeof templateTypeEnum>;
 export type MessageChannel = z.infer<typeof messageChannelEnum>;
@@ -77,15 +80,11 @@ export const phoneNumberSchema = z.object({
   forwardingEnabled: z.boolean().default(true),
   providerId: z.string(),
 });
-
 export type PhoneNumber = z.infer<typeof phoneNumberSchema>;
 
 // ==================
 // CALL SCHEMA
 // ==================
-export const callStatusEnum = z.enum(['answered', 'missed', 'rejected']);
-export const callTypeEnum = z.enum(['direct', 'forwarded', 'ivr', 'inbound']);
-
 export const callSchema = z.object({
   id: z.number(),
   userId: z.string().uuid(),
@@ -97,7 +96,6 @@ export const callSchema = z.object({
   routedToLocation: z.number().optional(),
   callType: callTypeEnum.optional(),
 });
-
 export type Call = z.infer<typeof callSchema>;
 export type CallStatus = z.infer<typeof callStatusEnum>;
 export type CallType = z.infer<typeof callTypeEnum>;
@@ -105,10 +103,6 @@ export type CallType = z.infer<typeof callTypeEnum>;
 // ==================
 // MESSAGE SCHEMA
 // ==================
-export const messageTypeEnum = z.enum(['SMS', 'WhatsApp']);
-export const messageStatusEnum = z.enum(['pending', 'sent', 'delivered', 'received', 'read', 'failed']);
-export const messageDirectionEnum = z.enum(['inbound', 'outbound']);
-
 export const messageSchema = z.object({
   id: z.number(),
   userId: z.string().uuid(),
@@ -118,14 +112,11 @@ export const messageSchema = z.object({
   recipient: z.string(),
   status: messageStatusEnum,
   createdAt: z.date(),
-
-  // ✅ Campos nuevos para WhatsApp
   direction: messageDirectionEnum.optional(),
-  whatsappMessageId: z.string().optional(), // ID de Meta para tracking
-  templateId: z.number().optional(), // Si fue enviado desde un template
-  errorMessage: z.string().optional(), // Para guardar errores si falla
+  whatsappMessageId: z.string().optional(),
+  templateId: z.number().optional(),
+  errorMessage: z.string().optional(),
 });
-
 export type Message = z.infer<typeof messageSchema>;
 export type MessageType = z.infer<typeof messageTypeEnum>;
 export type MessageStatus = z.infer<typeof messageStatusEnum>;
@@ -143,17 +134,17 @@ export const routingRuleSchema = z.object({
   forwardingNumber: z.string().optional(),
   ivrOptions: z.record(z.any()).optional(),
 });
-
 export type RoutingRule = z.infer<typeof routingRuleSchema>;
 
 // ==================
-// VALIDATION SCHEMAS
+// VALIDATION SCHEMAS (Auth & Forms)
 // ==================
 export const loginSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
 });
 
+// ✅ REGISTER SCHEMA CORREGIDO PARA PAYWALL (Front)
 export const registerSchema = z.object({
   username: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
   email: z.string().email('Email inválido'),
@@ -163,18 +154,19 @@ export const registerSchema = z.object({
     message: "Debes aceptar los términos y condiciones",
   }),
   selections: z.array(z.object({
-    planType: z.enum(['templates', 'chatbots']),
-    quantity: z.number().min(1).max(10),
+    planType: planTypeEnum, 
+    quantity: z.number().min(1),
+    departments: z.number().min(1).optional(), // Nuevo
+    price: z.number().optional()
   })).min(1, 'Debes seleccionar al menos un plan'),
 });
-
 
 export const createLocationSchema = z.object({
   name: z.string().min(1, 'Nombre requerido'),
   address: z.string().min(1, 'Dirección requerida'),
   phoneNumber: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Número de teléfono inválido').optional(),
   phoneType: messageChannelEnum.optional(),
-  planType: z.enum(['templates', 'chatbots']),
+  planType: planTypeEnum.optional(), // ✅ Actualizado
 });
 
 export const createTemplateSchema = templateSchema.omit({ id: true, userId: true });
@@ -183,7 +175,3 @@ export type LoginData = z.infer<typeof loginSchema>;
 export type RegisterData = z.infer<typeof registerSchema>;
 export type CreateLocationData = z.infer<typeof createLocationSchema>;
 export type CreateTemplateData = z.infer<typeof createTemplateSchema>;
-
-
-
-

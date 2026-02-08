@@ -8,16 +8,23 @@ import { supabaseService } from '../services/SupabaseService';
 import { stripeService } from '../services/StripeService';
 import { requireAuth, AuthenticatedRequest } from '../middleware/requireAuth';
 import { asyncHandler, ValidationError } from '../middleware/errorHandler';
-import { loginSchema, registerSchema } from '../shared/schema';
+// Importamos los schemas actualizados que ya aceptan small/pro
+import { loginSchema, registerSchema } from '../shared/schema'; 
 
 const router = Router();
 
-// POST /api/register - Registro de usuario con Stripe
+// ==========================================
+// POST /api/register - Registro con Paywall
+// ==========================================
 router.post(
   '/register',
   asyncHandler(async (req, res) => {
+    // 1. Validar con el nuevo schema (ya acepta 'small'/'pro')
     const validation = registerSchema.safeParse(req.body);
+    
     if (!validation.success) {
+      // Tip: Devolver el error exacto de Zod ayuda mucho al frontend
+      console.error("Validation error:", validation.error);
       throw new ValidationError('Datos de registro inválidos');
     }
 
@@ -29,15 +36,16 @@ router.post(
 
     const tempUserId = crypto.randomUUID();
 
-    // Usar createCheckoutSessionCustom para múltiples selecciones
+    // 2. Llamar a Stripe. 
+    // Como actualizamos StripeService y el Schema, los tipos ahora coinciden ('small' | 'pro').
     const session = await stripeService.createCheckoutSessionCustom({
       email,
       userId: tempUserId,
-      selections,
+      selections: selections as any, // Cast seguro porque schema y servicio están sincronizados
       metadata: {
         username,
         companyName,
-        password, // ⚠️ No enviar password en producción
+        // No enviamos password en metadata por seguridad, se gestiona tras el webhook
         selections: JSON.stringify(selections),
         type: 'registration',
       },
@@ -53,7 +61,9 @@ router.post(
   })
 );
 
+// ==========================================
 // POST /api/login - Inicio de sesión
+// ==========================================
 router.post('/login', asyncHandler(async (req, res) => {
   const validation = loginSchema.safeParse(req.body);
   if (!validation.success) {
@@ -62,15 +72,13 @@ router.post('/login', asyncHandler(async (req, res) => {
 
   const { email, password } = validation.data;
 
-  console.log('🔐 Login attempt for:', email); // Para debugging
-
+  // 1. Auth con Supabase
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
   if (error || !data?.session) {
-    console.error('❌ Login failed:', error?.message);
     res.status(400).json({
       message: 'Invalid credentials',
       error: 'INVALID_CREDENTIALS'
@@ -78,13 +86,10 @@ router.post('/login', asyncHandler(async (req, res) => {
     return;
   }
 
-  console.log('✅ Auth successful, fetching user profile...');
-
-  // Obtener el usuario completo de tu tabla
+  // 2. Obtener perfil enriquecido (SupabaseService ya normaliza los planes)
   const user = await supabaseService.getUserByAuthId(data.user.id);
 
   if (!user) {
-    console.error('❌ User profile not found for auth_id:', data.user.id);
     res.status(404).json({
       message: 'User profile not found',
       error: 'PROFILE_NOT_FOUND'
@@ -92,20 +97,22 @@ router.post('/login', asyncHandler(async (req, res) => {
     return;
   }
 
-  console.log('✅ User profile found:', user.id);
-
-  // Obtener purchased_locations para mostrar créditos
+  // 3. Calcular créditos/consumo
+  // Nota: Esto podría moverse al SupabaseService para limpiar el controlador
   const { data: purchasedLocations } = await supabase
     .from('purchased_locations')
     .select('*')
     .eq('user_id', user.id);
 
   const credits = purchasedLocations?.reduce((acc, pl) => {
-    acc[pl.plan_type] = (acc[pl.plan_type] || 0) + (pl.quantity - (pl.used || 0));
+    // Normalizamos claves por si la DB tiene datos viejos
+    let key = pl.plan_type;
+    if (key === 'templates') key = 'small';
+    if (key === 'chatbots') key = 'pro';
+
+    acc[key] = (acc[key] || 0) + (pl.quantity - (pl.used || 0));
     return acc;
   }, {} as Record<string, number>) || {};
-
-  console.log('✅ Login successful, credits:', credits);
 
   res.status(200).json({
     accessToken: data.session.access_token,
@@ -117,17 +124,17 @@ router.post('/login', asyncHandler(async (req, res) => {
     },
   });
 }));
-// POST /api/logout - Cierre de sesión
+
+// POST /api/logout
 router.post('/logout', (req, res) => {
   res.clearCookie('accessToken');
   res.clearCookie('refreshToken');
-
-  res.status(200).json({
-    message: 'Logout successful. Please delete token on client.'
-  });
+  res.status(200).json({ message: 'Logout successful' });
 });
 
-// GET /api/user - Obtener usuario autenticado
+// ==========================================
+// GET /api/user - Obtener usuario
+// ==========================================
 router.get('/user', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   if (!req.user) {
     res.status(401).json({ message: 'User not authenticated' });
@@ -147,14 +154,15 @@ router.get('/user', requireAuth, asyncHandler(async (req: AuthenticatedRequest, 
     .eq('user_id', profile.id);
 
   const credits = purchasedLocations?.reduce((acc, pl) => {
-    acc[pl.plan_type] = (acc[pl.plan_type] || 0) + (pl.quantity - (pl.used || 0));
+    let key = pl.plan_type;
+    if (key === 'templates') key = 'small';
+    if (key === 'chatbots') key = 'pro';
+    
+    acc[key] = (acc[key] || 0) + (pl.quantity - (pl.used || 0));
     return acc;
   }, {} as Record<string, number>) || {};
 
   const activePlans = [...new Set(purchasedLocations?.map(pl => pl.plan_type) ?? [])];
-
-  console.log('📊 User credits:', credits);
-  console.log('📦 User active plans:', activePlans);
 
   res.status(200).json({
     user: {
@@ -166,7 +174,9 @@ router.get('/user', requireAuth, asyncHandler(async (req: AuthenticatedRequest, 
   });
 }));
 
-// PUT /api/user/plan - Actualizar plan del usuario
+// ==========================================
+// PUT /api/user/plan - Actualizar plan
+// ==========================================
 router.put('/user/plan', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   if (!req.user) {
     res.status(401).json({ message: 'User not authenticated' });
@@ -175,8 +185,9 @@ router.put('/user/plan', requireAuth, asyncHandler(async (req: AuthenticatedRequ
 
   const { planType } = req.body;
 
-  if (!planType || !['templates', 'chatbots'].includes(planType)) {
-    throw new ValidationError('Invalid plan type');
+  // ✅ VALIDACIÓN ACTUALIZADA: small / pro
+  if (!planType || !['small', 'pro'].includes(planType)) {
+    throw new ValidationError('Invalid plan type. Must be small or pro.');
   }
 
   const profile = await supabaseService.getUserByAuthId(req.user.id);
@@ -186,7 +197,8 @@ router.put('/user/plan', requireAuth, asyncHandler(async (req: AuthenticatedRequ
     return;
   }
 
-  await supabaseService.updateUserPlan(profile.id, planType);
+  // SupabaseService ya acepta 'small' | 'pro' gracias a nuestra actualización anterior
+  await supabaseService.updateUserPlan(profile.id, planType as 'small' | 'pro');
 
   res.status(200).json({
     message: 'Plan updated successfully',
@@ -194,30 +206,7 @@ router.put('/user/plan', requireAuth, asyncHandler(async (req: AuthenticatedRequ
   });
 }));
 
-// POST /api/refresh - Refresh token
-/* router.post('/refresh', asyncHandler(async (req, res) => {
-  const { refreshToken } = req.body;
-
-  if (!refreshToken) {
-    throw new ValidationError('Refresh token is required');
-  }
-
-  const { data, error } = await supabase.auth.refreshSession({
-    refresh_token: refreshToken,
-  });
-
-  if (error || !data.session) {
-    res.status(401).json({ message: 'Invalid refresh token' });
-    return;
-  }
-
-  res.status(200).json({
-    accessToken: data.session.access_token,
-    refreshToken: data.session.refresh_token,
-  });
-})); */
-
-// POST /api/refresh - Refresh token TEST
+// POST /api/refresh
 router.post('/refresh', asyncHandler(async (req, res) => {
   const { refreshToken } = req.body;
 
@@ -246,7 +235,11 @@ router.post('/refresh', asyncHandler(async (req, res) => {
       .eq('user_id', user.id);
 
     const credits = purchasedLocations?.reduce((acc, pl) => {
-      acc[pl.plan_type] = (acc[pl.plan_type] || 0) + (pl.quantity - pl.used);
+      let key = pl.plan_type;
+      if (key === 'templates') key = 'small';
+      if (key === 'chatbots') key = 'pro';
+
+      acc[key] = (acc[key] || 0) + (pl.quantity - pl.used);
       return acc;
     }, {} as Record<string, number>) || {};
 
@@ -264,24 +257,29 @@ router.post('/refresh', asyncHandler(async (req, res) => {
   }
 }));
 
-
-// POST /api/checkout-plan - Cambiar plan (usuarios ya registrados)
+// ==========================================
+// POST /api/checkout-plan - Checkout para usuarios logueados
+// ==========================================
 router.post(
   '/checkout-plan',
   requireAuth,
   asyncHandler(async (req: AuthenticatedRequest, res) => {
     if (!req.user) throw new ValidationError('User not authenticated');
 
-    const { planType } = req.body;
+    const { planType } = req.body; // Debería venir también quantity y departments si es custom
 
-    if (!planType || !['templates', 'chatbots'].includes(planType)) {
+    // ✅ VALIDACIÓN ACTUALIZADA
+    if (!planType || !['small', 'pro'].includes(planType)) {
       throw new ValidationError('Invalid plan type');
     }
 
+    // Nota: createCheckoutSession es para upgrades simples. 
+    // Si quieres soportar selecciones complejas (extras) aquí también, 
+    // deberías usar createCheckoutSessionCustom similar al registro.
     const session = await stripeService.createCheckoutSession({
       email: req.user.email,
       userId: req.user.id,
-      planType,
+      planType: planType as any, // Cast seguro tras validación
       successUrl: `${process.env.FRONTEND_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}&success=true`,
       cancelUrl: `${process.env.FRONTEND_URL}/pricing?canceled=true`,
     });
@@ -290,16 +288,22 @@ router.post(
   })
 );
 
-// GET /api/prices - Obtener precios desde Stripe
+// ==========================================
+// GET /api/prices - Precios Actualizados
+// ==========================================
 router.get('/prices', asyncHandler(async (req, res) => {
-  const templatesPrice = await stripeService.getPlanPrice('templates');
-  const chatbotsPrice = await stripeService.getPlanPrice('chatbots');
+  // ✅ OBTENEMOS PRECIOS DE LOS NUEVOS PLANES
+  // Asegúrate de que getPlanPrice en StripeService soporte 'small' y 'pro'
+  const smallPrice = await stripeService.getPlanPrice('small');
+  const proPrice = await stripeService.getPlanPrice('pro');
 
   res.json({
-    templates: templatesPrice,
-    chatbots: chatbotsPrice,
+    templates: smallPrice, // Mantenemos keys viejas si el front aun las busca así temporalmente
+    chatbots: proPrice,
+    // Keys nuevas para el futuro
+    small: smallPrice,
+    pro: proPrice
   });
 }));
-
 
 export default router;

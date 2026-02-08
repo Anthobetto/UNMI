@@ -1,185 +1,185 @@
 /**
- * DynamicPricingBar - Interactive pricing slider
- * Real-time calculation preview for B2B upselling
+ * PricingService - Frontend wrapper for dynamic pricing
+ * Refleja la nueva lógica de negocio: Small vs Pro con extras.
  */
 
-import { useState, useEffect } from 'react';
-import { Slider } from '@/components/ui/slider';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { TrendingUp, MapPin, MessageSquare, DollarSign } from 'lucide-react';
-import { pricingService, type PricingTier, type PricingCalculation } from '@/services/PricingService';
+export type PlanType = 'small' | 'pro';
 
-interface DynamicPricingBarProps {
+export interface PricingTier {
+  id: PlanType;
+  name: string;
+  basePrice: number;      // Precio de entrada (ej: 60 o 120)
+  includedMessages: number; // Mensajes diarios incluidos (ej: 5 o 12)
+  maxMessages: number;    // Tope de mensajes diarios permitidos
+  messageOverageRate: number; // Costo por mensaje extra (si aplica)
+  
+  // Límites y Costos de Infraestructura
+  includedLocations: number;
+  extraLocationPrice: number;
+  maxLocations: number;
+  
+  includedDepartments: number;
+  extraDepartmentPrice: number;
+  maxDepartments: number;
+
+  features: string[];
+  popular?: boolean;
+}
+
+export interface PricingCalculation {
   tier: PricingTier;
-  locations?: number;
-  onPriceChange?: (calculation: PricingCalculation) => void;
-  showLocationInput?: boolean;
+  // Entradas
+  dailyMessages: number;
+  locations: number;
+  departments: number;
+  
+  // Desglose de Costos
+  basePrice: number;
+  locationsCost: number;
+  departmentsCost: number;
+  messagesCost: number;
+  
+  // Totales
+  totalMonthly: number;
+  totalYearly: number; // Asumiendo un descuento anual habitual del 10-20%
 }
 
-export function DynamicPricingBar({ 
-  tier, 
-  locations = 1, 
-  onPriceChange,
-  showLocationInput = false 
-}: DynamicPricingBarProps) {
-  const [dailyMessages, setDailyMessages] = useState(tier.minMessages);
-  const [locationCount, setLocationCount] = useState(locations);
-  const [calculation, setCalculation] = useState<PricingCalculation>(
-    pricingService.calculateMonthly(tier.id, tier.minMessages, locations)
-  );
+export const PRICING_TIERS: PricingTier[] = [
+  {
+    id: 'small',
+    name: 'Pequeña Empresa',
+    basePrice: 60,
+    includedMessages: 5,   // 150 al mes / 30 días
+    maxMessages: 5,        // Tope fijo (no escalable en este plan)
+    messageOverageRate: 0, 
+    
+    includedLocations: 1,
+    extraLocationPrice: 0, // No permite extras
+    maxLocations: 1,
+    
+    includedDepartments: 1,
+    extraDepartmentPrice: 0, // No permite extras
+    maxDepartments: 1,
 
-  useEffect(() => {
-    const newCalc = pricingService.calculateMonthly(tier.id, dailyMessages, locationCount);
-    setCalculation(newCalc);
-    onPriceChange?.(newCalc);
-  }, [dailyMessages, locationCount, tier.id, onPriceChange]);
+    features: [
+      '150 mensajes/mes (5 diarios)',
+      '1 Localización',
+      '1 Departamento',
+      'Soporte por Email',
+      'Analítica Básica',
+    ],
+  },
+  {
+    id: 'pro',
+    name: 'UNMI Pro',
+    basePrice: 120,
+    includedMessages: 12,  // 360 al mes / 30 días
+    maxMessages: 100,      // Escalable hasta 100 diarios (ejemplo)
+    messageOverageRate: 0.15, // Precio por mensaje extra diario (opcional)
 
-  const handleMessagesChange = (value: number[]) => {
-    setDailyMessages(value[0]);
-  };
+    includedLocations: 1,
+    extraLocationPrice: 30, // 30€ por cada local extra
+    maxLocations: 20,
+    
+    includedDepartments: 1,
+    extraDepartmentPrice: 15, // 15€ por cada depto extra
+    maxDepartments: 10,
 
-  const handleLocationsChange = (value: number[]) => {
-    setLocationCount(value[0]);
-  };
+    features: [
+      '360 mensajes/mes base (12 diarios)',
+      'Multi-localización',
+      'Multi-departamento',
+      'Enrutamiento Inteligente',
+      'Soporte Prioritario',
+      'Dashboard Avanzado',
+    ],
+    popular: true,
+  }
+];
 
-  const messagesPerMonth = dailyMessages * 30;
-  const savingsPercent = calculation.locationDiscount > 0 
-    ? Math.round((calculation.locationDiscount / (calculation.basePrice + calculation.messagesCost)) * 100)
-    : 0;
+export class PricingService {
+  
+  /**
+   * Calcula el precio mensual total basado en la configuración del usuario.
+   */
+  calculateMonthly(
+    tierId: PlanType,
+    dailyMessages: number,
+    locations: number = 1,
+    departments: number = 1
+  ): PricingCalculation {
+    const tier = PRICING_TIERS.find(t => t.id === tierId);
+    if (!tier) throw new Error(`Invalid tier ID: ${tierId}`);
 
-  return (
-    <div className="space-y-4">
-      {/* Messages Slider */}
-      <Card className="border-2 border-primary/20">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">Daily Messages</CardTitle>
-            </div>
-            <Badge variant="secondary" className="text-lg font-bold">
-              {dailyMessages} msgs/day
-            </Badge>
-          </div>
-          <CardDescription>
-            Adjust your daily WhatsApp message volume
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Slider
-            value={[dailyMessages]}
-            onValueChange={handleMessagesChange}
-            min={tier.minMessages}
-            max={tier.dailyMessageCap}
-            step={1}
-            className="w-full"
-          />
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span>{tier.minMessages} min</span>
-            <span>{messagesPerMonth} msgs/month</span>
-            <span>{tier.dailyMessageCap} max</span>
-          </div>
-        </CardContent>
-      </Card>
+    // Asegurar límites (Clamping)
+    const validLocations = Math.max(1, Math.min(locations, tier.maxLocations));
+    const validDepartments = Math.max(1, Math.min(departments, tier.maxDepartments));
+    const validMessages = Math.max(tier.includedMessages, Math.min(dailyMessages, tier.maxMessages));
 
-      {/* Locations Slider (if enabled) */}
-      {showLocationInput && (
-        <Card className="border-2 border-blue-200">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-blue-600" />
-                <CardTitle className="text-lg">Physical Locations</CardTitle>
-              </div>
-              <Badge variant="secondary" className="text-lg font-bold">
-                {locationCount} {locationCount === 1 ? 'store' : 'stores'}
-              </Badge>
-            </div>
-            <CardDescription>
-              Add more locations to unlock bundle discounts
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Slider
-              value={[locationCount]}
-              onValueChange={handleLocationsChange}
-              min={1}
-              max={tier.id === 'templetes' ? 1 : tier.id === 'chatbots' ? 5 : 20}
-              step={1}
-              className="w-full"
-            />
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>1 location</span>
-              <span>
-                {locationCount > 1 && `${savingsPercent}% discount applied`}
-              </span>
-              <span>
-                {tier.id === 'templetes' ? '1 max' : tier.id === 'chatbots' ? '5 max' : 'Unlimited'}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+    // 1. Costo Base
+    const basePrice = tier.basePrice;
 
-      {/* Price Breakdown */}
-      <Card className="bg-gradient-to-br from-primary/5 to-blue-50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-green-600" />
-            Your Custom Price
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Base price</span>
-              <span className="font-medium">€{calculation.basePrice.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">
-                Messages ({messagesPerMonth}/month × €{tier.messageRate.toFixed(2)})
-              </span>
-              <span className="font-medium">€{calculation.messagesCost.toFixed(2)}</span>
-            </div>
-            {calculation.locationDiscount > 0 && (
-              <div className="flex justify-between text-sm text-green-600">
-                <span>Multi-location discount</span>
-                <span className="font-medium">-€{calculation.locationDiscount.toFixed(2)}</span>
-              </div>
-            )}
-          </div>
+    // 2. Costo de Localizaciones Extra
+    // (Total locales - incluidos) * precio extra. Si es negativo, es 0.
+    const extraLocs = Math.max(0, validLocations - tier.includedLocations);
+    const locationsCost = extraLocs * tier.extraLocationPrice;
 
-          <div className="pt-3 border-t">
-            <div className="flex justify-between items-center">
-              <span className="text-lg font-semibold">Total Monthly</span>
-              <span className="text-3xl font-bold text-primary">
-                €{calculation.totalMonthly.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between items-center mt-2 text-sm text-muted-foreground">
-              <span>Yearly (10% off)</span>
-              <span className="font-medium">€{calculation.totalYearly.toFixed(2)}/year</span>
-            </div>
-          </div>
+    // 3. Costo de Departamentos Extra
+    const extraDepts = Math.max(0, validDepartments - tier.includedDepartments);
+    const departmentsCost = extraDepts * tier.extraDepartmentPrice;
 
-          {locationCount > 1 && calculation.locationDiscount > 0 && (
-            <Alert className="bg-green-50 border-green-200">
-              <TrendingUp className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800">
-                <strong>You're saving €{calculation.locationDiscount.toFixed(2)}/month</strong> with {locationCount} locations!
-                {locationCount < (tier.id === 'chatbots' ? 5 : 20) && (
-                  <span className="block mt-1 text-sm">
-                    Add {(tier.id === 'chatbots' ? 5 : 20) - locationCount} more location(s) for even bigger savings.
-                  </span>
-                )}
-              </AlertDescription>
-            </Alert>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
+    // 4. Costo de Mensajes Extra (Upsell dinámico)
+    // Si el usuario selecciona más mensajes de los incluidos en el base
+    const extraMsgs = Math.max(0, validMessages - tier.includedMessages);
+    // Costo mensual de los mensajes extra (ej: 5 extras * 30 días * 0.15€)
+    const messagesCost = extraMsgs * 30 * tier.messageOverageRate;
+
+    const totalMonthly = basePrice + locationsCost + departmentsCost + messagesCost;
+    const totalYearly = totalMonthly * 12 * 0.9; // 10% descuento anual
+
+    return {
+      tier,
+      dailyMessages: validMessages,
+      locations: validLocations,
+      departments: validDepartments,
+      basePrice,
+      locationsCost,
+      departmentsCost,
+      messagesCost,
+      totalMonthly,
+      totalYearly
+    };
+  }
+
+  // Alias para compatibilidad con código existente si lo hubiera
+  calculatePrice(tierId: PlanType, dailyMessages: number, locations: number, departments: number) {
+    return this.calculateMonthly(tierId, dailyMessages, locations, departments);
+  }
+
+  /**
+   * Genera una comparación de todos los planes para una configuración dada
+   */
+  compareAllTiers(dailyMessages: number, locations: number, departments: number): PricingCalculation[] {
+    return PRICING_TIERS.map(tier => {
+      // Si el plan no soporta la cantidad solicitada (ej: Small con 2 locales), 
+      // forzamos el cálculo a sus límites máximos para mostrar la diferencia
+      return this.calculateMonthly(tier.id, dailyMessages, locations, departments);
+    });
+  }
+
+  /**
+   * Obtiene el ID del precio de Stripe (Price ID) basado en el plan.
+   * Útil para pasarlo al backend o a Paywall.app
+   */
+  getStripePriceId(plan: PlanType): string {
+    // Estos IDs deberían venir de tus variables de entorno o constantes
+    // Aquí es un ejemplo de mapeo
+    const map = {
+      'small': 'price_small_biz_xv123',
+      'pro': 'price_pro_biz_yz456'
+    };
+    return map[plan];
+  }
 }
 
+export const pricingService = new PricingService();
