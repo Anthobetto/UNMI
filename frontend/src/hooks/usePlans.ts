@@ -10,7 +10,7 @@ export function usePlans(planType?: 'small' | 'pro'): UseQueryResult<Plan[]> {
   return useQuery({
     queryKey: ['plans', planType],
     queryFn: () => stripeMockService.getPlans(planType),
-    staleTime: 10 * 60 * 1000, // 10 minutes - planes no cambian frecuentemente
+    staleTime: 10 * 60 * 1000, 
   });
 }
 
