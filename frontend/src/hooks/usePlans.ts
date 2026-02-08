@@ -6,11 +6,11 @@ import { stripeMockService } from '@/services/StripeMockService';
 import type { Plan, PlanSelectionForm, StripeSession } from '@/types';
 
 // Hook para obtener todos los planes
-export function usePlans(planType?: 'templates' | 'chatbots'): UseQueryResult<Plan[]> {
+export function usePlans(planType?: 'small' | 'pro'): UseQueryResult<Plan[]> {
   return useQuery({
     queryKey: ['plans', planType],
     queryFn: () => stripeMockService.getPlans(planType),
-    staleTime: 10 * 60 * 1000, // 10 minutes - planes no cambian frecuentemente
+    staleTime: 10 * 60 * 1000, 
   });
 }
 
