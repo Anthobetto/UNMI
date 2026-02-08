@@ -303,7 +303,7 @@ export default function AuthPage() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <span className="text-4xl font-black tracking-tighter">€{calculateTotal()}</span>
+                      <span className="text-4xl font-white tracking-tighter">€{calculateTotal()}</span>
                     </div>
                   </div>
 

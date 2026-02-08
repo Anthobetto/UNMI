@@ -58,7 +58,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { pricingService, PRICING_TIERS, type PricingTier, type PricingCalculation } from '@/services/PricingService';
-import { DynamicPricingBar } from './DynamicPricingBar';
+import DynamicPricingBar from './Barra';
 
 // Validation schemas
 const locationSchema = z.object({

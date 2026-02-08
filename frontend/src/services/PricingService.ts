@@ -3,13 +3,12 @@ export type PlanType = 'small' | 'pro';
 export interface PricingTier {
   id: PlanType;
   name: string;
-  basePrice: number;
-  
-  // Mensajería
+  basePrice: number;     
   includedMessages: number; 
-  maxMessages: number;   
+  maxMessages: number;  
+  messageOverageRate: number; 
   
-  // Infraestructura
+  // Límites y Costos de Infraestructura
   includedLocations: number;
   extraLocationPrice: number;
   maxLocations: number;
@@ -24,22 +23,22 @@ export interface PricingTier {
 
 export interface PricingCalculation {
   tier: PricingTier;
+  // Entradas
   dailyMessages: number;
   locations: number;
   departments: number;
   
+  // Desglose de Costos
   basePrice: number;
   locationsCost: number;
   departmentsCost: number;
+  messagesCost: number;
   
+  // Totales
   totalMonthly: number;
-  totalYearly: number;
+  totalYearly: number; 
 }
 
-/**
- * B2B SaaS Pricing Tiers
- * Updated to match Business Logic: Small (60€) vs Pro (120€)
- */
 export const PRICING_TIERS: PricingTier[] = [
   {
     id: 'small',
@@ -47,6 +46,7 @@ export const PRICING_TIERS: PricingTier[] = [
     basePrice: 60,
     includedMessages: 5,   
     maxMessages: 5,       
+    messageOverageRate: 0, 
     
     includedLocations: 1,
     extraLocationPrice: 0, // No permite extras
@@ -57,9 +57,9 @@ export const PRICING_TIERS: PricingTier[] = [
     maxDepartments: 1,
 
     features: [
-      '150 mensajes WhatsApp/mes',
-      '1 Localización incluida',
-      '1 Departamento incluido',
+      '150 mensajes/mes (5 diarios)',
+      '1 Localización',
+      '1 Departamento',
       'Soporte por Email',
       'Analítica Básica',
     ],
@@ -69,87 +69,106 @@ export const PRICING_TIERS: PricingTier[] = [
     name: 'UNMI Pro',
     basePrice: 120,
     includedMessages: 12, 
-    maxMessages: 100,     
-    
+    maxMessages: 100,      
+    messageOverageRate: 0.15, 
+
     includedLocations: 1,
     extraLocationPrice: 30,
     maxLocations: 20,
     
     includedDepartments: 1,
-    extraDepartmentPrice: 15, 
+    extraDepartmentPrice: 15,
     maxDepartments: 10,
 
     features: [
-      '360 mensajes WhatsApp/mes',
-      'Multi-localización (+30€/ud)',
-      'Multi-departamento (+15€/ud)',
-      'Enrutamiento Avanzado',
+      '360 mensajes/mes base (12 diarios)',
+      'Multi-localización',
+      'Multi-departamento',
+      'Enrutamiento Inteligente',
       'Soporte Prioritario',
-      'Dashboard Multi-sede',
+      'Dashboard Avanzado',
     ],
     popular: true,
-  },
+  }
 ];
 
-export class PricingCalculator {
-
+export class PricingService {
+  
+  /**
+   * Calcula el precio mensual total basado en la configuración del usuario.
+   */
   calculateMonthly(
     tierId: PlanType,
-    dailyMessages: number, 
+    dailyMessages: number,
     locations: number = 1,
     departments: number = 1
   ): PricingCalculation {
     const tier = PRICING_TIERS.find(t => t.id === tierId);
-    if (!tier) {
-      throw new Error(`Invalid tier ID: ${tierId}`);
-    }
+    if (!tier) throw new Error(`Invalid tier ID: ${tierId}`);
 
+    // Asegurar límites (Clamping)
     const validLocations = Math.max(1, Math.min(locations, tier.maxLocations));
     const validDepartments = Math.max(1, Math.min(departments, tier.maxDepartments));
+    const validMessages = Math.max(tier.includedMessages, Math.min(dailyMessages, tier.maxMessages));
 
+    // 1. Costo Base
     const basePrice = tier.basePrice;
 
-    const extraLocationsCount = Math.max(0, validLocations - tier.includedLocations);
-    const locationsCost = extraLocationsCount * tier.extraLocationPrice;
+    // 2. Costo de Localizaciones Extra
+    // (Total locales - incluidos) * precio extra. Si es negativo, es 0.
+    const extraLocs = Math.max(0, validLocations - tier.includedLocations);
+    const locationsCost = extraLocs * tier.extraLocationPrice;
 
-    const extraDepartmentsCount = Math.max(0, validDepartments - tier.includedDepartments);
-    const departmentsCost = extraDepartmentsCount * tier.extraDepartmentPrice;
+    // 3. Costo de Departamentos Extra
+    const extraDepts = Math.max(0, validDepartments - tier.includedDepartments);
+    const departmentsCost = extraDepts * tier.extraDepartmentPrice;
 
-    const totalMonthly = basePrice + locationsCost + departmentsCost;
-    const totalYearly = totalMonthly * 12 * 0.90; 
+    // 4. Costo de Mensajes Extra (Upsell dinámico)
+    // Si el usuario selecciona más mensajes de los incluidos en el base
+    const extraMsgs = Math.max(0, validMessages - tier.includedMessages);
+    // Costo mensual de los mensajes extra (ej: 5 extras * 30 días * 0.15€)
+    const messagesCost = extraMsgs * 30 * tier.messageOverageRate;
+
+    const totalMonthly = basePrice + locationsCost + departmentsCost + messagesCost;
+    const totalYearly = totalMonthly * 12 * 0.9; // 10% descuento anual
 
     return {
       tier,
-      dailyMessages: tier.includedMessages,
+      dailyMessages: validMessages,
       locations: validLocations,
       departments: validDepartments,
       basePrice,
       locationsCost,
       departmentsCost,
-      totalMonthly: Math.round(totalMonthly * 100) / 100,
-      totalYearly: Math.round(totalYearly * 100) / 100,
+      messagesCost,
+      totalMonthly,
+      totalYearly
     };
   }
 
-  calculatePrice(tierId: PlanType, dailyMessages: number, locations: number, departments: number = 1) {
+  // Alias para compatibilidad con código existente si lo hubiera
+  calculatePrice(tierId: PlanType, dailyMessages: number, locations: number, departments: number) {
     return this.calculateMonthly(tierId, dailyMessages, locations, departments);
   }
 
   /**
-   * Recomienda un plan basado en las necesidades del usuario
+   * Genera una comparación de todos los planes para una configuración dada
    */
-  recommendTier(locations: number, departments: number): PricingTier {
-    if (locations > 1 || departments > 1) {
-      return PRICING_TIERS[1]; // Pro
-    }
-    return PRICING_TIERS[0]; // Small
+  compareAllTiers(dailyMessages: number, locations: number, departments: number): PricingCalculation[] {
+    return PRICING_TIERS.map(tier => {
+      // Si el plan no soporta la cantidad solicitada (ej: Small con 2 locales), 
+      // forzamos el cálculo a sus límites máximos para mostrar la diferencia
+      return this.calculateMonthly(tier.id, dailyMessages, locations, departments);
+    });
   }
 
-  compareAllTiers(locations: number, departments: number): PricingCalculation[] {
-    return PRICING_TIERS.map(tier => 
-      this.calculateMonthly(tier.id, tier.includedMessages, locations, departments)
-    );
+  getStripePriceId(plan: PlanType): string {
+    const map = {
+      'small': process.env.VITE_STRIPE_PRICE_SMALL || 'price_small_dummy',
+      'pro': process.env.VITE_STRIPE_PRICE_PRO || 'price_pro_dummy'
+    };
+    return map[plan] || '';
   }
 }
 
-export const pricingService = new PricingCalculator();
+export const pricingService = new PricingService();
