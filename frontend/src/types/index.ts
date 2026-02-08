@@ -23,7 +23,7 @@ export interface RevenueMetrics {
 export interface Plan {
   id: string;
   name: string;
-  type: 'templates' | 'chatbots';
+  type: 'small' | 'pro'; 
   price: number;
   features: string[];
   messageLimit: number;
@@ -94,7 +94,7 @@ export interface PaginatedResponse<T> {
 
 // Form types
 export interface PlanSelectionForm {
-  planType: 'templates' | 'chatbots';
+  planType: 'small' | 'pro';
   planId: string;
   paymentMethod: string;
 }
@@ -124,7 +124,7 @@ export interface TimeSeriesDataPoint {
 export interface StripeSession {
   id: string;
   url: string;
-  planType: 'templates' | 'chatbots';
+  planType: 'small' | 'pro';
   amount: number;
   status: 'pending' | 'completed' | 'failed';
 }

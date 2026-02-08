@@ -1,57 +1,62 @@
-/**
- * AuthPage - Login & Register with i18n
- * Compatible con el nuevo AuthContext (sin React Query)
- */
-import { useAuth, loginSchema, LoginData, registerSchema, RegisterData } from "@/contexts/AuthContext";
+import { useState, useEffect } from "react";
+import { useAuth, loginSchema, LoginData, RegisterData } from "@/contexts/AuthContext";
+// Importamos el schema compartido para asegurar que validamos igual que el backend
+import { registerSchema } from "@/shared/schema";
 import { useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { OfficialLogo } from "@/components/logo/official-logo";
 import { LanguageSelector } from "@/components/LanguageSelector";
-import { useEffect, useState } from "react";
+import { Check, Building2, Rocket, Info, ArrowRight, ShieldCheck, Loader2 } from "lucide-react";
 
 export default function AuthPage() {
   const { user, login, register } = useAuth();
-  const [location, setLocation] = useLocation();
-  const [activeTab, setActiveTab] = useState<string>("login");
+  const [, setLocation] = useLocation();
   const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState<string>("register");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [prices, setPrices] = useState<{ templates: number; chatbots: number } | null>(null);
-  const [selections, setSelections] = useState<{ planType: 'templates' | 'chatbots'; quantity: number }[]>([]);
+
+  // ==========================================
+  // 1. ESTADOS VISUALES (Lo que ve el usuario)
+  // ==========================================
+  const [selectedPlanUI, setSelectedPlanUI] = useState<'templates' | 'chatbots'>('templates');
+  const [numLocations, setNumLocations] = useState(1);
+  const [numDepartments, setNumDepartments] = useState(1);
+
+  // Lógica de Precios (Visual)
+  const PRICE_SMALL = 60;
+  const PRICE_PRO_BASE = 120;
+
+  const calculateTotal = () => {
+    if (selectedPlanUI === 'templates') return PRICE_SMALL;
+    const extraLocs = Math.max(0, numLocations - 1) * 30;
+    const extraDepts = Math.max(0, numDepartments - 1) * 15;
+    return PRICE_PRO_BASE + extraLocs + extraDepts;
+  };
 
   useEffect(() => {
     const url = new URL(window.location.href);
     const tabParam = url.searchParams.get("tab");
-    if (tabParam === "register") {
-      setActiveTab("register");
-    }
-  }, [location]);
-
-  useEffect(() => {
-    fetch('/api/prices')
-      .then(res => res.json())
-      .then(data => setPrices(data))
-      .catch(err => console.error(err));
+    if (tabParam === "login") setActiveTab("login");
+    if (tabParam === "register") setActiveTab("register");
   }, []);
 
   if (user) {
     setLocation("/dashboard");
     return null;
   }
+
+  // ==========================================
+  // 2. CONFIGURACIÓN DE FORMULARIOS
+  // ==========================================
 
   const loginForm = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
@@ -66,9 +71,35 @@ export default function AuthPage() {
       password: "",
       companyName: "",
       termsAccepted: false,
-      selections: [], // ✅ CAMBIADO
+      selections: [], 
     },
   });
+
+  // ==========================================
+  // 3. EL PUENTE (Visual -> Datos)
+  // ==========================================
+  useEffect(() => {
+    const backendPlanType = selectedPlanUI === 'templates' ? 'small' : 'pro';
+
+    const selectionData = {
+      planType: backendPlanType,
+      quantity: numLocations,
+      departments: numDepartments,
+      price: calculateTotal()
+    };
+
+    // Inyectar en el formulario silenciosamente
+    registerForm.setValue('selections', [selectionData as any], {
+      shouldValidate: true,
+      shouldDirty: true
+    });
+
+  }, [selectedPlanUI, numLocations, numDepartments, registerForm]);
+
+
+  // ==========================================
+  // 4. HANDLERS
+  // ==========================================
 
   const handleLogin = async (data: LoginData) => {
     try {
@@ -85,342 +116,285 @@ export default function AuthPage() {
   const handleRegister = async (data: RegisterData) => {
     try {
       setIsSubmitting(true);
-      const { url } = await register(data);
+      console.log("🚀 Enviando a backend:", data);
 
-      if (url) {
-        window.location.href = url;
+      const response = await register(data);
+
+      if (response && response.url) {
+        window.location.href = response.url; 
       } else {
-        setLocation("/plan");
+        alert("Error: No se recibió enlace de pago. Revisa la consola.");
       }
     } catch (err) {
-      console.error("Error durante el registro:", err);
+      console.error("❌ Error crítico:", err);
+      alert("Ocurrió un error al intentar registrarse.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // ✅ FUNCIONES AGREGADAS
-  const addSelection = (planType: 'templates' | 'chatbots') => {
-    const newSelections = [...selections];
-    const existing = newSelections.find(s => s.planType === planType);
-    
-    if (existing) {
-      existing.quantity += 1;
-    } else {
-      newSelections.push({ planType, quantity: 1 });
-    }
-    
-    setSelections(newSelections);
-    registerForm.setValue('selections', newSelections);
-  };
-
-  const removeSelection = (planType: 'templates' | 'chatbots') => {
-    const newSelections = selections.map(s => {
-      if (s.planType === planType && s.quantity > 0) {
-        return { ...s, quantity: s.quantity - 1 };
-      }
-      return s;
-    }).filter(s => s.quantity > 0);
-    
-    setSelections(newSelections);
-    registerForm.setValue('selections', newSelections);
-  };
-
-  const getQuantity = (planType: 'templates' | 'chatbots') => {
-    return selections.find(s => s.planType === planType)?.quantity || 0;
-  };
-
-  const getTotalPrice = () => {
-    if (!prices) return 0;
-    return selections.reduce((total, sel) => {
-      const price = sel.planType === 'templates' ? prices.templates : prices.chatbots;
-      return total + (price * sel.quantity);
-    }, 0);
+  // Función para mostrar errores si el botón no hace nada
+  const onFormError = (errors: any) => {
+    console.error("⛔ ERRORES DE VALIDACIÓN:", errors);
+    let mensaje = "Por favor completa los siguientes campos:\n";
+    if (errors.username) mensaje += "- Nombre completo\n";
+    if (errors.companyName) mensaje += "- Nombre de empresa\n";
+    if (errors.email) mensaje += "- Email válido\n";
+    if (errors.password) mensaje += "- Contraseña (mínimo 6 caracteres)\n";
+    if (errors.termsAccepted) mensaje += "- Debes aceptar los términos y condiciones\n";
+    alert(mensaje);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f8f7f4] p-4 relative">
-      <div className="absolute top-4 right-4">
+    <div className="min-h-screen bg-[#F9FAFB] font-sans text-[#1a1a1a]">
+      <div className="absolute top-6 right-6 z-50">
         <LanguageSelector />
-      </div> 
+      </div>
 
-      <Card className="w-full max-w-md shadow-sm bg-white rounded-3xl border-0">
-        <CardContent className="p-8">
-          <div className="flex flex-col items-center mb-6">
-            <div className="mb-3 cursor-pointer" onClick={() => setLocation("/")}>
-              <OfficialLogo width={220} />
+      <div className="max-w-7xl mx-auto px-4 py-12 lg:py-20">
+
+        {/* HEADER */}
+        <div className="text-center mb-16">
+          <div className="flex justify-center mb-6 cursor-pointer" onClick={() => setLocation("/")}>
+            <OfficialLogo width={220} />
+          </div>
+          <h1 className="text-4xl font-bold tracking-tight mb-4">{t("auth.register.tagline")}</h1>
+          <p className="text-gray-500 max-w-2xl mx-auto text-lg">
+            {t("hero.subtitle")}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+
+          {/* === IZQUIERDA: PAYWALL VISUAL === */}
+          <div className="lg:col-span-7 space-y-8">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-2xl font-bold">{t("auth.register.selectPlan")}</h2>
             </div>
-            <p className="text-[#333333] text-center mt-2">
-              {t("auth.register.tagline")}
-            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* PLAN SMALL */}
+              <div
+                onClick={() => {
+                  setSelectedPlanUI('templates');
+                  setNumLocations(1);
+                  setNumDepartments(1);
+                }}
+                className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${selectedPlanUI === 'templates'
+                  ? 'border-[#FF0000] bg-white shadow-xl ring-1 ring-red-100'
+                  : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div className={`p-3 rounded-xl ${selectedPlanUI === 'templates' ? 'bg-red-50 text-[#FF0000]' : 'bg-gray-100 text-gray-500'}`}>
+                    <Building2 size={24} />
+                  </div>
+                  <div className="text-right">
+                    <span className="block text-2xl font-bold">€{PRICE_SMALL}</span>
+                    <span className="text-xs text-gray-500">/mes</span>
+                  </div>
+                </div>
+                <h3 className="text-lg font-bold mb-2">Pequeña Empresa</h3>
+                <p className="text-sm text-gray-500 mb-6 min-h-[40px]">
+                  Ideal para negocios locales con una única sede.
+                </p>
+                <ul className="space-y-3">
+                  <li className="flex items-center text-sm"><Check size={16} className="text-green-500 mr-2 flex-shrink-0" /> 150 mensajes/mes</li>
+                  <li className="flex items-center text-sm"><Check size={16} className="text-green-500 mr-2 flex-shrink-0" /> 1 Localización</li>
+                  <li className="flex items-center text-sm"><Check size={16} className="text-green-500 mr-2 flex-shrink-0" /> 1 Departamento</li>
+                </ul>
+              </div>
+
+              {/* PLAN PRO */}
+              <div
+                onClick={() => setSelectedPlanUI('chatbots')}
+                className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${selectedPlanUI === 'chatbots'
+                  ? 'border-[#FF0000] bg-white shadow-xl ring-1 ring-red-100'
+                  : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+              >
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#FF0000] text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                  Recomendado
+                </div>
+                <div className="flex justify-between items-start mb-4 mt-2">
+                  <div className={`p-3 rounded-xl ${selectedPlanUI === 'chatbots' ? 'bg-red-50 text-[#FF0000]' : 'bg-gray-100 text-gray-500'}`}>
+                    <Rocket size={24} />
+                  </div>
+                  <div className="text-right">
+                    <span className="block text-2xl font-bold">€{PRICE_PRO_BASE}</span>
+                    <span className="text-xs text-gray-500">Base /mes</span>
+                  </div>
+                </div>
+                <h3 className="text-lg font-bold mb-2">UNMI Pro</h3>
+                <p className="text-sm text-gray-500 mb-6 min-h-[40px]">
+                  Escala sin límites con extras a medida.
+                </p>
+                <ul className="space-y-3">
+                  <li className="flex items-center text-sm"><Check size={16} className="text-green-500 mr-2 flex-shrink-0" /> 360 mensajes/mes</li>
+                  <li className="flex items-center text-sm"><Check size={16} className="text-green-500 mr-2 flex-shrink-0" /> Multi-Localización</li>
+                  <li className="flex items-center text-sm"><Check size={16} className="text-green-500 mr-2 flex-shrink-0" /> Multi-Departamento</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* OPCIONES DINÁMICAS */}
+            <div className={`transition-all duration-500 ease-in-out ${selectedPlanUI === 'chatbots' ? 'opacity-100 max-h-[500px]' : 'opacity-60 max-h-[120px] grayscale pointer-events-none'}`}>
+              <Card className="border-0 shadow-sm bg-gray-50/50 rounded-2xl">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 mb-6">
+                    <Info className="text-blue-500" size={18} />
+                    <h4 className="font-semibold text-gray-900">Personalización de Estructura</h4>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 block">{t("nav.locations")}</label>
+                      <Select
+                        value={numLocations.toString()}
+                        onValueChange={(v) => setNumLocations(Number(v))}
+                        disabled={selectedPlanUI !== 'chatbots'}
+                      >
+                        <SelectTrigger className="h-12 bg-white border-gray-200 rounded-xl"><SelectValue placeholder="1" /></SelectTrigger>
+                        <SelectContent>
+                          {[1, 2, 3, 4, 5, 10, 15].map(num => (
+                            <SelectItem key={num} value={num.toString()}>{num} {num === 1 ? 'Sede' : 'Sedes'}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedPlanUI === 'chatbots' && numLocations > 1 && <p className="text-xs text-green-600 font-medium">+{(numLocations - 1) * 30}€/mes extra</p>}
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 block">Departamentos</label>
+                      <Select
+                        value={numDepartments.toString()}
+                        onValueChange={(v) => setNumDepartments(Number(v))}
+                        disabled={selectedPlanUI !== 'chatbots'}
+                      >
+                        <SelectTrigger className="h-12 bg-white border-gray-200 rounded-xl"><SelectValue placeholder="1" /></SelectTrigger>
+                        <SelectContent>
+                          {[1, 2, 3, 4, 5].map(num => (
+                            <SelectItem key={num} value={num.toString()}>{num} {num === 1 ? 'Dept' : 'Depts'}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedPlanUI === 'chatbots' && numDepartments > 1 && <p className="text-xs text-green-600 font-medium">+{(numDepartments - 1) * 15}€/mes extra</p>}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-8">
-            <TabsList className="grid w-full grid-cols-2 mb-8 bg-gray-100 p-1 rounded-full">
-              <TabsTrigger
-                value="login"
-                className="rounded-full data-[state=active]:bg-white data-[state=active]:shadow-sm"
-              >
-                {t("auth.login.title")}
-              </TabsTrigger>
-              <TabsTrigger
-                value="register"
-                className="rounded-full data-[state=active]:bg-white data-[state=active]:shadow-sm"
-              >
-                {t("auth.register.title")}
-              </TabsTrigger>
-            </TabsList>
+          {/* === DERECHA: FORMULARIO === */}
+          <div className="lg:col-span-5 relative">
+            <div className="sticky top-8 space-y-4">
 
-            {/* LOGIN */}
-            <TabsContent value="login">
-              <Form {...loginForm}>
-                <form
-                  onSubmit={loginForm.handleSubmit(handleLogin)}
-                  className="space-y-6"
-                >
-                  <FormField
-                    control={loginForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[#333333] font-medium">
-                          {t("auth.login.email")}
-                        </FormLabel>
-                        <FormControl>
-                          <Input {...field} className="h-14 rounded-xl border-gray-200" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              <div className="bg-[#111111] text-white rounded-[2rem] p-8 shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF0000] opacity-10 rounded-full blur-3xl transform translate-x-10 -translate-y-10"></div>
 
-                  <FormField
-                    control={loginForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[#333333] font-medium">
-                          {t("auth.login.password")}
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            {...field}
-                            className="h-14 rounded-xl border-gray-200"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <div className="relative z-10">
+                  <p className="text-xs font-bold tracking-widest text-gray-400 uppercase mb-2">Resumen</p>
+                  <div className="flex justify-between items-end border-b border-gray-800 pb-6 mb-6">
+                    <div>
+                      <h3 className="text-xl font-bold">{selectedPlanUI === 'templates' ? 'Small Biz' : 'UNMI Pro'}</h3>
+                      <p className="text-sm text-gray-400 mt-1">
+                        {numLocations} {numLocations === 1 ? 'Sede' : 'Sedes'} • {numDepartments} {numDepartments === 1 ? 'Dept' : 'Depts'}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-4xl font-black tracking-tighter">€{calculateTotal()}</span>
+                    </div>
+                  </div>
 
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full h-14 rounded-full mt-6 bg-[#FF0000] hover:bg-[#D32F2F] text-white font-medium text-lg"
-                  >
-                    {isSubmitting
-                      ? t("auth.login.loading")
-                      : t("auth.login.submit")}
-                  </Button>
-                </form>
-              </Form>
-            </TabsContent>
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 bg-white/10 p-1 rounded-xl h-12 mb-6">
+                      <TabsTrigger value="register" className="rounded-lg data-[state=active]:bg-[#FF0000] data-[state=active]:text-white text-gray-300">{t("auth.register.title")}</TabsTrigger>
+                      <TabsTrigger value="login" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-black text-gray-300">{t("auth.login.title")}</TabsTrigger>
+                    </TabsList>
 
-            {/* REGISTER */}
-            <TabsContent value="register">
-              <Form {...registerForm}>
-                <form
-                  onSubmit={registerForm.handleSubmit(handleRegister)}
-                  className="space-y-6"
-                >
-                  <FormField
-                    control={registerForm.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[#333333] font-medium">
-                          {t("auth.register.fullName")}
-                        </FormLabel>
-                        <FormControl>
-                          <Input {...field} className="h-14 rounded-xl border-gray-200" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={registerForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[#333333] font-medium">
-                          {t("auth.register.email")}
-                        </FormLabel>
-                        <FormControl>
-                          <Input {...field} className="h-14 rounded-xl border-gray-200" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={registerForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[#333333] font-medium">
-                          {t("auth.register.password")}
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            {...field}
-                            className="h-14 rounded-xl border-gray-200"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={registerForm.control}
-                    name="companyName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[#333333] font-medium">
-                          {t("auth.register.companyName")}
-                        </FormLabel>
-                        <FormControl>
-                          <Input {...field} className="h-14 rounded-xl border-gray-200" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* ✅ SECCIÓN DE SELECCIÓN DE PLANES REEMPLAZADA */}
-                  <FormField
-                    control={registerForm.control}
-                    name="selections"
-                    render={() => (
-                      <FormItem>
-                        <FormLabel className="mb-2">{t("auth.register.selectPlan")}</FormLabel>
-                        <div className="flex flex-col space-y-4 mt-2">
-                          {['templates', 'chatbots'].map(plan => {
-                            const planType = plan as 'templates' | 'chatbots';
-                            const quantity = getQuantity(planType);
-                            const price = prices?.[planType] ?? 0;
-                            
-                            return (
-                              <div key={plan} className="border rounded-xl p-4 bg-white hover:border-[#e73623] transition-colors">
-                                <div className="flex justify-between items-center mb-3">
-                                  <span className="font-semibold text-gray-800 capitalize">{plan}</span>
-                                  <span className="text-sm text-gray-600">€{price}/mes</span>
-                                </div>
-                                
-                                <div className="flex items-center justify-between">
-                                  <button
-                                    type="button"
-                                    onClick={() => removeSelection(planType)}
-                                    disabled={quantity === 0}
-                                    className="w-10 h-10 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center font-bold text-xl"
-                                  >
-                                    −
-                                  </button>
-                                  
-                                  <div className="text-center">
-                                    <div className="text-2xl font-bold text-[#e73623]">{quantity}</div>
-                                    <div className="text-xs text-gray-500">
-                                      {quantity === 1 ? t("auth.register.location") : t("auth.register.locations")}
-                                    </div>
-                                  </div>
-                                  
-                                  <button
-                                    type="button"
-                                    onClick={() => addSelection(planType)}
-                                    className="w-10 h-10 rounded-full bg-[#e73623] text-white hover:bg-[#d32f2f] flex items-center justify-center font-bold text-xl"
-                                  >
-                                    +
-                                  </button>
-                                </div>
-                                
-                                {quantity > 0 && (
-                                  <div className="mt-3 pt-3 border-t text-center">
-                                    <span className="text-sm text-gray-600">Subtotal: </span>
-                                    <span className="font-semibold text-[#e73623]">€{(price * quantity).toFixed(2)}/mes</span>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                        
-                        {selections.length === 0 && (
-                          <p className="text-sm text-red-600 mt-2">{t("auth.register.planRequired")}</p>
-                        )}
-                        
-                        {selections.length > 0 && (
-                          <div className="mt-4 p-4 bg-gray-50 rounded-xl border-2 border-[#e73623]">
-                            <div className="flex justify-between items-center">
-                              <span className="font-semibold text-gray-700">Total:</span>
-                              <span className="text-2xl font-bold text-[#e73623]">
-                                €{getTotalPrice().toFixed(2)}/mes
-                              </span>
-                            </div>
+                    {/* FORMULARIO DE REGISTRO - RESTAURADO */}
+                    <TabsContent value="register">
+                      <Form {...registerForm}>
+                        <form
+                          onSubmit={registerForm.handleSubmit(handleRegister, onFormError)}
+                          className="space-y-4"
+                        >
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField control={registerForm.control} name="username" render={({ field }) => (
+                              <FormItem><FormControl><Input placeholder={t("auth.register.fullName")} {...field} className="bg-white/5 border-gray-700 text-white placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={registerForm.control} name="companyName" render={({ field }) => (
+                              <FormItem><FormControl><Input placeholder={t("auth.register.companyName")} {...field} className="bg-white/5 border-gray-700 text-white placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
+                            )} />
                           </div>
-                        )}
-                        
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          <FormField control={registerForm.control} name="email" render={({ field }) => (
+                            <FormItem><FormControl><Input placeholder={t("auth.register.email")} {...field} className="bg-white/5 border-gray-700 text-white placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
+                          )} />
+                          <FormField control={registerForm.control} name="password" render={({ field }) => (
+                            <FormItem><FormControl><Input type="password" placeholder={t("auth.register.password")} {...field} className="bg-white/5 border-gray-700 text-white placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
+                          )} />
 
-                  <FormField
-                    control={registerForm.control}
-                    name="termsAccepted"
-                    render={({ field }) => (
-                      <FormItem className="flex items-start space-x-2">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={(checked) =>
-                              field.onChange(checked === true)
-                            }
-                          />
-                        </FormControl>
-                        <FormLabel className="text-sm">
-                          {t("auth.register.terms")}
-                          {" "}
-                          <a href="/terms" className="underline">
-                            {t("auth.register.termsLink")}
-                          </a>{" "}
-                          {t("auth.register.andThe")}{" "}
-                          <a href="/privacy" className="underline">
-                            {t("auth.register.privacy")}
-                          </a>
-                        </FormLabel>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          <FormField control={registerForm.control} name="termsAccepted" render={({ field }) => (
+                            <FormItem className="flex items-start space-x-2 pt-2">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  className="border-gray-500 data-[state=checked]:bg-[#FF0000] data-[state=checked]:border-[#FF0000]"
+                                />
+                              </FormControl>
+                              <FormLabel className="text-xs text-gray-400 font-normal leading-tight">
+                                {t("auth.register.terms")} <a href="#" className="underline hover:text-white">{t("auth.register.termsLink")}</a>
+                              </FormLabel>
+                            </FormItem>
+                          )} />
 
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting || selections.length === 0}
-                    className="w-full h-14 rounded-full mt-6 bg-[#FF0000] hover:bg-[#D32F2F] text-white font-medium text-lg disabled:opacity-50"
-                  >
-                    {isSubmitting ? t("auth.register.registering") : t("auth.register.title")}
-                  </Button>
-                </form>
-              </Form>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+                          <Button type="submit" disabled={isSubmitting} className="w-full h-14 bg-[#FF0000] hover:bg-[#cc0000] text-white rounded-xl text-lg font-bold mt-2 shadow-lg group">
+                            {isSubmitting ? (
+                              <span className="flex items-center gap-2"><Loader2 className="animate-spin" /> Procesando...</span>
+                            ) : (
+                              <span className="flex items-center">
+                                Pagar y Comenzar <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={20} />
+                              </span>
+                            )}
+                          </Button>
+                        </form>
+                      </Form>
+                    </TabsContent>
+
+                    {/* FORMULARIO DE LOGIN */}
+                    <TabsContent value="login">
+                      <Form {...loginForm}>
+                        <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
+                          <FormField control={loginForm.control} name="email" render={({ field }) => (
+                            <FormItem><FormControl><Input placeholder={t("auth.login.email")} {...field} className="bg-white/5 border-gray-700 text-white placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
+                          )} />
+                          <FormField control={loginForm.control} name="password" render={({ field }) => (
+                            <FormItem><FormControl><Input type="password" placeholder={t("auth.login.password")} {...field} className="bg-white/5 border-gray-700 text-white placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
+                          )} />
+                          <Button type="submit" disabled={isSubmitting} className="w-full h-14 bg-white text-black hover:bg-gray-200 rounded-xl text-lg font-bold mt-6">
+                            {isSubmitting ? t("auth.login.loading") : t("auth.login.submit")}
+                          </Button>
+                        </form>
+                      </Form>
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              </div>
+
+              <div className="flex justify-center items-center gap-4 text-xs text-gray-400 mt-4">
+                <span className="flex items-center"><ShieldCheck size={14} className="mr-1 text-green-500" /> SSL Secure</span>
+                <span className="flex items-center"><Check size={14} className="mr-1 text-green-500" /> Stripe Verified</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <footer className="mt-24 border-t border-gray-200 pt-10 pb-6 text-center text-xs text-gray-400">
+          © 2026 UNMI Technologies SL. Todos los derechos reservados.
+        </footer>
+      </div>
     </div>
   );
 }

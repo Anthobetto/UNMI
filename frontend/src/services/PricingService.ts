@@ -1,17 +1,24 @@
-/**
- * PricingService - Frontend wrapper for dynamic pricing
- * Mirrors backend PricingCalculator for client-side previews
- */
+export type PlanType = 'small' | 'pro';
 
 export interface PricingTier {
-  id: 'templetes' | 'chatbots';
+  id: PlanType;
   name: string;
   basePrice: number;
-  messageRate: number;
-  dailyMessageCap: number;
-  minMessages: number;
+  
+  // Mensajería
+  includedMessages: number; 
+  maxMessages: number;   
+  
+  // Infraestructura
+  includedLocations: number;
+  extraLocationPrice: number;
+  maxLocations: number;
+  
+  includedDepartments: number;
+  extraDepartmentPrice: number;
+  maxDepartments: number;
+
   features: string[];
-  locationMultiplier: number;
   popular?: boolean;
 }
 
@@ -19,126 +26,130 @@ export interface PricingCalculation {
   tier: PricingTier;
   dailyMessages: number;
   locations: number;
+  departments: number;
+  
   basePrice: number;
-  messagesCost: number;
-  locationDiscount: number;
+  locationsCost: number;
+  departmentsCost: number;
+  
   totalMonthly: number;
   totalYearly: number;
-  savingsVsHigherTier?: number;
 }
 
+/**
+ * B2B SaaS Pricing Tiers
+ * Updated to match Business Logic: Small (60€) vs Pro (120€)
+ */
 export const PRICING_TIERS: PricingTier[] = [
   {
-    id: 'templetes',
-    name: 'templetes',
+    id: 'small',
+    name: 'Pequeña Empresa',
     basePrice: 60,
-    messageRate: 0.15,
-    dailyMessageCap: 10,
-    minMessages: 1,
+    includedMessages: 5,   
+    maxMessages: 5,       
+    
+    includedLocations: 1,
+    extraLocationPrice: 0, // No permite extras
+    maxLocations: 1,
+    
+    includedDepartments: 1,
+    extraDepartmentPrice: 0, // No permite extras
+    maxDepartments: 1,
+
     features: [
-      'Up to 10 daily WhatsApp messages',
-      '1 location included',
-      'Basic call routing',
-      'Email support',
-      'Basic analytics',
+      '150 mensajes WhatsApp/mes',
+      '1 Localización incluida',
+      '1 Departamento incluido',
+      'Soporte por Email',
+      'Analítica Básica',
     ],
-    locationMultiplier: 1.0,
   },
   {
-    id: 'chatbots',
-    name: 'chatbots',
+    id: 'pro',
+    name: 'UNMI Pro',
     basePrice: 120,
-    messageRate: 0.10,
-    dailyMessageCap: 30,
-    minMessages: 1,
+    includedMessages: 12, 
+    maxMessages: 100,     
+    
+    includedLocations: 1,
+    extraLocationPrice: 30,
+    maxLocations: 20,
+    
+    includedDepartments: 1,
+    extraDepartmentPrice: 15, 
+    maxDepartments: 10,
+
     features: [
-      'Up to 30 daily WhatsApp messages',
-      'Up to 5 locations',
-      'Advanced call routing',
-      'Priority support',
-      'Advanced analytics',
-      'Multi-location dashboard',
+      '360 mensajes WhatsApp/mes',
+      'Multi-localización (+30€/ud)',
+      'Multi-departamento (+15€/ud)',
+      'Enrutamiento Avanzado',
+      'Soporte Prioritario',
+      'Dashboard Multi-sede',
     ],
-    locationMultiplier: 0.85,
     popular: true,
-  }
+  },
 ];
 
-export class PricingService {
+export class PricingCalculator {
+
   calculateMonthly(
-    tierId: 'templetes' | 'chatbots',
-    dailyMessages: number,
-    locations: number = 1
+    tierId: PlanType,
+    dailyMessages: number, 
+    locations: number = 1,
+    departments: number = 1
   ): PricingCalculation {
     const tier = PRICING_TIERS.find(t => t.id === tierId);
-    if (!tier) throw new Error(`Invalid tier ID: ${tierId}`);
+    if (!tier) {
+      throw new Error(`Invalid tier ID: ${tierId}`);
+    }
 
-    dailyMessages = Math.max(tier.minMessages, Math.min(dailyMessages, tier.dailyMessageCap));
-    locations = Math.max(1, locations);
+    const validLocations = Math.max(1, Math.min(locations, tier.maxLocations));
+    const validDepartments = Math.max(1, Math.min(departments, tier.maxDepartments));
 
     const basePrice = tier.basePrice;
-    const monthlyMessages = dailyMessages * 30;
-    const messagesCost = monthlyMessages * tier.messageRate;
 
-    let locationMultiplier = 1.0;
-    if (locations > 1) locationMultiplier = 1 + ((locations - 1) * tier.locationMultiplier);
+    const extraLocationsCount = Math.max(0, validLocations - tier.includedLocations);
+    const locationsCost = extraLocationsCount * tier.extraLocationPrice;
 
-    const subtotal = (basePrice + messagesCost) * locationMultiplier;
-    const locationDiscount = (basePrice + messagesCost) * locations - subtotal;
-    const totalMonthly = subtotal;
-    const totalYearly = totalMonthly * 12 * 0.9;
+    const extraDepartmentsCount = Math.max(0, validDepartments - tier.includedDepartments);
+    const departmentsCost = extraDepartmentsCount * tier.extraDepartmentPrice;
+
+    const totalMonthly = basePrice + locationsCost + departmentsCost;
+    const totalYearly = totalMonthly * 12 * 0.90; 
 
     return {
       tier,
-      dailyMessages,
-      locations,
+      dailyMessages: tier.includedMessages,
+      locations: validLocations,
+      departments: validDepartments,
       basePrice,
-      messagesCost: Math.round(messagesCost * 100) / 100,
-      locationDiscount: Math.round(locationDiscount * 100) / 100,
+      locationsCost,
+      departmentsCost,
       totalMonthly: Math.round(totalMonthly * 100) / 100,
       totalYearly: Math.round(totalYearly * 100) / 100,
     };
   }
 
-  // Alias para que tu código siga usando "calculatePrice"
-  calculatePrice(
-    tierId: 'templetes' | 'chatbots',
-    dailyMessages: number,
-    locations: number = 1
-  ) {
-    return this.calculateMonthly(tierId, dailyMessages, locations);
+  calculatePrice(tierId: PlanType, dailyMessages: number, locations: number, departments: number = 1) {
+    return this.calculateMonthly(tierId, dailyMessages, locations, departments);
   }
 
-  recommendTier(dailyMessages: number, locations: number): PricingTier {
-    if (dailyMessages <= 10 && locations <= 1) return PRICING_TIERS[0];
-    if (dailyMessages <= 30 && locations <= 5) return PRICING_TIERS[1];
-    return PRICING_TIERS[2];
+  /**
+   * Recomienda un plan basado en las necesidades del usuario
+   */
+  recommendTier(locations: number, departments: number): PricingTier {
+    if (locations > 1 || departments > 1) {
+      return PRICING_TIERS[1]; // Pro
+    }
+    return PRICING_TIERS[0]; // Small
   }
 
-  compareAllTiers(dailyMessages: number, locations: number): PricingCalculation[] {
-    return PRICING_TIERS.map(tier => this.calculateMonthly(tier.id, dailyMessages, locations));
-  }
-
-  calculateBundleDiscount(
-    tierId: 'templetes' | 'chatbots',
-    dailyMessages: number,
-    currentLocations: number,
-    additionalLocations: number
-  ) {
-    const current = this.calculateMonthly(tierId, dailyMessages, currentLocations);
-    const withAdditional = this.calculateMonthly(tierId, dailyMessages, currentLocations + additionalLocations);
-
-    const linearPrice = current.totalMonthly * (currentLocations + additionalLocations) / currentLocations;
-    const discount = linearPrice - withAdditional.totalMonthly;
-    const percentSaved = (discount / linearPrice) * 100;
-
-    return {
-      currentPrice: current.totalMonthly,
-      newPrice: withAdditional.totalMonthly,
-      discount: Math.round(discount * 100) / 100,
-      percentSaved: Math.round(percentSaved * 10) / 10,
-    };
+  compareAllTiers(locations: number, departments: number): PricingCalculation[] {
+    return PRICING_TIERS.map(tier => 
+      this.calculateMonthly(tier.id, tier.includedMessages, locations, departments)
+    );
   }
 }
 
-export const pricingService = new PricingService();
+export const pricingService = new PricingCalculator();

@@ -172,9 +172,8 @@ export default function LandingPage(): JSX.Element {
   return (
     <div className="flex flex-col items-center justify-center min-h-[100dvh]">
       <header
-        className={`sticky top-0 z-50 w-full backdrop-blur-lg transition-all duration-300 ${
-          isScrolled ? "bg-background/80 shadow-sm" : "bg-transparent"
-        }`}
+        className={`sticky top-0 z-50 w-full backdrop-blur-lg transition-all duration-300 ${isScrolled ? "bg-background/80 shadow-sm" : "bg-transparent"
+          }`}
       >
         <div className="container flex h-16 items-center justify-between">
           {/* Logo */}
@@ -446,23 +445,39 @@ export default function LandingPage(): JSX.Element {
 
         {/* Resto de secciones del landing original... (se mantuvieron fuera por brevedad) */}
       </main>
-      <footer className="mt-auto w-full border-t bg-background/95 backdrop-blur-sm">
-        <div className="container flex flex-col items-center gap-8 px-4 py-10 md:px-6 lg:py-16">
-          <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4 justify-items-center">
-            <div className="space-y-4">
-              <div className="flex gap-4 items-center justify-items-center font-bold">
-                <OfficialLogo width={110} />
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {t("footer.text", "Transform your business communication with our all-in-one platform.")}
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-col gap-4 sm:flex-row justify-between items-center border-t border-border/40 pt-8 w-full">
-            <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} Unmi. {t("footer.rights", "All rights reserved.")}</p>
-          </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+        <div>
+          <h5 className="font-bold text-gray-900 mb-4">UNMI Technologies</h5>
+          <p className="text-sm text-gray-500">Transformando la comunicación empresarial con automatización inteligente.</p>
         </div>
-      </footer>
+        <div>
+          <h5 className="font-bold text-gray-900 mb-4">Legal</h5>
+          <ul className="space-y-2 text-sm text-gray-500">
+            <li><a href="#" className="hover:text-[#FF0000]">Términos de Servicio</a></li>
+            <li><a href="#" className="hover:text-[#FF0000]">Política de Privacidad</a></li>
+            <li><a href="#" className="hover:text-[#FF0000]">Cookies</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5 className="font-bold text-gray-900 mb-4">Producto</h5>
+          <ul className="space-y-2 text-sm text-gray-500">
+            <li><a href="#" className="hover:text-[#FF0000]">{t("nav.chatbots")}</a></li>
+            <li><a href="#" className="hover:text-[#FF0000]">{t("nav.templates")}</a></li>
+            <li><a href="#" className="hover:text-[#FF0000]">Integraciones</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5 className="font-bold text-gray-900 mb-4">Soporte</h5>
+          <ul className="space-y-2 text-sm text-gray-500">
+            <li><a href="#" className="hover:text-[#FF0000]">Centro de Ayuda</a></li>
+            <li><a href="#" className="hover:text-[#FF0000]">Estado del Servicio</a></li>
+            <li><a href="#" className="hover:text-[#FF0000]">Contactar Ventas</a></li>
+          </ul>
+        </div>
+      </div>
+      <div className="text-center text-xs text-gray-400 border-t border-gray-100 pt-6">
+        © 2026 UNMI Technologies SL. Todos los derechos reservados. Madrid, España.
+      </div>
     </div>
   );
 }

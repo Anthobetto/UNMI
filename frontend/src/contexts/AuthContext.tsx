@@ -3,12 +3,13 @@
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { z } from 'zod';
 
-// --- Tipos base (pueden venir del shared/schema o definirse aquí) ---
+// --- Tipos base ---
 export interface User {
   id: string;
   username: string;
   email: string;
-  planType: 'templates' | 'chatbots' | null;
+  // ✅ ACTUALIZADO: Aceptamos small/pro sin romper lo anterior
+  planType: 'small' | 'pro' | 'templates' | 'chatbots' | null;
   companyName?: string;
   purchasedLocations?: any[]; 
   credits?: Record<string, number>;
@@ -22,6 +23,7 @@ export const loginSchema = z.object({
 
 export type LoginData = z.infer<typeof loginSchema>;
 
+// ✅ AQUÍ ESTÁ EL ÚNICO CAMBIO NECESARIO:
 export const registerSchema = z.object({
   username: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
   email: z.string().email('Email inválido'),
@@ -31,8 +33,12 @@ export const registerSchema = z.object({
     message: "Debes aceptar los términos y condiciones",
   }),
   selections: z.array(z.object({
-    planType: z.enum(['templates', 'chatbots']),
-    quantity: z.number().min(1).max(10),
+    // 👇 Aceptamos 'small' y 'pro' explícitamente
+    planType: z.enum(['small', 'pro', 'templates', 'chatbots']),
+    quantity: z.number().min(1),
+    // 👇 Hacemos opcionales estos campos para que no fallen si vienen o no
+    departments: z.number().optional(),
+    price: z.number().optional()
   })).min(1, 'Debes seleccionar al menos un plan'),
 });
 
@@ -47,7 +53,7 @@ interface AuthContextType {
   login: (credentials: LoginData) => Promise<void>;
   register: (data: RegisterData) => Promise<{ url: string }>;
   logout: () => Promise<void>;
-  updateUserPlan: (planType: 'templates' | 'chatbots') => Promise<void>;
+  updateUserPlan: (planType: 'templates' | 'chatbots' | 'small' | 'pro') => Promise<void>;
   hasAccessToSection: (section: string) => boolean;
   refreshUser: () => Promise<void>;
 }
@@ -86,6 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(data.user);
     } catch (err) {
       console.error('Auth init error:', err);
+      // Mantenemos tu lógica original de errores
       setError('Failed to initialize authentication');
       localStorage.removeItem('accessToken');
       setUser(null);
@@ -137,6 +144,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setError(null);
       setIsLoading(true);
 
+      console.log("🚀 Enviando registro:", data); // Log para verificar que llega 'small'
+
+      // Validamos con el schema actualizado que YA acepta 'small'
       const parsed = registerSchema.parse(data);
 
       const response = await fetch('/api/register', {
@@ -146,6 +156,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (!response.ok) {
+        // Manejo de error si devuelve HTML (por si acaso)
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") === -1) {
+             throw new Error("Error de conexión: El servidor no devolvió JSON.");
+        }
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || 'Registration failed');
       }
@@ -154,6 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { url: result.url };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Registration failed';
+      console.error("❌ Error en registro:", message);
       setError(message);
       throw new Error(message);
     } finally {
@@ -173,7 +189,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateUserPlan = async (planType: 'templates' | 'chatbots') => {
+  // ✅ Actualizado tipado aquí también
+  const updateUserPlan = async (planType: 'templates' | 'chatbots' | 'small' | 'pro') => {
     if (!user) throw new Error('No user logged in');
     const token = localStorage.getItem('accessToken');
 
@@ -187,6 +204,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (!response.ok) throw new Error('Failed to update plan');
+    // @ts-ignore - Forzamos actualización local
     setUser((prev) => (prev ? { ...prev, planType } : null));
   };
 
@@ -196,11 +214,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (commonSections.includes(section)) return true;
 
     const accessRules: Record<string, string[]> = {
+      // ✅ Compatibilidad total (antiguo + nuevo)
       templates: ['templates', 'rentabilidad', 'telefonia'],
+      small:     ['templates', 'rentabilidad', 'telefonia'],
+      
       chatbots: ['chatbots', 'rentabilidad', 'telefonia'],
+      pro:      ['chatbots', 'rentabilidad', 'telefonia'],
     };
 
-    const plan = user.planType || 'templates';
+    const plan = user.planType || 'small';
     return accessRules[plan]?.includes(section) ?? false;
   };
 
