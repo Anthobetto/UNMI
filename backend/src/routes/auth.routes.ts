@@ -16,50 +16,67 @@ const router = Router();
 // ==========================================
 // POST /api/register - Registro con Paywall
 // ==========================================
-router.post(
-  '/register',
-  asyncHandler(async (req, res) => {
-    // 1. Validar con el nuevo schema (ya acepta 'small'/'pro')
-    const validation = registerSchema.safeParse(req.body);
-    
-    if (!validation.success) {
-      // Tip: Devolver el error exacto de Zod ayuda mucho al frontend
-      console.error("Validation error:", validation.error);
-      throw new ValidationError('Datos de registro inválidos');
+router.post('/register', async (req, res) => {
+  try {
+    const { email, password, username, companyName, selections } = req.body;
+
+    console.log(`📝 Registrando usuario: ${email}`);
+
+    // 1. Crear usuario en Supabase Auth (Con la contraseña elegida)
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email,
+      password, // ✅ AQUÍ USAMOS LA CONTRASEÑA DEL USUARIO
+      email_confirm: true,
+      user_metadata: { username, company_name: companyName }
+    });
+
+    if (authError) {
+      console.error("❌ Error creando usuario Auth:", authError);
+      return res.status(400).json({ message: authError.message });
     }
 
-    const { username, email, password, companyName, selections, termsAccepted } = validation.data;
+    const userId = authData.user.id;
 
-    if (!termsAccepted) {
-      throw new ValidationError('Debes aceptar los términos y condiciones');
+    // 2. Crear perfil en tabla pública 'users' (Estado: Inactive, esperando pago)
+    // Usamos upsert por si el usuario se creó a medias antes
+    const { error: dbError } = await supabase.from('users').upsert({
+      auth_id: userId,
+      email,
+      username,
+      company_name: companyName,
+      terms_accepted: true,
+      plan_type: selections[0].planType,
+      subscription_status: 'inactive' // Importante: inactivo hasta que pague
+    });
+
+    if (dbError) {
+      console.error("❌ Error DB Users:", dbError);
+      // No detenemos el proceso, pero logueamos el error
     }
 
-    const tempUserId = crypto.randomUUID();
-
-    // 2. Llamar a Stripe. 
-    // Como actualizamos StripeService y el Schema, los tipos ahora coinciden ('small' | 'pro').
+    // 3. Crear sesión de pago en Stripe
+    // Pasamos el userId en metadata para que el Webhook sepa a quién activar
     const session = await stripeService.createCheckoutSessionCustom({
       email,
-      userId: tempUserId,
-      selections: selections as any, // Cast seguro porque schema y servicio están sincronizados
+      userId: userId, // ✅ CLAVE: Pasamos el ID del usuario que acabamos de crear
+      selections: selections,
       metadata: {
         username,
-        companyName,
-        // No enviamos password en metadata por seguridad, se gestiona tras el webhook
-        selections: JSON.stringify(selections),
-        type: 'registration',
+        companyName
       },
-      successUrl: `${process.env.FRONTEND_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}&success=true`,
-      cancelUrl: `${process.env.FRONTEND_URL}/pricing?canceled=true`,
+      // Al volver, redirigimos al login o dashboard
+      successUrl: `${process.env.FRONTEND_URL}/login?registered=true`,
+      cancelUrl: `${process.env.FRONTEND_URL}/register?canceled=true`
     });
 
-    res.status(200).json({
-      url: session.url,
-      tempUserId,
-      sessionId: session.id,
-    });
-  })
-);
+    // 4. Devolvemos la URL de Stripe al frontend
+    res.json({ url: session.url });
+
+  } catch (error: any) {
+    console.error('❌ Error en registro:', error);
+    res.status(500).json({ message: 'Error interno en registro' });
+  }
+});
 
 // ==========================================
 // POST /api/login - Inicio de sesión

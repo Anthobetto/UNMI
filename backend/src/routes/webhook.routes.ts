@@ -92,16 +92,15 @@ router.post('/stripe', async (req: Request, res: Response) => {
 
 async function handleCheckoutCompleted(event: Stripe.Event) {
   const session = event.data.object as Stripe.Checkout.Session;
+  const metadata = session.metadata || {};
   
   // Datos básicos
   const email = session.customer_details?.email || session.customer_email;
-  if (!email) throw new Error('No email found in checkout session');
+  const authUserId = metadata.userId; // Este ID viene del registro previo
 
-  const metadata = session.metadata || {};
-  
-  console.log(`💰 Procesando Checkout para: ${email}`);
+  console.log(`💰 Procesando Checkout para: ${email} (Auth ID: ${authUserId})`);
 
-  // Parsear selecciones
+  // 1. Parsear selecciones (Qué compró)
   let selections: any[] = [];
   try {
     if (metadata.selections) {
@@ -114,114 +113,66 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
       }];
     }
   } catch (e) {
-    console.error("Error parseando selections, usando defaults:", e);
+    console.error("⚠️ Error parseando selections, usando defaults:", e);
     selections = [{ planType: 'small', quantity: 1, departments: 1 }];
   }
 
-  // 1. GESTIÓN DE USUARIO (AUTH)
-  let authUser;
+
+  let userQuery = supabase.from('users').select('*');
   
-  // A) Buscar si ya existe en Supabase Auth
-  const { data: existingAuthUsers } = await supabase.auth.admin.listUsers();
-  authUser = existingAuthUsers.users.find(u => u.email === email);
-
-  // B) Si no existe, LO CREAMOS
-  if (!authUser) {
-    console.log(`👤 Usuario ${email} no existe. Creando cuenta automática...`);
-    
-    // Si viene password en metadata (inseguro pero posible), úsala. 
-    // Si no, genera una aleatoria segura.
-    const password = metadata.password || crypto.randomBytes(16).toString('hex');
-    
-    const { data: newAuthUser, error: createError } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: { 
-        full_name: metadata.username || email.split('@')[0],
-        company_name: metadata.companyName || 'Sin Empresa'
-      }
-    });
-
-    if (createError) {
-      console.error("❌ Error creando usuario Auth:", createError);
-      throw createError;
-    }
-    
-    authUser = newAuthUser.user;
-    console.log(`✨ Usuario creado exitosamente (ID: ${authUser?.id}). Password generada: ${metadata.password ? 'User provided' : 'Random generated'}`);
-  }
-
-  if (!authUser) throw new Error('Could not obtain auth user');
-
-  // 2. GESTIÓN DE USUARIO (DB PÚBLICA)
-  const { data: existingUser } = await supabase
-      .from('users')
-      .select('*')
-      .eq('auth_id', authUser.id)
-      .single();
-
-  let userRecord = existingUser;
-
-  // Si no existe el registro en la tabla pública, lo creamos
-  if (!userRecord) {
-    console.log("📝 Creando registro de perfil público en 'users'...");
-    const newUserProfile = {
-      auth_id: authUser.id,
-      username: metadata.username || email.split('@')[0],
-      email: email,
-      company_name: metadata.companyName || 'Sin Empresa', // Ojo: en DB es company_name (snake_case)
-      terms_accepted: true,
-      subscription_status: 'active',
-      plan_type: selections[0].planType,
-      stripe_customer_id: session.customer as string
-    };
-
-    const { data: insertedUser, error: insertError } = await supabase
-      .from('users')
-      .insert(newUserProfile)
-      .select()
-      .single();
-
-    if (insertError) {
-      console.error("❌ Error insertando en tabla users:", insertError);
-      // Intentamos recuperar si falló por duplicado
-      const { data: retryUser } = await supabase.from('users').select('*').eq('email', email).single();
-      userRecord = retryUser;
-    } else {
-      userRecord = insertedUser;
-    }
+  if (authUserId) {
+    userQuery = userQuery.eq('auth_id', authUserId);
+  } else if (email) {
+    console.warn("⚠️ No vino userId en metadatos, buscando por email...");
+    userQuery = userQuery.eq('email', email);
   } else {
-    // Si ya existía, actualizamos el plan
-    console.log("🔄 Actualizando usuario existente...");
-    await supabase.from('users').update({
-      plan_type: selections[0].planType,
-      subscription_status: 'active',
-      stripe_customer_id: session.customer as string
-    }).eq('id', userRecord.id);
+    throw new Error('No se puede identificar al usuario (Falta userId y email)');
   }
 
-  // 3. REGISTRAR COMPRAS (LOCATIONS)
-  if (userRecord) {
-    console.log("🏗️ Registrando localizaciones compradas...");
-    for (const sel of selections) {
-       const { error: purchaseError } = await supabase
-         .from('purchased_locations')
-         .insert({
-           user_id: userRecord.id,
-           plan_type: sel.planType,
-           quantity: sel.quantity,
-           departments_count: sel.departments || 1,
-           stripe_session_id: session.id,
-           status: 'active'
-           // created_at es automático
-         });
-       
-       if (purchaseError) console.error("❌ Error guardando purchased_locations:", purchaseError);
-    }
+  const { data: userRecord, error: fetchError } = await userQuery.single();
+
+  if (fetchError || !userRecord) {
+    console.error("❌ CRÍTICO: El usuario pagó pero no existe en la base de datos.", fetchError);
+
+    throw new Error('Usuario no encontrado para activación');
   }
 
-  console.log('🎉 Checkout completado y procesado exitosamente.');
+  console.log(`✅ Usuario encontrado (ID Público: ${userRecord.id}). Activando cuenta...`);
+
+  const { error: updateError } = await supabase
+    .from('users')
+    .update({
+      subscription_status: 'active',        
+      stripe_customer_id: session.customer as string,
+      plan_type: selections[0].planType,    
+    })
+    .eq('id', userRecord.id);
+
+  if (updateError) {
+    console.error("❌ Error activando usuario:", updateError);
+    throw updateError;
+  }
+
+  console.log("🏗️ Registrando items comprados...");
+  
+  for (const sel of selections) {
+     const { error: purchaseError } = await supabase
+       .from('purchased_locations')
+       .insert({
+         user_id: userRecord.id, 
+         plan_type: sel.planType,
+         quantity: sel.quantity,
+         departments_count: sel.departments || 1,
+         stripe_session_id: session.id,
+         status: 'active'
+       });
+     
+     if (purchaseError) {
+       console.error("❌ Error guardando purchased_locations:", purchaseError);
+     }
+  }
+
+  console.log('🎉 Cuenta activada y compra registrada exitosamente.');
 }
 
 async function handlePaymentSucceeded(event: Stripe.Event) {
@@ -232,27 +183,22 @@ async function handlePaymentSucceeded(event: Stripe.Event) {
 async function handlePaymentFailed(event: Stripe.Event) {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
   console.error('❌ Pago fallido:', paymentIntent.id);
-  // Aquí podrías enviar un email de aviso o desactivar servicios temporalmente
 }
 
 async function handleSubscriptionCreated(event: Stripe.Event) {
   const subscription = event.data.object as Stripe.Subscription;
   console.log('✅ Suscripción creada:', subscription.id);
-  // Lógica adicional si necesitas guardar el ID de suscripción en la tabla users
 }
 
 async function handleSubscriptionUpdated(event: Stripe.Event) {
   const subscription = event.data.object as Stripe.Subscription;
   console.log('📝 Suscripción actualizada:', subscription.id);
-  // Verificar si está activa, impagada, o cancelada
   const status = subscription.status;
-  // Actualizar DB según estado
 }
 
 async function handleSubscriptionDeleted(event: Stripe.Event) {
   const subscription = event.data.object as Stripe.Subscription;
   console.log('❌ Suscripción cancelada:', subscription.id);
-  // Buscar usuario por stripe_customer_id y poner status 'inactive'
 }
 
 
