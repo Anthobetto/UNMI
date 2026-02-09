@@ -7,6 +7,7 @@ import { supabase } from '../config/database'; // Asegúrate de que exportas 'su
 import { supabaseService } from '../services/SupabaseService';
 import { stripeService } from '../services/StripeService';
 import { asyncHandler, ValidationError } from '../middleware/errorHandler';
+import crypto from 'crypto'; 
 
 const router = Router();
 
@@ -91,109 +92,132 @@ router.post('/stripe', async (req: Request, res: Response) => {
 
 async function handleCheckoutCompleted(event: Stripe.Event) {
   const session = event.data.object as Stripe.Checkout.Session;
-
+  
   // Datos básicos
   const email = session.customer_details?.email || session.customer_email;
   if (!email) throw new Error('No email found in checkout session');
 
   const metadata = session.metadata || {};
-  const userId = metadata.userId; // ID del usuario (puede ser temporal o real)
+  
+  console.log(`💰 Procesando Checkout para: ${email}`);
 
-  console.log(`💰 Procesando Checkout para: ${email} (User ID: ${userId})`);
-
-  // Parsear selecciones (small/pro, cantidades, etc.)
+  // Parsear selecciones
   let selections: any[] = [];
   try {
     if (metadata.selections) {
       selections = JSON.parse(metadata.selections);
     } else {
-      // Fallback por si no viene metadata (legacy)
-      selections = [{ planType: metadata.planType || 'small', quantity: 1 }];
+      selections = [{ 
+        planType: metadata.planType || 'small', 
+        quantity: parseInt(metadata.locationsCount || '1'),
+        departments: parseInt(metadata.departmentsCount || '1')
+      }];
     }
   } catch (e) {
-    console.error("Error parseando selections:", e);
-    selections = [{ planType: 'small', quantity: 1 }];
+    console.error("Error parseando selections, usando defaults:", e);
+    selections = [{ planType: 'small', quantity: 1, departments: 1 }];
   }
 
-  // 1. Obtener o Crear Usuario en Supabase Auth
-  // Nota: Si el usuario se registró en AuthPage, ya debería existir.
-  // Si no existe, intentamos crearlo (requiere password en metadata, lo cual es arriesgado pero soportado).
+  // 1. GESTIÓN DE USUARIO (AUTH)
   let authUser;
-
-  // Intentamos buscarlo primero
+  
+  // A) Buscar si ya existe en Supabase Auth
   const { data: existingAuthUsers } = await supabase.auth.admin.listUsers();
   authUser = existingAuthUsers.users.find(u => u.email === email);
 
+  // B) Si no existe, LO CREAMOS
   if (!authUser) {
-    // Si no existe, intentamos crearlo
-    const password = metadata.password;
-    if (!password) {
-      console.warn(`⚠️ Usuario ${email} no existe y no hay contraseña en metadata. No se puede crear cuenta.`);
-      // Aquí podríamos enviar un email al usuario para que "reclame" su cuenta
-      return;
-    }
-
+    console.log(`👤 Usuario ${email} no existe. Creando cuenta automática...`);
+    
+    // Si viene password en metadata (inseguro pero posible), úsala. 
+    // Si no, genera una aleatoria segura.
+    const password = metadata.password || crypto.randomBytes(16).toString('hex');
+    
     const { data: newAuthUser, error: createError } = await supabase.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      user_metadata: {
-        full_name: metadata.username,
-        company_name: metadata.companyName
+      user_metadata: { 
+        full_name: metadata.username || email.split('@')[0],
+        company_name: metadata.companyName || 'Sin Empresa'
       }
     });
 
-    if (createError) throw createError;
+    if (createError) {
+      console.error("❌ Error creando usuario Auth:", createError);
+      throw createError;
+    }
+    
     authUser = newAuthUser.user;
+    console.log(`✨ Usuario creado exitosamente (ID: ${authUser?.id}). Password generada: ${metadata.password ? 'User provided' : 'Random generated'}`);
   }
 
   if (!authUser) throw new Error('Could not obtain auth user');
 
-  // 2. Asegurar registro en tabla pública 'users'
+  // 2. GESTIÓN DE USUARIO (DB PÚBLICA)
   const { data: existingUser } = await supabase
-    .from('users')
-    .select('*')
-    .eq('auth_id', authUser.id)
-    .single();
+      .from('users')
+      .select('*')
+      .eq('auth_id', authUser.id)
+      .single();
 
   let userRecord = existingUser;
 
+  // Si no existe el registro en la tabla pública, lo creamos
   if (!userRecord) {
-    console.log("Creando registro de usuario en DB pública...");
-    userRecord = await supabaseService.createUser({
+    console.log("📝 Creando registro de perfil público en 'users'...");
+    const newUserProfile = {
       auth_id: authUser.id,
       username: metadata.username || email.split('@')[0],
       email: email,
-      companyName: metadata.companyName || 'Sin Empresa',
-      termsAccepted: true,
-      subscriptionStatus: 'active',
-      planType: selections[0].planType // 'small' o 'pro'
-    });
+      company_name: metadata.companyName || 'Sin Empresa', // Ojo: en DB es company_name (snake_case)
+      terms_accepted: true,
+      subscription_status: 'active',
+      plan_type: selections[0].planType,
+      stripe_customer_id: session.customer as string
+    };
+
+    const { data: insertedUser, error: insertError } = await supabase
+      .from('users')
+      .insert(newUserProfile)
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error("❌ Error insertando en tabla users:", insertError);
+      // Intentamos recuperar si falló por duplicado
+      const { data: retryUser } = await supabase.from('users').select('*').eq('email', email).single();
+      userRecord = retryUser;
+    } else {
+      userRecord = insertedUser;
+    }
   } else {
-    // Actualizar plan si ya existía
-    await supabaseService.updateUserPlan(userRecord.id, selections[0].planType);
+    // Si ya existía, actualizamos el plan
+    console.log("🔄 Actualizando usuario existente...");
+    await supabase.from('users').update({
+      plan_type: selections[0].planType,
+      subscription_status: 'active',
+      stripe_customer_id: session.customer as string
+    }).eq('id', userRecord.id);
   }
 
-  // 3. Registrar compras (Localizaciones y Departamentos)
-  // SupabaseService.recordPurchasedLocations debe estar preparado para recibir el array de selections
-  // Si tu servicio aún no tiene este método exacto, aquí tienes la lógica inline:
-
+  // 3. REGISTRAR COMPRAS (LOCATIONS)
   if (userRecord) {
+    console.log("🏗️ Registrando localizaciones compradas...");
     for (const sel of selections) {
-      // Insertar en purchased_locations
-      const { error: purchaseError } = await supabase
-        .from('purchased_locations')
-        .insert({
-          user_id: userRecord.id,
-          plan_type: sel.planType, // 'small' o 'pro'
-          quantity: sel.quantity,
-          departments_count: sel.departments || 1, // Guardamos departamentos si tu DB tiene la columna
-          stripe_session_id: session.id,
-          status: 'active',
-          purchased_at: new Date()
-        });
-
-      if (purchaseError) console.error("Error guardando purchased_locations:", purchaseError);
+       const { error: purchaseError } = await supabase
+         .from('purchased_locations')
+         .insert({
+           user_id: userRecord.id,
+           plan_type: sel.planType,
+           quantity: sel.quantity,
+           departments_count: sel.departments || 1,
+           stripe_session_id: session.id,
+           status: 'active'
+           // created_at es automático
+         });
+       
+       if (purchaseError) console.error("❌ Error guardando purchased_locations:", purchaseError);
     }
   }
 
