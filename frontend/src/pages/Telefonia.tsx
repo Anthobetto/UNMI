@@ -211,7 +211,7 @@ export default function Telefonia() {
         <meta name="description" content={t('telephony.subtitle')} />
       </Helmet>
 
-      <div className="p-6 space-y-6 mt-12">
+      <div className="space-y-2 mt-1">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0">
           <div>

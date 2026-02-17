@@ -223,7 +223,7 @@ export default function Chatbots() {
         <Helmet>
           <title>Chatbots - Acceso Restringido - UNMI</title>
         </Helmet>
-        <div className="p-6">
+        <div className="space-y-2 mt-1">
           <Card className="max-w-2xl mx-auto">
             <CardHeader>
               <div className="flex items-center gap-3">

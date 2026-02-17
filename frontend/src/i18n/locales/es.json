@@ -161,8 +161,8 @@
     "welcome": "Bienvenido, {{username}}",
     "plan": {
       "active": "Plan Activo: {{plan}}",
-      "templates": "Templates",
-      "chatbots": "Chatbots",
+      "chatbots": "small",
+      "templates": "pro",
       "access": "Tienes acceso a {{access}}.",
       "change": "Cambiar plan"
     },
@@ -515,86 +515,46 @@
   },
   "plan": {
     "header": {
-      "title": "Mi Plan",
-      "subtitle": "Gestiona tu suscripción y explora opciones de actualización"
+      "title": "Gestiona tu Suscripción",
+      "subtitle": "Elige el plan que mejor se adapte a tu negocio actual."
     },
-    "current": {
-      "title": "Plan Actual",
-      "short": "Actual"
+    "small": {
+      "title": "Pequeña Empresa",
+      "features": {
+        "locations": "1 Sede",
+        "departments": "1 Departamento",
+        "messages": "150 Mensajes incluidos"
+      }
     },
-    "templates": {
-      "basic": "Templates Básico",
-      "title": "Planes de Templates",
-      "subtitle": "Plantillas automáticas de SMS y WhatsApp",
-      "automation": "Automatización de Templates",
-      "ideal": "Ideal para pequeñas empresas",
-      "growing": "Para empresas en crecimiento"
+    "pro": {
+      "title": "UNMI Pro",
+      "badge": "RECOMENDADO",
+      "features": {
+        "locations": "Multi-Sede",
+        "departments": "Multi-Departamento",
+        "messages": "360 Mensajes incluidos"
+      }
     },
-    "chatbots": {
-      "title": "Planes de Chatbots",
-      "subtitle": "Soporte conversacional AI 24/7",
-      "ai": "AI Conversacional",
-      "basic": "Chatbot AI Básico",
-      "advanced": "Chatbot AI Avanzado"
+    "config": {
+      "locationsLabel": "Número de Sedes (+30€/u)",
+      "departmentsLabel": "Número de Depts (+15€/u)",
+      "sedes": "Sedes",
+      "depts": "Depts"
     },
-    "enterprise": {
-      "title": "Enterprise",
-      "subtitle": "Solución personalizada para grandes empresas",
-      "includes": "Incluye todo en Pro, más:",
-      "customPricing": "Precio Personalizado",
-      "according": "Según las necesidades de tu empresa",
-      "contactSales": "Contactar Ventas"
+    "summary": {
+      "title": "Resumen de cambio",
+      "current": "Plan actual",
+      "none": "Ninguno",
+      "arrow": "->",
+      "total": "Total mensual estimado",
+      "confirm": "Confirmar Cambio",
+      "processing": "Procesando..."
     },
-    "perMonth": "por mes",
-    "messagesIncluded": "Mensajes incluidos",
-    "extraCost": "Costo extra por mensaje",
-    "message": "mensaje",
-    "status": "Estado",
-    "active": "Activo",
-    "renewal": "Próxima renovación",
-    "includedFeatures": "Funciones incluidas",
-    "needMore": "¿Necesitas más?",
-    "upgradeDesc": "Actualiza a Pro para más mensajes, analíticas avanzadas y soporte prioritario.",
-    "upgradeTo": "Actualizar a",
-    "changePlan": "Cambiar a este plan",
-    "changeTo": "Cambiar a",
-    "features": {
-      "unlimitedMessages": "Mensajes Ilimitados",
-      "combinedTemplatesChatbots": "Templates + Chatbots combinados",
-      "accountManager": "Gerente de Cuenta Dedicado",
-      "sla": "SLA 99,9%",
-      "fullApi": "API completa con webhooks",
-      "integrations": "Integraciones personalizadas",
-      "templateAutomation": "Automatización de Templates",
-      "aiChatbots": "AI Conversacional",
-      "aiBasic": "Chatbot AI Básico",
-      "aiAdvanced": "Chatbot AI Avanzado"
-    },
+    "perMonth": "/mes",
+    "base": "base",
     "toast": {
-      "updatedTitle": "Plan actualizado correctamente",
-      "updatedDesc": "Tu plan ha sido actualizado exitosamente.",
-      "errorTitle": "Error",
-      "errorDesc": "No se pudo cambiar el plan. Intenta de nuevo.",
-      "downloadTitle": "Descargar Factura",
-      "downloadDesc": "Esta función estará disponible pronto con tu cuenta real de Stripe."
-    },
-    "invoices": {
-      "title": "Historial de Facturas",
-      "subtitle": "Últimas facturas y pagos realizados",
-      "date": "Fecha",
-      "description": "Descripción",
-      "amount": "Monto",
-      "status": "Estado",
-      "paid": "Pagado",
-      "action": "Acción",
-      "download": "Descargar"
-    },
-    "changeDialog": {
-      "title": "Confirmar Cambio de Plan",
-      "subtitle": "Estás a punto de cambiar a",
-      "warning": "El cambio se aplicará de inmediato. El costo del mes actual se prorrateará.",
-      "cancel": "Cancelar",
-      "confirm": "Confirmar"
+      "success": "Plan actualizado correctamente (Simulación)",
+      "error": "Error al actualizar el plan"
     }
   },
   "header": {

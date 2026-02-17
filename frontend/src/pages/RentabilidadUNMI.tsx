@@ -133,7 +133,7 @@ export default function RentabilidadUNMI() {
         <meta name="description" content={t('profitability.subtitle')} />
       </Helmet>
 
-      <div className="p-6 space-y-6 mt-12">
+      <div className="space-y-2 mt-1">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
           <div className="break-words">
