@@ -161,8 +161,8 @@
     "welcome": "Welcome, {{username}}",
     "plan": {
       "active": "Active Plan: {{plan}}",
-      "templates": "Templates",
-      "chatbots": "Chatbots",
+      "chatbots": "small",
+      "templates": "pro",
       "access": "You have access to {{access}}.",
       "change": "Change plan"
     },
@@ -597,11 +597,49 @@
       "confirm": "Confirm"
     }
   },
-  "header": {
-    "selectLanguage": "Select language",
-    "spanish": "Español",
-    "english": "English",
-    "french": "Français"
+ "plan": {
+    "header": {
+      "title": "Manage Your Subscription",
+      "subtitle": "Choose the plan that best fits your current business needs."
+    },
+    "small": {
+      "title": "Small Business",
+      "features": {
+        "locations": "1 Location",
+        "departments": "1 Department",
+        "messages": "150 Messages included"
+      }
+    },
+    "pro": {
+      "title": "UNMI Pro",
+      "badge": "RECOMMENDED",
+      "features": {
+        "locations": "Multi-Location",
+        "departments": "Multi-Department",
+        "messages": "360 Messages included"
+      }
+    },
+    "config": {
+      "locationsLabel": "Number of Locations (+€30/u)",
+      "departmentsLabel": "Number of Depts (+€15/u)",
+      "sedes": "Locations",
+      "depts": "Depts"
+    },
+    "summary": {
+      "title": "Change Summary",
+      "current": "Current Plan",
+      "none": "None",
+      "arrow": "->",
+      "total": "Estimated Monthly Total",
+      "confirm": "Confirm Change",
+      "processing": "Processing..."
+    },
+    "perMonth": "/mo",
+    "base": "base",
+    "toast": {
+      "success": "Plan updated successfully (Simulation)",
+      "error": "Error updating plan"
+    }
   },
   "notifications": {
     "success": {

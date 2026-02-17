@@ -290,14 +290,14 @@ export default function AuthPage() {
           <div className="lg:col-span-5 relative">
             <div className="sticky top-8 space-y-4">
 
-              <div className="bg-[#111111] text-white rounded-[2rem] p-8 shadow-2xl relative overflow-hidden">
+              <div className="text-black rounded-[2rem] p-8 shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF0000] opacity-10 rounded-full blur-3xl transform translate-x-10 -translate-y-10"></div>
 
                 <div className="relative z-10">
                   <p className="text-xs font-bold tracking-widest text-gray-400 uppercase mb-2">Resumen</p>
                   <div className="flex justify-between items-end border-b border-gray-800 pb-6 mb-6">
                     <div>
-                      <h3 className="text-xl font-bold">{selectedPlanUI === 'templates' ? 'Small Biz' : 'UNMI Pro'}</h3>
+                      <h3 className="text-xl font-bold">{selectedPlanUI === 'templates' ? 'Small ' : 'UNMI Pro'}</h3>
                       <p className="text-sm text-gray-400 mt-1">
                         {numLocations} {numLocations === 1 ? 'Sede' : 'Sedes'} • {numDepartments} {numDepartments === 1 ? 'Dept' : 'Depts'}
                       </p>
@@ -322,17 +322,17 @@ export default function AuthPage() {
                         >
                           <div className="grid grid-cols-2 gap-4">
                             <FormField control={registerForm.control} name="username" render={({ field }) => (
-                              <FormItem><FormControl><Input placeholder={t("auth.register.fullName")} {...field} className="bg-white/5 border-gray-700 text-white placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
+                              <FormItem><FormControl><Input placeholder={t("auth.register.fullName")} {...field} className="bg-white/5 border-gray-700 text-black placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
                             )} />
                             <FormField control={registerForm.control} name="companyName" render={({ field }) => (
-                              <FormItem><FormControl><Input placeholder={t("auth.register.companyName")} {...field} className="bg-white/5 border-gray-700 text-white placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
+                              <FormItem><FormControl><Input placeholder={t("auth.register.companyName")} {...field} className="bg-white/5 border-gray-700 text-black placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
                             )} />
                           </div>
                           <FormField control={registerForm.control} name="email" render={({ field }) => (
-                            <FormItem><FormControl><Input placeholder={t("auth.register.email")} {...field} className="bg-white/5 border-gray-700 text-white placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormControl><Input placeholder={t("auth.register.email")} {...field} className="bg-white/5 border-gray-700 text-black placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
                           )} />
                           <FormField control={registerForm.control} name="password" render={({ field }) => (
-                            <FormItem><FormControl><Input type="password" placeholder={t("auth.register.password")} {...field} className="bg-white/5 border-gray-700 text-white placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormControl><Input type="password" placeholder={t("auth.register.password")} {...field} className="bg-white/5 border-gray-700 text-black placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
                           )} />
 
                           <FormField control={registerForm.control} name="termsAccepted" render={({ field }) => (
@@ -368,10 +368,10 @@ export default function AuthPage() {
                       <Form {...loginForm}>
                         <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
                           <FormField control={loginForm.control} name="email" render={({ field }) => (
-                            <FormItem><FormControl><Input placeholder={t("auth.login.email")} {...field} className="bg-white/5 border-gray-700 text-white placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormControl><Input placeholder={t("auth.login.email")} {...field} className="bg-white/5 border-gray-700 text-black placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
                           )} />
                           <FormField control={loginForm.control} name="password" render={({ field }) => (
-                            <FormItem><FormControl><Input type="password" placeholder={t("auth.login.password")} {...field} className="bg-white/5 border-gray-700 text-white placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormControl><Input type="password" placeholder={t("auth.login.password")} {...field} className="bg-white/5 border-gray-700 text-black placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
                           )} />
                           <Button type="submit" disabled={isSubmitting} className="w-full h-14 bg-white text-black hover:bg-gray-200 rounded-xl text-lg font-bold mt-6">
                             {isSubmitting ? t("auth.login.loading") : t("auth.login.submit")}

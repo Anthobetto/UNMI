@@ -337,7 +337,7 @@ export default function Locations() {
         <meta name="description" content={t('locations.subtitle')} />
       </Helmet>
 
-      <div className="p-6 space-y-6 mt-12">
+      <div className="space-y-2 mt-1">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>

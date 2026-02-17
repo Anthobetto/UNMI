@@ -22,25 +22,19 @@ router.post('/stripe', async (req: Request, res: Response) => {
     return res.status(400).send('Missing Stripe signature');
   }
 
-  // 🚨 CAMBIO FINAL:
-  // Con la nueva config de index.ts, req.body YA ES EL BUFFER.
-  // No necesitamos req.rawBody.
+
   const payload = req.body;
 
-  // DEBUG: Vamos a ver qué nos llega realmente
   console.log(`📦 Webhook Payload Type: ${Buffer.isBuffer(payload) ? 'Buffer ✅' : typeof payload + ' ❌'}`);
 
   if (!Buffer.isBuffer(payload)) {
-    // Si entra aquí, es que express.json se nos adelantó (no debería pasar con la config nueva)
     console.error('❌ El payload es un Objeto JSON, debería ser un Buffer. Revisa el orden en index.ts');
     return res.status(400).send('Webhook Error: Payload must be a Buffer, not JSON');
   }
 
   let event: Stripe.Event;
 
-  // 2. Validar la firma con el rawBody
   try {
-    // Pasamos el Buffer directamente
     event = stripeService.constructWebhookEvent(payload, sig);
     console.log(`✅ Webhook Stripe verificado: ${event.type}`);
   } catch (err: any) {
@@ -48,7 +42,6 @@ router.post('/stripe', async (req: Request, res: Response) => {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // 3. Procesar el evento
   try {
     switch (event.type) {
       case 'checkout.session.completed':
@@ -73,12 +66,9 @@ router.post('/stripe', async (req: Request, res: Response) => {
         console.log(`ℹ️ Evento Stripe no manejado: ${event.type}`);
     }
 
-    // Respuesta de éxito a Stripe
-    return res.json({ received: true });
 
   } catch (error) {
     console.error(`💥 Error procesando webhook (${event.type}):`, error);
-    // Stripe reintentará si devolvemos 500, útil para errores temporales de DB
     return res.status(500).json({
       error: 'Webhook processing failed',
       type: event.type
@@ -87,20 +77,18 @@ router.post('/stripe', async (req: Request, res: Response) => {
 });
 
 // =================================================================
-// STRIPE HANDLERS (Lógica de Negocio)
+// STRIPE HANDLERS 
 // =================================================================
 
 async function handleCheckoutCompleted(event: Stripe.Event) {
   const session = event.data.object as Stripe.Checkout.Session;
   const metadata = session.metadata || {};
   
-  // Datos básicos
   const email = session.customer_details?.email || session.customer_email;
-  const authUserId = metadata.userId; // Este ID viene del registro previo
+  const authUserId = metadata.userId; 
 
   console.log(`💰 Procesando Checkout para: ${email} (Auth ID: ${authUserId})`);
 
-  // 1. Parsear selecciones (Qué compró)
   let selections: any[] = [];
   try {
     if (metadata.selections) {
@@ -203,7 +191,7 @@ async function handleSubscriptionDeleted(event: Stripe.Event) {
 
 
 // =================================================================
-// WHATSAPP WEBHOOK (Sin cambios, se mantiene tu lógica)
+// WHATSAPP WEBHOOK
 // =================================================================
 
 // Verificación del webhook (GET)

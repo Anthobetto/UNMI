@@ -13,6 +13,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Search, Phone, ExternalLink, MessageSquare } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
+import { LanguageSelector } from "@/components/LanguageSelector"
 
 // Tipos para WhatsApp Business API
 type TemplateCategory = "UTILITY" | "AUTHENTICATION" | "MARKETING" | "SERVICE"
@@ -73,7 +74,7 @@ export default function TemplatesPage() {
   }, [templates, searchTerm, filterCategory, filterStatus])
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="space-y-2 mt-1">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -81,17 +82,22 @@ export default function TemplatesPage() {
             <h1 className="text-3xl font-bold text-gray-900">Templates</h1>
             <p className="text-gray-600 mt-1">Crea y administra mensajes predefinidos para diversas situaciones</p>
           </div>
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-red-600 hover:bg-red-700 text-white">
-                <Plus className="w-4 h-4 mr-2" />
-                Nuevo Template
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <TemplateFormDialog onClose={() => setIsCreateOpen(false)} template={selectedTemplate} />
-            </DialogContent>
-          </Dialog>
+          <div className="flex items-center space-x-2">
+            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-red-600 hover:bg-red-700 text-white">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nuevo Template
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <TemplateFormDialog onClose={() => setIsCreateOpen(false)} template={selectedTemplate} />
+              </DialogContent>
+            </Dialog>
+            <div>
+              <LanguageSelector />
+            </div>
+          </div>
         </div>
 
         {/* Filters */}
@@ -370,18 +376,18 @@ function TemplateFormDialog({ onClose, template }: { onClose: () => void; templa
           {(formData.header_type === "IMAGE" ||
             formData.header_type === "VIDEO" ||
             formData.header_type === "DOCUMENT") && (
-            <div>
-              <Label htmlFor="header_media_url">URL del archivo</Label>
-              <Input
-                id="header_media_url"
-                type="url"
-                value={formData.header_media_url}
-                onChange={(e) => setFormData({ ...formData, header_media_url: e.target.value })}
-                placeholder="https://ejemplo.com/archivo.jpg"
-              />
-              <p className="text-xs text-gray-500 mt-1">Debe ser una URL pública accesible</p>
-            </div>
-          )}
+              <div>
+                <Label htmlFor="header_media_url">URL del archivo</Label>
+                <Input
+                  id="header_media_url"
+                  type="url"
+                  value={formData.header_media_url}
+                  onChange={(e) => setFormData({ ...formData, header_media_url: e.target.value })}
+                  placeholder="https://ejemplo.com/archivo.jpg"
+                />
+                <p className="text-xs text-gray-500 mt-1">Debe ser una URL pública accesible</p>
+              </div>
+            )}
         </TabsContent>
 
         {/* Tab 3: Body */}

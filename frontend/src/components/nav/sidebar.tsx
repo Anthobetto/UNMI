@@ -1,7 +1,3 @@
-/**
- * Sidebar Component - Main Navigation
- * i18n enabled with conditional access based on purchasedLocations and credits
- */
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
@@ -19,64 +15,58 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { OfficialLogo } from "@/components/logo/official-logo";
 
 export function Sidebar() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
-  const [, setLocation] = useLocation();
   const [open, setOpen] = useState(false);
   const { t } = useTranslation();
 
-  // ✅ Derivar créditos disponibles por plan
-  const planCredits = user?.credits || {}; // { templates: 2, chatbots: 1 }
+  const userPlan = user?.planType || 'small'; 
+
 
   const navigation = [
     { name: t('nav.dashboard'), href: "/dashboard", icon: LayoutDashboard },
     { name: t('nav.profitability'), href: "/rentabilidad-unmi", icon: TrendingUp },
     { name: t('nav.telephony'), href: "/telefonia", icon: Phone },
-    { name: t('nav.templates'), href: "/templates", icon: FileText, requiredPlan: 'templates' },
-    { name: t('nav.chatbots'), href: "/chatbots", icon: Bot, requiredPlan: 'chatbots' },
+    { name: t('nav.templates'), href: "/templates", icon: FileText }, 
+    { name: t('nav.chatbots'), href: "/chatbots", icon: Bot }, 
     { name: t('nav.locations'), href: "/locations", icon: MapPin },
     { name: t('nav.plan'), href: "/plan", icon: CreditCard },
   ];
 
-  const NavLinks = (
-    <nav className="flex flex-col gap-y-1 mt-4 px-2">
+  // Ocultar Chatbots para 'small', podrías hacer:
+  // if (userPlan === 'small') {
+  //   navigation = navigation.filter(item => item.href !== '/chatbots');
+  // }
+
+  const renderNavItems = () => (
+    <nav className="space-y-1">
       {navigation.map((item) => {
-        const hasPlan = !item.requiredPlan || (planCredits[item.requiredPlan] !== undefined);
-        const hasCredits = item.requiredPlan ? (planCredits[item.requiredPlan] ?? 0) > 0 : true;
+        const isActive = location === item.href;
 
         return (
           <Link
             key={item.name}
             href={item.href}
-            className={cn(
-              "group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 transition-all",
-              location === item.href
-                ? "bg-[#003366] text-white"
-                : "text-[#003366] hover:bg-gray-100",
-              !hasPlan && "opacity-60"
-            )}
             onClick={() => setOpen(false)}
+            className={cn(
+              "group flex items-center gap-x-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+              isActive
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+            )}
           >
             <item.icon
               className={cn(
-                "h-5 w-5 shrink-0",
-                location === item.href ? "text-white" : "text-[#003366]"
+                "h-5 w-5 shrink-0 transition-colors",
+                isActive ? "text-primary-foreground" : "text-gray-500 group-hover:text-gray-900"
               )}
             />
-            <span className="flex-1">{item.name}</span>
-            {!hasCredits && hasPlan && (
-              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
-                Sin créditos
-              </span>
-            )}
+            <span className="flex-1 truncate">{item.name}</span>
+            
           </Link>
         );
       })}
@@ -84,21 +74,27 @@ export function Sidebar() {
   );
 
   const UserBlock = (
-    <div className="border-t border-gray-200 py-4 px-4">
-      <div className="flex items-center gap-x-3">
-        <p className="flex-1 text-sm font-semibold text-[#003366]">
-          {user?.username}
-        </p>
+    <div className="border-t border-gray-200 p-4">
+      <div className="flex items-center gap-x-3 w-full">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-gray-900 truncate">
+            {user?.username || "Usuario"}
+          </p>
+          <p className="text-xs text-gray-500 truncate">
+            {user?.email}
+          </p>
+        </div>
         <Button
           variant="ghost"
           size="icon"
-          className="rounded-full h-9 w-9"
+          className="rounded-full h-8 w-8 hover:bg-red-50 hover:text-red-600 transition-colors"
           onClick={async () => {
             await logout();
-            setLocation("/"); 
+            setLocation("/");
           }}
+          title={t('nav.logout')}
         >
-          <LogOut className="h-5 w-5 text-[#003366]" />
+          <LogOut className="h-4 w-4" />
         </Button>
       </div>
     </div>
@@ -107,34 +103,50 @@ export function Sidebar() {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex md:flex-col md:w-64 md:h-screen border-r border-gray-100">
-        <div className="flex h-24 items-center justify-center">
-          <OfficialLogo width={200} />
+      <aside className="hidden md:flex md:flex-col md:w-64 md:h-screen border-r border-gray-200 bg-white fixed left-0 top-0 z-30 shadow-sm">
+        
+        {/* Header Logo con el padding arreglado */}
+        <div className="flex flex-col px-6 pt-8 pb-6">
+          <OfficialLogo width={140} />
         </div>
-        {NavLinks}
-        <div className="mt-auto">{UserBlock}</div>
+
+        <div className="flex-1 overflow-y-auto px-4">
+          {renderNavItems()}
+        </div>
+
+        <div className="mt-auto bg-gray-50/50">
+          {UserBlock}
+        </div>
       </aside>
 
-      {/* Mobile trigger + drawer */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center p-2 border-b border-gray-100 bg-white">
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Menu className="h-6 w-6 text-[#003366]" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-64 inset-y-0 flex flex-col">
-            <div className="flex h-24 items-center justify-center border-b border-gray-100">
-              <OfficialLogo width={200} />
-            </div>
-            {NavLinks}
-            <div className="mt-auto">{UserBlock}</div>
-          </SheetContent>
-        </Sheet>
-        <div className="flex-1 text-center font-bold text-[#003366]">
-          {user?.username}
+      {/* Mobile trigger */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-4 border-b border-gray-200 bg-white/80 backdrop-blur-md">
+        <div className="flex items-center gap-2">
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="-ml-2">
+                <Menu className="h-6 w-6 text-gray-700" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-64 inset-y-0 flex flex-col bg-white">
+              <div className="flex flex-col px-6 pt-8 pb-6 border-b border-gray-100">
+                <OfficialLogo width={130} />
+              </div>
+              <div className="flex-1 overflow-y-auto py-6 px-4">
+                {renderNavItems()}
+              </div>
+              <div className="mt-auto bg-gray-50">
+                {UserBlock}
+              </div>
+            </SheetContent>
+          </Sheet>
+          <span className="font-bold text-lg text-[#003366]">UNMI</span>
+        </div>
+        <div className="text-sm font-medium text-gray-600">
+          {user?.username?.substring(0, 2).toUpperCase()}
         </div>
       </div>
+      <div className="md:hidden h-16" />
     </>
   );
 }
