@@ -91,76 +91,85 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
 
   let selections: any[] = [];
   try {
-    if (metadata.selections) {
-      selections = JSON.parse(metadata.selections);
-    } else {
-      selections = [{ 
-        planType: metadata.planType || 'small', 
-        quantity: parseInt(metadata.locationsCount || '1'),
-        departments: parseInt(metadata.departmentsCount || '1')
-      }];
-    }
+    if (metadata.selections) selections = JSON.parse(metadata.selections);
+    else selections = [{ planType: metadata.planType || 'small', quantity: 1, departments: 1 }];
   } catch (e) {
-    console.error("⚠️ Error parseando selections, usando defaults:", e);
     selections = [{ planType: 'small', quantity: 1, departments: 1 }];
   }
 
-
-  let userQuery = supabase.from('users').select('*');
+  let userRecord;
   
-  if (authUserId) {
-    userQuery = userQuery.eq('auth_id', authUserId);
-  } else if (email) {
-    console.warn("⚠️ No vino userId en metadatos, buscando por email...");
-    userQuery = userQuery.eq('email', email);
-  } else {
-    throw new Error('No se puede identificar al usuario (Falta userId y email)');
-  }
-
-  const { data: userRecord, error: fetchError } = await userQuery.single();
-
-  if (fetchError || !userRecord) {
-    console.error("❌ CRÍTICO: El usuario pagó pero no existe en la base de datos.", fetchError);
-
-    throw new Error('Usuario no encontrado para activación');
-  }
-
-  console.log(`✅ Usuario encontrado (ID Público: ${userRecord.id}). Activando cuenta...`);
-
-  const { error: updateError } = await supabase
+  const { data: existingUser, error: fetchError } = await supabase
     .from('users')
-    .update({
-      subscription_status: 'active',        
-      stripe_customer_id: session.customer as string,
-      plan_type: selections[0].planType,    
-    })
-    .eq('id', userRecord.id);
+    .select('*')
+    .eq('auth_id', authUserId) 
+    .maybeSingle();
 
-  if (updateError) {
-    console.error("❌ Error activando usuario:", updateError);
-    throw updateError;
+  if (fetchError) {
+    console.error("❌ Error buscando al usuario en Supabase:", fetchError);
+    throw fetchError;
   }
 
-  console.log("🏗️ Registrando items comprados...");
-  
-  for (const sel of selections) {
-     const { error: purchaseError } = await supabase
-       .from('purchased_locations')
-       .insert({
-         user_id: userRecord.id, 
-         plan_type: sel.planType,
-         quantity: sel.quantity,
-         departments_count: sel.departments || 1,
-         stripe_session_id: session.id,
-         status: 'active'
-       });
-     
-     if (purchaseError) {
-       console.error("❌ Error guardando purchased_locations:", purchaseError);
-     }
+  if (existingUser) {
+    console.log(`✅ Usuario encontrado (ID: ${existingUser.id}). Actualizando...`);
+    
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({
+        subscription_status: 'active',        
+        stripe_customer_id: session.customer as string,
+        plan_type: selections[0].planType,    
+      })
+      .eq('id', existingUser.id);
+      
+    if (updateError) throw updateError;
+    userRecord = existingUser;
+
+  } else {
+    console.warn(`⚠️ El usuario ${email} pagó pero no tenía perfil público. CREANDO AHORA...`);
+    
+    const { data: newUser, error: insertError } = await supabase
+      .from('users')
+      .insert({
+        auth_id: authUserId, 
+        email: email,
+        username: email ? email.split('@')[0] : 'Usuario', 
+        company_name: metadata.companyName || 'Sin Empresa',
+        subscription_status: 'active', 
+        stripe_customer_id: session.customer as string,
+        plan_type: selections[0].planType,
+        terms_accepted: true
+      })
+      .select()
+      .single(); 
+
+    if (insertError) {
+      console.error("❌ Error creando usuario de emergencia:", insertError);
+      throw insertError;
+    }
+    console.log(`✨ Usuario de emergencia creado con éxito (ID: ${newUser.id})`);
+    userRecord = newUser;
   }
 
-  console.log('🎉 Cuenta activada y compra registrada exitosamente.');
+  if (userRecord) {
+    console.log("🏗️ Registrando items comprados...");
+    for (const sel of selections) {
+       const { error: purchaseError } = await supabase
+         .from('purchased_locations')
+         .insert({
+           user_id: userRecord.id, 
+           plan_type: sel.planType,
+           quantity: sel.quantity,
+           departments_count: sel.departments || 1,
+           stripe_session_id: session.id,
+           status: 'active'
+         });
+       
+       if (purchaseError) console.error("❌ Error guardando purchased_locations:", purchaseError);
+    }
+  }
+
+  console.log('🎉 Proceso completado exitosamente.');
 }
 
 async function handlePaymentSucceeded(event: Stripe.Event) {
