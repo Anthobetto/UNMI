@@ -85,9 +85,9 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
   const metadata = session.metadata || {};
   
   const email = session.customer_details?.email || session.customer_email;
-  const authUserId = metadata.userId; 
+  const authUserId = metadata.userId; // This might be the auth_id OR the public.users.id
 
-  console.log(`💰 Procesando Checkout para: ${email} (Auth ID: ${authUserId})`);
+  console.log(`💰 Procesando Checkout para: ${email} (ID recibido: ${authUserId})`);
 
   let selections: any[] = [];
   try {
@@ -99,15 +99,25 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
 
   let userRecord;
   
-  const { data: existingUser, error: fetchError } = await supabase
+  let { data: existingUser, error: fetchError } = await supabase
     .from('users')
     .select('*')
-    .eq('auth_id', authUserId) 
+    .or(`auth_id.eq.${authUserId},id.eq.${authUserId}`)
     .maybeSingle();
 
-  if (fetchError) {
-    console.error("❌ Error buscando al usuario en Supabase:", fetchError);
-    throw fetchError;
+  if (fetchError) throw fetchError;
+
+  if (!existingUser && email) {
+    const { data: userByEmail } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .maybeSingle();
+      
+    if (userByEmail) {
+      console.log(`🔗 Usuario encontrado por email. Re-vinculando...`);
+      existingUser = userByEmail;
+    }
   }
 
   if (existingUser) {
@@ -131,7 +141,7 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
     const { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert({
-        auth_id: authUserId, 
+        auth_id: authUserId, // Assuming it's an auth_id if we have to create them
         email: email,
         username: email ? email.split('@')[0] : 'Usuario', 
         company_name: metadata.companyName || 'Sin Empresa',
@@ -141,7 +151,7 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
         terms_accepted: true
       })
       .select()
-      .single(); 
+      .single();
 
     if (insertError) {
       console.error("❌ Error creando usuario de emergencia:", insertError);
