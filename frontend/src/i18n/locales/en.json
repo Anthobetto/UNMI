@@ -110,10 +110,6 @@
       }
     }
   },
-  "footer": {
-    "text": "Transform your business communication with our all-in-one platform.",
-    "rights": "All rights reserved."
-  },
   "auth": {
     "login": {
       "title": "Log In",
@@ -194,7 +190,7 @@
     },
     "recentCalls": {
       "title": "Recent Calls",
-      "description": "Last 5 received calls",
+      "description": "Last received calls",
       "noCalls": "No calls registered yet",
       "info": "Calls will appear here when you set up your numbers",
       "configureLocations": "Configure Locations",
@@ -332,19 +328,79 @@
     "edit": "Edit Template",
     "noTemplates": "No templates yet",
     "firstTemplate": "Create your first template to start automating responses",
+    "loading": "Loading templates...",
+    "search": "Search templates...",
+    "allCategories": "All categories",
+    "allStatus": "All statuses",
+    "tabs": {
+      "basic": "Basic",
+      "header": "Header",
+      "body": "Body",
+      "footer": "Footer & Buttons"
+    },
+    "categories": {
+      "UTILITY": "Utility",
+      "UTILITY_DESC": "Utility (invoices, alerts, confirmations)",
+      "AUTHENTICATION": "Authentication",
+      "AUTHENTICATION_DESC": "Authentication (OTP codes)",
+      "MARKETING": "Marketing",
+      "MARKETING_DESC": "Marketing (promotions, offers)",
+      "SERVICE": "Service",
+      "SERVICE_DESC": "Service (account updates)"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected"
+    },
     "form": {
-      "name": "Template Name",
-      "namePlaceholder": "e.g., Missed call response",
-      "type": "Template Type",
-      "channel": "Send Channel",
-      "location": "Location (Optional)",
-      "allLocations": "All locations",
-      "content": "Message Content",
-      "contentPlaceholder": "Hi! We saw you called but we couldn't answer...",
-      "variables": "You can use variables like {name}, {company}, {date}",
-      "tip": "Include a clear call-to-action and a link to book or contact",
+      "name": "Template Name *",
+      "namePlaceholder": "e.g., missed_call_response",
+      "nameHelp": "Lowercase letters, numbers, and underscores only. Max 512 chars.",
+      "category": "Category *",
+      "language": "Language *",
+      "headerType": "Header Type",
+      "headerTypes": {
+        "NONE": "No header",
+        "TEXT": "Text",
+        "IMAGE": "Image",
+        "VIDEO": "Video",
+        "DOCUMENT": "PDF Document"
+      },
+      "headerText": "Header Text",
+      "headerTextPlaceholder": "Message title",
+      "headerMediaUrl": "File URL",
+      "headerMediaUrlPlaceholder": "https://example.com/file.jpg",
+      "headerMediaUrlHelp": "Must be a publicly accessible URL",
+      "body": "Message Content *",
+      "bodyPlaceholder": "Hi {{1}}, we saw you called but we couldn't answer...",
+      "bodyHelp": "characters. Use variables like {{1}}, {{2}}, {{3}}",
+      "tipTitle": "Tip:",
+      "tipDesc": "Include a clear call-to-action and a link to book or contact",
+      "footer": "Footer (optional)",
+      "footerPlaceholder": "Text appearing at the bottom",
+      "buttons": "Buttons (max 3)",
+      "buttonTypes": {
+        "QUICK_REPLY": "Quick Reply",
+        "PHONE_NUMBER": "Call",
+        "URL": "Visit Website"
+      },
+      "buttonText": "Button text",
+      "addButton": "Add Button",
+      "preview": "WhatsApp Preview",
+      "previewBody": "Your message will appear here...",
+      "previewButton": "Button",
       "cancel": "Cancel",
       "saveChanges": "Save Changes"
+    },
+    "validation": {
+      "nameFormat": "Lowercase letters, numbers, and underscores only",
+      "nameLength": "Max 512 characters",
+      "bodyRequired": "Body content is required",
+      "bodyLength": "Max 1024 characters",
+      "footerLength": "Max 60 characters",
+      "headerLength": "Max 60 characters",
+      "buttonsMax": "Max 3 buttons"
     },
     "types": {
       "missedCall": "Missed Call",
@@ -366,13 +422,6 @@
       "deleteWarning": "This action cannot be undone. The template will be permanently deleted.",
       "send": "Send Now",
       "sending": "Sending..."
-    },
-    "restrictedAccess": {
-      "title": "Restricted Access",
-      "subtitle": "This feature is only available on the Templates plan",
-      "currentPlan": "Your current plan does not include access to template management.",
-      "upgrade": "Upgrade to Templates to create custom WhatsApp and SMS templates.",
-      "viewPlans": "View Available Plans"
     },
     "dialogs": {
       "sendTemplateTitle": "Send Template",
@@ -402,7 +451,7 @@
       "createFirstTemplate": "Create First Template"
     }
   },
-  "chatbots": {
+"chatbots": {
     "title": "Chatbots",
     "subtitle": "Configure AI chatbots for automated 24/7 responses",
     "howItWorks": {
@@ -447,6 +496,53 @@
       "fallbackHelp": "Message that will be sent if the chatbot fails completely",
       "note": "When activating the chatbot, automatic Templates will be paused. They'll only be used as backup in case of error.",
       "save": "Save Configuration"
+    },
+    "restrictedAccess": {
+      "title": "Restricted Access",
+      "subtitle": "This feature is only available on the UNMI Pro plan",
+      "currentPlan": "Your current plan ({{plan}}) does not include access to AI chatbots.",
+      "upgrade": "Upgrade to UNMI Pro to deploy 24/7 conversational AI assistants.",
+      "feature1": "Real-time AI responses",
+      "feature2": "24/7 availability without human intervention",
+      "feature3": "Continuous learning from conversations"
+    },
+    "providers": {
+      "voiceflow": {
+        "name": "Voiceflow",
+        "description": "Visual AI chatbot builder, no coding required",
+        "pricing": "From $50/mo",
+        "features": ["Drag & drop builder", "Integrated GPT-4", "Multi-channel support", "Real-time analytics"]
+      },
+      "botpress": {
+        "name": "Botpress",
+        "description": "Open-source platform for enterprise chatbots",
+        "pricing": "Free (self-hosted)",
+        "features": ["Open source", "Advanced NLU", "Full API integration", "On-premise hosting"]
+      },
+      "tidio": {
+        "name": "Tidio",
+        "description": "Live chat + chatbot for ecommerce and customer support",
+        "pricing": "From €29/mo",
+        "features": ["Live chat", "Visual chatbot", "Ecommerce integrations", "Pre-built templates"]
+      },
+      "dialogflow": {
+        "name": "Dialogflow (Google)",
+        "description": "Google NLP for natural conversations",
+        "pricing": "Pay-as-you-go",
+        "features": ["Google NLP", "30+ languages support", "Google Cloud integration", "Machine Learning"]
+      },
+      "landbot": {
+        "name": "Landbot",
+        "description": "Conversational chatbots for landing pages and WhatsApp",
+        "pricing": "From $40/mo",
+        "features": ["WhatsApp Business API", "Landing page builder", "100+ Integrations", "Ready-made templates"]
+      },
+      "custom": {
+        "name": "Custom API",
+        "description": "Connect your own chatbot via webhook",
+        "pricing": "Based on implementation",
+        "features": ["Total flexibility", "Your own infrastructure", "Complete control", "No limitations"]
+      }
     }
   },
   "locations": {
@@ -597,79 +693,25 @@
       "confirm": "Confirm"
     }
   },
- "plan": {
-    "header": {
-      "title": "Manage Your Subscription",
-      "subtitle": "Choose the plan that best fits your current business needs."
+  "footer": {
+    "text": "Transform your business communication with our all-in-one platform.",
+    "rights": "All rights reserved.",
+    "description": "Transforming business communication with intelligent automation.",
+    "legal": {
+      "title": "Legal",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy",
+      "cookies": "Cookies"
     },
-    "small": {
-      "title": "Small Business",
-      "features": {
-        "locations": "1 Location",
-        "departments": "1 Department",
-        "messages": "150 Messages included"
-      }
+    "product": {
+      "title": "Product",
+      "integrations": "Integrations"
     },
-    "pro": {
-      "title": "UNMI Pro",
-      "badge": "RECOMMENDED",
-      "features": {
-        "locations": "Multi-Location",
-        "departments": "Multi-Department",
-        "messages": "360 Messages included"
-      }
-    },
-    "config": {
-      "locationsLabel": "Number of Locations (+€30/u)",
-      "departmentsLabel": "Number of Depts (+€15/u)",
-      "sedes": "Locations",
-      "depts": "Depts"
-    },
-    "summary": {
-      "title": "Change Summary",
-      "current": "Current Plan",
-      "none": "None",
-      "arrow": "->",
-      "total": "Estimated Monthly Total",
-      "confirm": "Confirm Change",
-      "processing": "Processing..."
-    },
-    "perMonth": "/mo",
-    "base": "base",
-    "toast": {
-      "success": "Plan updated successfully (Simulation)",
-      "error": "Error updating plan"
+    "support": {
+      "title": "Support",
+      "helpCenter": "Help Center",
+      "status": "Service Status",
+      "sales": "Contact Sales"
     }
-  },
-  "notifications": {
-    "success": {
-      "planUpdated": "Plan updated!",
-      "planChanged": "Your plan has been successfully changed",
-      "templateCreated": "Template created",
-      "templateCreatedDesc": "The template has been successfully created",
-      "templateUpdated": "Template updated",
-      "templateUpdatedDesc": "Changes have been saved successfully",
-      "templateDeleted": "Template deleted",
-      "templateDeletedDesc": "The template has been successfully deleted",
-      "locationCreated": "Location created",
-      "locationCreatedDesc": "The location has been successfully created",
-      "chatbotConfigured": "Chatbot configured",
-      "chatbotConfiguredDesc": "has been successfully configured"
-    },
-    "error": {
-      "generic": "An error occurred",
-      "tryAgain": "Please try again",
-      "planChange": "Couldn't change plan. Try again.",
-      "templateCreate": "Couldn't create template",
-      "templateUpdate": "Couldn't update template",
-      "templateDelete": "Couldn't delete template",
-      "locationCreate": "Couldn't create location"
-    }
-  },
-  "errors": {
-    "pageNotFound": "Page not found",
-    "backToDashboard": "Back to Dashboard",
-    "somethingWrong": "Something went wrong",
-    "tryRefresh": "Try refreshing the page"
   }
 }

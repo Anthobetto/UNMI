@@ -443,41 +443,45 @@ export default function LandingPage(): JSX.Element {
           </div>
         </section>
 
-        {/* Resto de secciones del landing original... (se mantuvieron fuera por brevedad) */}
       </main>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-        <div>
-          <h5 className="font-bold text-gray-900 mb-4">UNMI Technologies</h5>
-          <p className="text-sm text-gray-500">Transformando la comunicación empresarial con automatización inteligente.</p>
+      <footer className="w-full py-12 border-t border-gray-100">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+            <div>
+              <h5 className="font-bold text-gray-900 mb-4">UNMI Technologies</h5>
+              <p className="text-sm text-gray-500">{t("footer.description")}</p>
+            </div>
+            <div>
+              <h5 className="font-bold text-gray-900 mb-4">{t("footer.legal.title")}</h5>
+              <ul className="space-y-2 text-sm text-gray-500">
+                <li><a href="#" className="hover:text-[#FF0000]">{t("footer.legal.terms")}</a></li>
+                <li><a href="#" className="hover:text-[#FF0000]">{t("footer.legal.privacy")}</a></li>
+                <li><a href="#" className="hover:text-[#FF0000]">{t("footer.legal.cookies")}</a></li>
+              </ul>
+            </div>
+            <div>
+              <h5 className="font-bold text-gray-900 mb-4">{t("footer.product.title")}</h5>
+              <ul className="space-y-2 text-sm text-gray-500">
+                <li><a href="#" className="hover:text-[#FF0000]">{t("nav.chatbots")}</a></li>
+                <li><a href="#" className="hover:text-[#FF0000]">{t("nav.templates")}</a></li>
+                <li><a href="#" className="hover:text-[#FF0000]">{t("footer.product.integrations")}</a></li>
+              </ul>
+            </div>
+            <div>
+              <h5 className="font-bold text-gray-900 mb-4">{t("footer.support.title")}</h5>
+              <ul className="space-y-2 text-sm text-gray-500">
+                <li><a href="#" className="hover:text-[#FF0000]">{t("footer.support.helpCenter")}</a></li>
+                <li><a href="#" className="hover:text-[#FF0000]">{t("footer.support.status")}</a></li>
+                <li><a href="#" className="hover:text-[#FF0000]">{t("footer.support.sales")}</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="text-center text-xs text-gray-400 border-t border-gray-100 pt-6">
+            © {new Date().getFullYear()} UNMI SL. {t("footer.rights")} Madrid, España.
+          </div>
         </div>
-        <div>
-          <h5 className="font-bold text-gray-900 mb-4">Legal</h5>
-          <ul className="space-y-2 text-sm text-gray-500">
-            <li><a href="#" className="hover:text-[#FF0000]">Términos de Servicio</a></li>
-            <li><a href="#" className="hover:text-[#FF0000]">Política de Privacidad</a></li>
-            <li><a href="#" className="hover:text-[#FF0000]">Cookies</a></li>
-          </ul>
-        </div>
-        <div>
-          <h5 className="font-bold text-gray-900 mb-4">Producto</h5>
-          <ul className="space-y-2 text-sm text-gray-500">
-            <li><a href="#" className="hover:text-[#FF0000]">{t("nav.chatbots")}</a></li>
-            <li><a href="#" className="hover:text-[#FF0000]">{t("nav.templates")}</a></li>
-            <li><a href="#" className="hover:text-[#FF0000]">Integraciones</a></li>
-          </ul>
-        </div>
-        <div>
-          <h5 className="font-bold text-gray-900 mb-4">Soporte</h5>
-          <ul className="space-y-2 text-sm text-gray-500">
-            <li><a href="#" className="hover:text-[#FF0000]">Centro de Ayuda</a></li>
-            <li><a href="#" className="hover:text-[#FF0000]">Estado del Servicio</a></li>
-            <li><a href="#" className="hover:text-[#FF0000]">Contactar Ventas</a></li>
-          </ul>
-        </div>
-      </div>
-      <div className="text-center text-xs text-gray-400 border-t border-gray-100 pt-6">
-        © 2026 UNMI Technologies SL. Todos los derechos reservados. Madrid, España.
-      </div>
+      </footer>
     </div>
   );
 }

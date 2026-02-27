@@ -110,10 +110,6 @@
       }
     }
   },
-  "footer": {
-    "text": "Transforma la comunicación de tu negocio con nuestra plataforma todo en uno.",
-    "rights": "Todos los derechos reservados."
-  },
   "auth": {
     "login": {
       "title": "Iniciar Sesión",
@@ -161,8 +157,8 @@
     "welcome": "Bienvenido, {{username}}",
     "plan": {
       "active": "Plan Activo: {{plan}}",
-      "chatbots": "small",
-      "templates": "pro",
+      "chatbots": "pro",
+      "templates": "small",
       "access": "Tienes acceso a {{access}}.",
       "change": "Cambiar plan"
     },
@@ -194,7 +190,7 @@
     },
     "recentCalls": {
       "title": "Llamadas Recientes",
-      "description": "Últimas 5 llamadas recibidas",
+      "description": "Últimas llamadas recibidas",
       "noCalls": "No hay llamadas registradas aún",
       "info": "Las llamadas aparecerán aquí cuando configures tus números",
       "configureLocations": "Configurar Ubicaciones",
@@ -325,81 +321,86 @@
     "dateFormat": "dd/MM/yyyy HH:mm"
   },
   "templates": {
-    "title": "Plantillas",
+    "title": "Templates",
     "subtitle": "Crea y administra mensajes predefinidos para diversas situaciones",
-    "new": "Nueva Plantilla",
-    "create": "Crear Plantilla",
-    "edit": "Editar Plantilla",
-    "noTemplates": "No hay plantillas aún",
-    "firstTemplate": "Crea tu primera plantilla para comenzar a automatizar respuestas",
+    "new": "Nuevo Template",
+    "create": "Crear Template",
+    "edit": "Editar Template",
+    "noTemplates": "No hay templates aún",
+    "firstTemplate": "Crea tu primer template para comenzar a automatizar respuestas",
+    "loading": "Cargando templates...",
+    "search": "Buscar templates...",
+    "allCategories": "Todas las categorías",
+    "allStatus": "Todos los estados",
+    "tabs": {
+      "basic": "Básico",
+      "header": "Header",
+      "body": "Body",
+      "footer": "Footer & Botones"
+    },
+    "categories": {
+      "UTILITY": "Utilidad",
+      "UTILITY_DESC": "Utilidad (facturas, alertas, confirmaciones)",
+      "AUTHENTICATION": "Autenticación",
+      "AUTHENTICATION_DESC": "Autenticación (códigos OTP)",
+      "MARKETING": "Marketing",
+      "MARKETING_DESC": "Marketing (promociones, ofertas)",
+      "SERVICE": "Servicio",
+      "SERVICE_DESC": "Servicio (actualizaciones de cuenta)"
+    },
+    "status": {
+      "PENDING": "Pendiente",
+      "APPROVED": "Aprobado",
+      "REJECTED": "Rechazado"
+    },
     "form": {
-      "name": "Nombre de la Plantilla",
-      "namePlaceholder": "Ej: Respuesta llamada perdida",
-      "type": "Tipo de Plantilla",
-      "channel": "Canal de Envío",
-      "location": "Ubicación (Opcional)",
-      "allLocations": "Todas los establecimientos",
-      "content": "Contenido del Mensaje",
-      "contentPlaceholder": "¡Hola! Vimos que nos llamaste pero no pudimos atenderte...",
-      "variables": "Puedes usar variables como {nombre}, {empresa}, {fecha}",
-      "tip": "Incluye un call-to-action claro y un enlace para reservar o contactar",
+      "name": "Nombre del Template *",
+      "namePlaceholder": "ej: respuesta_llamada_perdida",
+      "nameHelp": "Solo minúsculas, números y guiones bajos. Máx 512 caracteres",
+      "category": "Categoría *",
+      "language": "Idioma *",
+      "headerType": "Tipo de Header",
+      "headerTypes": {
+        "NONE": "Sin header",
+        "TEXT": "Texto",
+        "IMAGE": "Imagen",
+        "VIDEO": "Video",
+        "DOCUMENT": "Documento PDF"
+      },
+      "headerText": "Texto del Header",
+      "headerTextPlaceholder": "Título del mensaje",
+      "headerMediaUrl": "URL del archivo",
+      "headerMediaUrlPlaceholder": "https://ejemplo.com/archivo.jpg",
+      "headerMediaUrlHelp": "Debe ser una URL pública accesible",
+      "body": "Contenido del Mensaje *",
+      "bodyPlaceholder": "Hola {{1}}, vimos que nos llamaste pero no pudimos atenderte...",
+      "bodyHelp": "caracteres. Usa variables como {{1}}, {{2}}, {{3}}",
+      "tipTitle": "Tip:",
+      "tipDesc": "Incluye un call-to-action claro y un enlace para reservar o contactar",
+      "footer": "Footer (opcional)",
+      "footerPlaceholder": "Texto que aparece al final",
+      "buttons": "Botones (máximo 3)",
+      "buttonTypes": {
+        "QUICK_REPLY": "Respuesta Rápida",
+        "PHONE_NUMBER": "Llamar",
+        "URL": "Visitar Web"
+      },
+      "buttonText": "Texto del botón",
+      "addButton": "Agregar Botón",
+      "preview": "Vista Previa WhatsApp",
+      "previewBody": "Tu mensaje aparecerá aquí...",
+      "previewButton": "Botón",
       "cancel": "Cancelar",
       "saveChanges": "Guardar Cambios"
     },
-    "types": {
-      "missedCall": "Llamada Perdida",
-      "afterHours": "Fuera de Horario",
-      "welcome": "Bienvenida",
-      "followUp": "Seguimiento",
-      "appointment": "Cita"
-    },
-    "channels": {
-      "sms": "Solo SMS",
-      "whatsapp": "Solo WhatsApp",
-      "both": "SMS & WhatsApp"
-    },
-    "actions": {
-      "copy": "Copiar",
-      "copied": "Copiado al portapapeles",
-      "delete": "Eliminar",
-      "confirmDelete": "¿Estás seguro?",
-      "deleteWarning": "Esta acción no se puede deshacer. La plantilla será eliminada permanentemente.",
-      "send": "Enviar Ahora",
-      "sending": "Enviando..."
-    },
-    "restrictedAccess": {
-      "title": "Acceso Restringido",
-      "subtitle": "Esta función está disponible solo en el plan Templates",
-      "currentPlan": "Tu plan actual no incluye acceso a la gestión de plantillas.",
-      "upgrade": "Actualiza a Templates para crear plantillas personalizadas de WhatsApp y SMS.",
-      "viewPlans": "Ver Planes Disponibles"
-    },
-    "dialogs": {
-      "sendTemplateTitle": "Enviar Plantilla",
-      "sendTemplateDescription": "Enviar \"{templateName}\" a un número de WhatsApp",
-      "recipientNumber": "Número del destinatario",
-      "recipientNumberHint": "Incluye el código de país (ej: +34 para España)",
-      "messagePreview": "Vista previa del mensaje"
-    },
-    "toast": {
-      "templateCreatedTitle": "Plantilla creada",
-      "templateCreatedDescription": "La plantilla se ha creado correctamente",
-      "templateUpdatedTitle": "Plantilla actualizada",
-      "templateUpdatedDescription": "Los cambios se han guardado correctamente",
-      "templateDeletedTitle": "Plantilla eliminada",
-      "templateDeletedDescription": "La plantilla se ha eliminado correctamente",
-      "templateSentTitle": "Plantilla enviada",
-      "templateSentDescription": "Mensaje enviado correctamente a {recipientNumber}",
-      "errorTitle": "Error",
-      "errorCreate": "No se pudo crear la plantilla",
-      "errorUpdate": "No se pudo actualizar la plantilla",
-      "errorDelete": "No se pudo eliminar la plantilla",
-      "errorSend": "No se pudo enviar la plantilla",
-      "copied": "Contenido de la plantilla copiado al portapapeles"
-    },
-    "buttons": {
-      "newTemplate": "Nueva Plantilla",
-      "createFirstTemplate": "Crear Primera Plantilla"
+    "validation": {
+      "nameFormat": "Solo letras minúsculas, números y guiones bajos",
+      "nameLength": "Máximo 512 caracteres",
+      "bodyRequired": "El cuerpo es obligatorio",
+      "bodyLength": "Máximo 1024 caracteres",
+      "footerLength": "Máximo 60 caracteres",
+      "headerLength": "Máximo 60 caracteres",
+      "buttonsMax": "Máximo 3 botones"
     }
   },
   "chatbots": {
@@ -443,10 +444,87 @@
       "webhookPlaceholder": "https://tu-chatbot.com/webhook",
       "webhookHelp": "URL donde UNMI enviará las conversaciones para que tu chatbot responda",
       "fallbackMessage": "Mensaje de Respaldo",
-      "fallbackPlaceholder": "Lo siento, estoy teniendo problemas...",
+      "fallbackPlaceholder": "Lo siento, estoy teniendo problemas técnicos...",
       "fallbackHelp": "Mensaje que se enviará si el chatbot falla completamente",
       "note": "Al activar el chatbot, se pausarán los Templates automáticos. Solo se usarán como respaldo en caso de error.",
       "save": "Guardar Configuración"
+    },
+    "restrictedAccess": {
+      "title": "Acceso Restringido",
+      "subtitle": "Esta función está disponible solo en el plan UNMI Pro",
+      "currentPlan": "Tu plan actual ({{plan}}) no incluye acceso a chatbots con IA.",
+      "upgrade": "Actualiza a UNMI Pro para implementar asistentes conversacionales 24/7 con inteligencia artificial.",
+      "feature1": "Respuestas con IA en tiempo real",
+      "feature2": "Disponibilidad 24/7 sin intervención humana",
+      "feature3": "Aprendizaje continuo de conversaciones"
+    },
+    "providers": {
+      "voiceflow": {
+        "name": "Voiceflow",
+        "description": "Constructor visual de chatbots con IA, sin código necesario",
+        "pricing": "Desde $50/mes",
+        "features": [
+          "Constructor drag & drop",
+          "GPT-4 integrado",
+          "Soporte multi-canal",
+          "Analytics en tiempo real"
+        ]
+      },
+      "botpress": {
+        "name": "Botpress",
+        "description": "Plataforma open-source para chatbots empresariales",
+        "pricing": "Gratis (self-hosted)",
+        "features": [
+          "Open source",
+          "NLU avanzado",
+          "Integración completa APIs",
+          "Hosting on-premise"
+        ]
+      },
+      "tidio": {
+        "name": "Tidio",
+        "description": "Chat en vivo + chatbot para ecommerce y atención al cliente",
+        "pricing": "Desde €29/mes",
+        "features": [
+          "Chat en vivo",
+          "Chatbot visual",
+          "Integraciones ecommerce",
+          "Plantillas predefinidas"
+        ]
+      },
+      "dialogflow": {
+        "name": "Dialogflow (Google)",
+        "description": "NLP de Google para conversaciones naturales",
+        "pricing": "Pago por uso",
+        "features": [
+          "NLP de Google",
+          "Soporte 30+ idiomas",
+          "Integración Google Cloud",
+          "Machine Learning"
+        ]
+      },
+      "landbot": {
+        "name": "Landbot",
+        "description": "Chatbots conversacionales para landing pages y WhatsApp",
+        "pricing": "Desde $40/mes",
+        "features": [
+          "WhatsApp Business API",
+          "Landing page builder",
+          "Integraciones +100",
+          "Templates listos"
+        ]
+      },
+      "custom": {
+        "name": "API Personalizada",
+        "description": "Conecta tu propio chatbot mediante webhook",
+        "pricing": "Según tu implementación",
+        "features": [
+          "Total flexibilidad",
+          "Tu propia infraestructura",
+          "Control completo",
+          "Sin limitaciones"
+        ]
+      }
     }
   },
   "locations": {
@@ -593,5 +671,26 @@
     "backToDashboard": "Volver al Dashboard",
     "somethingWrong": "Algo salió mal",
     "tryRefresh": "Intenta refrescar la página"
+  },
+  "footer": {
+    "text": "Transforma la comunicación de tu negocio con nuestra plataforma todo en uno.",
+    "rights": "Todos los derechos reservados.",
+    "description": "Transformando la comunicación empresarial con automatización inteligente.",
+    "legal": {
+      "title": "Legal",
+      "terms": "Términos de Servicio",
+      "privacy": "Política de Privacidad",
+      "cookies": "Cookies"
+    },
+    "product": {
+      "title": "Producto",
+      "integrations": "Integraciones"
+    },
+    "support": {
+      "title": "Soporte",
+      "helpCenter": "Centro de Ayuda",
+      "status": "Estado del Servicio",
+      "sales": "Contactar Ventas"
+    }
   }
 }
