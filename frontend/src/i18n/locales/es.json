@@ -110,10 +110,6 @@
       }
     }
   },
-  "footer": {
-    "text": "Transforma la comunicación de tu negocio con nuestra plataforma todo en uno.",
-    "rights": "Todos los derechos reservados."
-  },
   "auth": {
     "login": {
       "title": "Iniciar Sesión",
@@ -324,7 +320,7 @@
     },
     "dateFormat": "dd/MM/yyyy HH:mm"
   },
- "templates": {
+  "templates": {
     "title": "Templates",
     "subtitle": "Crea y administra mensajes predefinidos para diversas situaciones",
     "new": "Nuevo Template",
@@ -407,7 +403,7 @@
       "buttonsMax": "Máximo 3 botones"
     }
   },
-"chatbots": {
+  "chatbots": {
     "title": "Chatbots",
     "subtitle": "Configura chatbots con IA para respuestas automáticas 24/7",
     "howItWorks": {
@@ -467,37 +463,67 @@
         "name": "Voiceflow",
         "description": "Constructor visual de chatbots con IA, sin código necesario",
         "pricing": "Desde $50/mes",
-        "features": ["Constructor drag & drop", "GPT-4 integrado", "Soporte multi-canal", "Analytics en tiempo real"]
+        "features": [
+          "Constructor drag & drop",
+          "GPT-4 integrado",
+          "Soporte multi-canal",
+          "Analytics en tiempo real"
+        ]
       },
       "botpress": {
         "name": "Botpress",
         "description": "Plataforma open-source para chatbots empresariales",
         "pricing": "Gratis (self-hosted)",
-        "features": ["Open source", "NLU avanzado", "Integración completa APIs", "Hosting on-premise"]
+        "features": [
+          "Open source",
+          "NLU avanzado",
+          "Integración completa APIs",
+          "Hosting on-premise"
+        ]
       },
       "tidio": {
         "name": "Tidio",
         "description": "Chat en vivo + chatbot para ecommerce y atención al cliente",
         "pricing": "Desde €29/mes",
-        "features": ["Chat en vivo", "Chatbot visual", "Integraciones ecommerce", "Plantillas predefinidas"]
+        "features": [
+          "Chat en vivo",
+          "Chatbot visual",
+          "Integraciones ecommerce",
+          "Plantillas predefinidas"
+        ]
       },
       "dialogflow": {
         "name": "Dialogflow (Google)",
         "description": "NLP de Google para conversaciones naturales",
         "pricing": "Pago por uso",
-        "features": ["NLP de Google", "Soporte 30+ idiomas", "Integración Google Cloud", "Machine Learning"]
+        "features": [
+          "NLP de Google",
+          "Soporte 30+ idiomas",
+          "Integración Google Cloud",
+          "Machine Learning"
+        ]
       },
       "landbot": {
         "name": "Landbot",
         "description": "Chatbots conversacionales para landing pages y WhatsApp",
         "pricing": "Desde $40/mes",
-        "features": ["WhatsApp Business API", "Landing page builder", "Integraciones +100", "Templates listos"]
+        "features": [
+          "WhatsApp Business API",
+          "Landing page builder",
+          "Integraciones +100",
+          "Templates listos"
+        ]
       },
       "custom": {
         "name": "API Personalizada",
         "description": "Conecta tu propio chatbot mediante webhook",
         "pricing": "Según tu implementación",
-        "features": ["Total flexibilidad", "Tu propia infraestructura", "Control completo", "Sin limitaciones"]
+        "features": [
+          "Total flexibilidad",
+          "Tu propia infraestructura",
+          "Control completo",
+          "Sin limitaciones"
+        ]
       }
     }
   },
@@ -645,5 +671,26 @@
     "backToDashboard": "Volver al Dashboard",
     "somethingWrong": "Algo salió mal",
     "tryRefresh": "Intenta refrescar la página"
+  },
+  "footer": {
+    "text": "Transforma la comunicación de tu negocio con nuestra plataforma todo en uno.",
+    "rights": "Todos los derechos reservados.",
+    "description": "Transformando la comunicación empresarial con automatización inteligente.",
+    "legal": {
+      "title": "Legal",
+      "terms": "Términos de Servicio",
+      "privacy": "Política de Privacidad",
+      "cookies": "Cookies"
+    },
+    "product": {
+      "title": "Producto",
+      "integrations": "Integraciones"
+    },
+    "support": {
+      "title": "Soporte",
+      "helpCenter": "Centro de Ayuda",
+      "status": "Estado del Servicio",
+      "sales": "Contactar Ventas"
+    }
   }
 }

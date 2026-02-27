@@ -110,10 +110,6 @@
       }
     }
   },
-  "footer": {
-    "text": "Transform your business communication with our all-in-one platform.",
-    "rights": "All rights reserved."
-  },
   "auth": {
     "login": {
       "title": "Log In",
@@ -695,6 +691,27 @@
       "warning": "The change will apply immediately. Current month cost will be prorated.",
       "cancel": "Cancel",
       "confirm": "Confirm"
+    }
+  },
+  "footer": {
+    "text": "Transform your business communication with our all-in-one platform.",
+    "rights": "All rights reserved.",
+    "description": "Transforming business communication with intelligent automation.",
+    "legal": {
+      "title": "Legal",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy",
+      "cookies": "Cookies"
+    },
+    "product": {
+      "title": "Product",
+      "integrations": "Integrations"
+    },
+    "support": {
+      "title": "Support",
+      "helpCenter": "Help Center",
+      "status": "Service Status",
+      "sales": "Contact Sales"
     }
   }
 }

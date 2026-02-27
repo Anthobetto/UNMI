@@ -110,10 +110,6 @@
       }
     }
   },
-  "footer": {
-    "text": "Transformez la communication de votre entreprise avec notre plateforme tout-en-un.",
-    "rights": "Tous droits réservés."
-  },
   "auth": {
     "login": {
       "title": "Se Connecter",
@@ -700,5 +696,26 @@
     "backToDashboard": "Retour au Tableau de bord",
     "somethingWrong": "Quelque chose s'est mal passé",
     "tryRefresh": "Essayez de rafraîchir la page"
+  },
+  "footer": {
+    "text": "Transformez la communication de votre entreprise avec notre plateforme tout-en-un.",
+    "rights": "Tous droits réservés.",
+    "description": "Transformer la communication d'entreprise grâce à l'automatisation intelligente.",
+    "legal": {
+      "title": "Légal",
+      "terms": "Conditions d'utilisation",
+      "privacy": "Politique de confidentialité",
+      "cookies": "Cookies"
+    },
+    "product": {
+      "title": "Produit",
+      "integrations": "Intégrations"
+    },
+    "support": {
+      "title": "Support",
+      "helpCenter": "Centre d'aide",
+      "status": "État du service",
+      "sales": "Contacter les ventes"
+    }
   }
 }

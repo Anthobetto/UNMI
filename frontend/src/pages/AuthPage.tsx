@@ -96,7 +96,6 @@ export default function AuthPage() {
 
   }, [selectedPlanUI, numLocations, numDepartments, registerForm]);
 
-
   // ==========================================
   // 4. HANDLERS
   // ==========================================
@@ -133,7 +132,6 @@ export default function AuthPage() {
     }
   };
 
-  // Función para mostrar errores si el botón no hace nada
   const onFormError = (errors: any) => {
     console.error("⛔ ERRORES DE VALIDACIÓN:", errors);
     let mensaje = "Por favor completa los siguientes campos:\n";
@@ -147,32 +145,32 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] font-sans text-[#1a1a1a]">
-      <div className="absolute top-6 right-6 z-50">
+      <div className="absolute top-4 right-4 md:top-6 md:right-6 z-50">
         <LanguageSelector />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-12 lg:py-20">
 
         {/* HEADER */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-12 md:mb-16">
           <div className="flex justify-center mb-6 cursor-pointer" onClick={() => setLocation("/")}>
             <OfficialLogo width={220} />
           </div>
-          <h1 className="text-4xl font-bold tracking-tight mb-4">{t("auth.register.tagline")}</h1>
-          <p className="text-gray-500 max-w-2xl mx-auto text-lg">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">{t("auth.register.tagline")}</h1>
+          <p className="text-gray-500 max-w-2xl mx-auto text-base md:text-lg">
             {t("hero.subtitle")}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
 
           {/* === IZQUIERDA: PAYWALL VISUAL === */}
-          <div className="lg:col-span-7 space-y-8">
+          <div className="lg:col-span-7 space-y-6 md:space-y-8">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-2xl font-bold">{t("auth.register.selectPlan")}</h2>
+              <h2 className="text-xl md:text-2xl font-bold">{t("auth.register.selectPlan")}</h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               {/* PLAN SMALL */}
               <div
                 onClick={() => {
@@ -180,7 +178,7 @@ export default function AuthPage() {
                   setNumLocations(1);
                   setNumDepartments(1);
                 }}
-                className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${selectedPlanUI === 'templates'
+                className={`relative p-5 md:p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${selectedPlanUI === 'templates'
                   ? 'border-[#FF0000] bg-white shadow-xl ring-1 ring-red-100'
                   : 'border-gray-200 bg-white hover:border-gray-300'
                   }`}
@@ -208,7 +206,7 @@ export default function AuthPage() {
               {/* PLAN PRO */}
               <div
                 onClick={() => setSelectedPlanUI('chatbots')}
-                className={`relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${selectedPlanUI === 'chatbots'
+                className={`relative p-5 md:p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${selectedPlanUI === 'chatbots'
                   ? 'border-[#FF0000] bg-white shadow-xl ring-1 ring-red-100'
                   : 'border-gray-200 bg-white hover:border-gray-300'
                   }`}
@@ -237,16 +235,16 @@ export default function AuthPage() {
               </div>
             </div>
 
-            {/* OPCIONES DINÁMICAS */}
-            <div className={`transition-all duration-500 ease-in-out ${selectedPlanUI === 'chatbots' ? 'opacity-100 max-h-[500px]' : 'opacity-60 max-h-[120px] grayscale pointer-events-none'}`}>
-              <Card className="border-0 shadow-sm bg-gray-50/50 rounded-2xl">
-                <CardContent className="p-6">
+            {/* OPCIONES DINÁMICAS (FIX OVERFLOW AQUÍ) */}
+            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${selectedPlanUI === 'chatbots' ? 'opacity-100 max-h-[800px]' : 'opacity-60 max-h-[100px] md:max-h-[140px] grayscale pointer-events-none'}`}>
+              <Card className="border border-gray-200 shadow-sm bg-gray-50/50 rounded-2xl">
+                <CardContent className="p-5 md:p-6">
                   <div className="flex items-center gap-2 mb-6">
                     <Info className="text-blue-500" size={18} />
                     <h4 className="font-semibold text-gray-900">Personalización de Estructura</h4>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-gray-700 block">{t("nav.locations")}</label>
                       <Select
@@ -286,53 +284,53 @@ export default function AuthPage() {
             </div>
           </div>
 
-          {/* === DERECHA: FORMULARIO === */}
+          {/* === DERECHA: FORMULARIO LIMPIO === */}
           <div className="lg:col-span-5 relative">
             <div className="sticky top-8 space-y-4">
 
-              <div className="text-black rounded-[2rem] p-8 shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF0000] opacity-10 rounded-full blur-3xl transform translate-x-10 -translate-y-10"></div>
+              <div className="bg-white text-gray-900 rounded-[2rem] p-6 md:p-8 shadow-xl border border-gray-100 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF0000] opacity-5 rounded-full blur-3xl transform translate-x-10 -translate-y-10"></div>
 
                 <div className="relative z-10">
-                  <p className="text-xs font-bold tracking-widest text-gray-400 uppercase mb-2">Resumen</p>
-                  <div className="flex justify-between items-end border-b border-gray-800 pb-6 mb-6">
+                  <p className="text-xs font-bold tracking-widest text-gray-500 uppercase mb-2">Resumen</p>
+                  <div className="flex justify-between items-end border-b border-gray-100 pb-6 mb-6">
                     <div>
-                      <h3 className="text-xl font-bold">{selectedPlanUI === 'templates' ? 'Small ' : 'UNMI Pro'}</h3>
-                      <p className="text-sm text-gray-400 mt-1">
+                      <h3 className="text-xl font-bold">{selectedPlanUI === 'templates' ? 'Pequeña Empresa' : 'UNMI Pro'}</h3>
+                      <p className="text-sm text-gray-500 mt-1">
                         {numLocations} {numLocations === 1 ? 'Sede' : 'Sedes'} • {numDepartments} {numDepartments === 1 ? 'Dept' : 'Depts'}
                       </p>
                     </div>
                     <div className="text-right">
-                      <span className="text-4xl font-white tracking-tighter">€{calculateTotal()}</span>
+                      <span className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tighter">€{calculateTotal()}</span>
                     </div>
                   </div>
 
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 bg-white/10 p-1 rounded-xl h-12 mb-6">
-                      <TabsTrigger value="register" className="rounded-lg data-[state=active]:bg-[#FF0000] data-[state=active]:text-white text-gray-300">{t("auth.register.title")}</TabsTrigger>
-                      <TabsTrigger value="login" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-black text-gray-300">{t("auth.login.title")}</TabsTrigger>
+                    <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-xl h-12 mb-6">
+                      <TabsTrigger value="register" className="rounded-lg data-[state=active]:bg-[#FF0000] data-[state=active]:text-white text-gray-600">{t("auth.register.title")}</TabsTrigger>
+                      <TabsTrigger value="login" className="rounded-lg data-[state=active]:bg-[#FF0000] data-[state=active]:text-white text-gray-600">{t("auth.login.title")}</TabsTrigger>
                     </TabsList>
 
-                    {/* FORMULARIO DE REGISTRO - RESTAURADO */}
+                    {/* FORMULARIO DE REGISTRO */}
                     <TabsContent value="register">
                       <Form {...registerForm}>
                         <form
                           onSubmit={registerForm.handleSubmit(handleRegister, onFormError)}
                           className="space-y-4"
                         >
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <FormField control={registerForm.control} name="username" render={({ field }) => (
-                              <FormItem><FormControl><Input placeholder={t("auth.register.fullName")} {...field} className="bg-white/5 border-gray-700 text-black placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
+                              <FormItem><FormControl><Input placeholder={t("auth.register.fullName")} {...field} className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 h-11 rounded-xl focus:border-[#FF0000] shadow-sm" /></FormControl><FormMessage /></FormItem>
                             )} />
                             <FormField control={registerForm.control} name="companyName" render={({ field }) => (
-                              <FormItem><FormControl><Input placeholder={t("auth.register.companyName")} {...field} className="bg-white/5 border-gray-700 text-black placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
+                              <FormItem><FormControl><Input placeholder={t("auth.register.companyName")} {...field} className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 h-11 rounded-xl focus:border-[#FF0000] shadow-sm" /></FormControl><FormMessage /></FormItem>
                             )} />
                           </div>
                           <FormField control={registerForm.control} name="email" render={({ field }) => (
-                            <FormItem><FormControl><Input placeholder={t("auth.register.email")} {...field} className="bg-white/5 border-gray-700 text-black placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormControl><Input placeholder={t("auth.register.email")} {...field} className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 h-11 rounded-xl focus:border-[#FF0000] shadow-sm" /></FormControl><FormMessage /></FormItem>
                           )} />
                           <FormField control={registerForm.control} name="password" render={({ field }) => (
-                            <FormItem><FormControl><Input type="password" placeholder={t("auth.register.password")} {...field} className="bg-white/5 border-gray-700 text-black placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormControl><Input type="password" placeholder={t("auth.register.password")} {...field} className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 h-11 rounded-xl focus:border-[#FF0000] shadow-sm" /></FormControl><FormMessage /></FormItem>
                           )} />
 
                           <FormField control={registerForm.control} name="termsAccepted" render={({ field }) => (
@@ -341,16 +339,16 @@ export default function AuthPage() {
                                 <Checkbox
                                   checked={field.value}
                                   onCheckedChange={field.onChange}
-                                  className="border-gray-500 data-[state=checked]:bg-[#FF0000] data-[state=checked]:border-[#FF0000]"
+                                  className="border-gray-300 data-[state=checked]:bg-[#FF0000] data-[state=checked]:border-[#FF0000]"
                                 />
                               </FormControl>
-                              <FormLabel className="text-xs text-gray-400 font-normal leading-tight">
-                                {t("auth.register.terms")} <a href="#" className="underline hover:text-white">{t("auth.register.termsLink")}</a>
+                              <FormLabel className="text-xs text-gray-500 font-normal leading-tight">
+                                {t("auth.register.terms")} <a href="#" className="underline text-[#FF0000] hover:text-red-700">{t("auth.register.termsLink")}</a>
                               </FormLabel>
                             </FormItem>
                           )} />
 
-                          <Button type="submit" disabled={isSubmitting} className="w-full h-14 bg-[#FF0000] hover:bg-[#cc0000] text-white rounded-xl text-lg font-bold mt-2 shadow-lg group">
+                          <Button type="submit" disabled={isSubmitting} className="w-full h-14 bg-[#FF0000] hover:bg-[#cc0000] text-white rounded-xl text-lg font-bold mt-2 shadow-lg hover:shadow-xl transition-all group">
                             {isSubmitting ? (
                               <span className="flex items-center gap-2"><Loader2 className="animate-spin" /> Procesando...</span>
                             ) : (
@@ -368,13 +366,17 @@ export default function AuthPage() {
                       <Form {...loginForm}>
                         <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
                           <FormField control={loginForm.control} name="email" render={({ field }) => (
-                            <FormItem><FormControl><Input placeholder={t("auth.login.email")} {...field} className="bg-white/5 border-gray-700 text-black placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormControl><Input placeholder={t("auth.login.email")} {...field} className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 h-11 rounded-xl focus:border-[#FF0000] shadow-sm" /></FormControl><FormMessage /></FormItem>
                           )} />
                           <FormField control={loginForm.control} name="password" render={({ field }) => (
-                            <FormItem><FormControl><Input type="password" placeholder={t("auth.login.password")} {...field} className="bg-white/5 border-gray-700 text-black placeholder:text-gray-500 h-11 rounded-xl focus:border-[#FF0000]" /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormControl><Input type="password" placeholder={t("auth.login.password")} {...field} className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 h-11 rounded-xl focus:border-[#FF0000] shadow-sm" /></FormControl><FormMessage /></FormItem>
                           )} />
-                          <Button type="submit" disabled={isSubmitting} className="w-full h-14 bg-white text-black hover:bg-gray-200 rounded-xl text-lg font-bold mt-6">
-                            {isSubmitting ? t("auth.login.loading") : t("auth.login.submit")}
+                          <Button type="submit" disabled={isSubmitting} className="w-full h-14 bg-[#FF0000] hover:bg-[#cc0000] text-white rounded-xl text-lg font-bold mt-6 shadow-lg hover:shadow-xl transition-all">
+                            {isSubmitting ? (
+                              <span className="flex items-center gap-2 justify-center"><Loader2 className="animate-spin" /> {t("auth.login.loading")}</span>
+                            ) : (
+                              t("auth.login.submit")
+                            )}
                           </Button>
                         </form>
                       </Form>
@@ -383,16 +385,16 @@ export default function AuthPage() {
                 </div>
               </div>
 
-              <div className="flex justify-center items-center gap-4 text-xs text-gray-400 mt-4">
-                <span className="flex items-center"><ShieldCheck size={14} className="mr-1 text-green-500" /> SSL Secure</span>
-                <span className="flex items-center"><Check size={14} className="mr-1 text-green-500" /> Stripe Verified</span>
+              <div className="flex justify-center items-center gap-4 text-xs text-gray-500 mt-4">
+                <span className="flex items-center"><ShieldCheck size={14} className="mr-1 text-green-600" /> SSL Secure</span>
+                <span className="flex items-center"><Check size={14} className="mr-1 text-green-600" /> Stripe Verified</span>
               </div>
             </div>
           </div>
         </div>
 
-        <footer className="mt-24 border-t border-gray-200 pt-10 pb-6 text-center text-xs text-gray-400">
-          © 2026 UNMI Technologies SL. Todos los derechos reservados.
+        <footer className="mt-16 md:mt-24 border-t border-gray-200 pt-8 pb-6 text-center text-xs text-gray-400">
+          © {new Date().getFullYear()} UNMI Technologies SL. Todos los derechos reservados.
         </footer>
       </div>
     </div>
