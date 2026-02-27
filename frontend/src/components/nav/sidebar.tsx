@@ -26,7 +26,6 @@ export function Sidebar() {
 
   const userPlan = user?.planType || 'small'; 
 
-
   const navigation = [
     { name: t('nav.dashboard'), href: "/dashboard", icon: LayoutDashboard },
     { name: t('nav.profitability'), href: "/rentabilidad-unmi", icon: TrendingUp },
@@ -36,11 +35,6 @@ export function Sidebar() {
     { name: t('nav.locations'), href: "/locations", icon: MapPin },
     { name: t('nav.plan'), href: "/plan", icon: CreditCard },
   ];
-
-  // Ocultar Chatbots para 'small', podrías hacer:
-  // if (userPlan === 'small') {
-  //   navigation = navigation.filter(item => item.href !== '/chatbots');
-  // }
 
   const renderNavItems = () => (
     <nav className="space-y-1">
@@ -66,7 +60,6 @@ export function Sidebar() {
               )}
             />
             <span className="flex-1 truncate">{item.name}</span>
-            
           </Link>
         );
       })}
@@ -75,28 +68,17 @@ export function Sidebar() {
 
   const UserBlock = (
     <div className="border-t border-gray-200 p-4">
-      <div className="flex items-center gap-x-3 w-full">
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-900 truncate">
-            {user?.username || "Usuario"}
-          </p>
-          <p className="text-xs text-gray-500 truncate">
-            {user?.email}
-          </p>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-full h-8 w-8 hover:bg-red-50 hover:text-red-600 transition-colors"
-          onClick={async () => {
-            await logout();
-            setLocation("/");
-          }}
-          title={t('nav.logout')}
-        >
-          <LogOut className="h-4 w-4" />
-        </Button>
-      </div>
+      <Button
+        variant="ghost"
+        className="w-full flex items-center justify-start gap-x-3 rounded-lg px-3 py-6 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-700 transition-all duration-200"
+        onClick={async () => {
+          await logout();
+          setLocation("/");
+        }}
+      >
+        <LogOut className="h-5 w-5 shrink-0" />
+        <span className="flex-1 truncate text-left">{t('nav.logout')}</span>
+      </Button>
     </div>
   );
 
@@ -105,7 +87,7 @@ export function Sidebar() {
       {/* Desktop sidebar */}
       <aside className="hidden md:flex md:flex-col md:w-64 md:h-screen border-r border-gray-200 bg-white fixed left-0 top-0 z-30 shadow-sm">
         
-        {/* Header Logo con el padding arreglado */}
+        {/* Header Logo */}
         <div className="flex flex-col px-6 pt-8 pb-6">
           <OfficialLogo width={140} />
         </div>

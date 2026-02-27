@@ -56,8 +56,10 @@ const handleUpgrade = async () => {
 
       if (data.url) {
         window.location.href = data.url;
-      } else {
-        throw new Error("No se recibió la URL de pago");
+      } 
+      else if (data.success) {
+        alert("¡Plan actualizado con éxito! Stripe ha procesado el prorrateo.");
+        window.location.reload(); 
       }
 
     } catch (error) {

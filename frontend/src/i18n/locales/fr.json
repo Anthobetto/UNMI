@@ -194,7 +194,7 @@
     },
     "recentCalls": {
       "title": "Appels Récents",
-      "description": "Derniers 5 appels reçus",
+      "description": "Derniers appels reçus",
       "noCalls": "Aucun appel enregistré pour le moment",
       "info": "Les appels apparaîtront ici lorsque vous configurerez vos numéros",
       "configureLocations": "Configurer les Emplacements",
@@ -324,7 +324,7 @@
     },
     "dateFormat": "dd/MM/yyyy HH:mm"
   },
-  "templates": {
+"templates": {
     "title": "Modèles",
     "subtitle": "Créez et gérez des messages prédéfinis pour différentes situations",
     "new": "Nouveau Modèle",
@@ -332,19 +332,79 @@
     "edit": "Modifier le Modèle",
     "noTemplates": "Pas encore de modèles",
     "firstTemplate": "Créez votre premier modèle pour commencer à automatiser les réponses",
+    "loading": "Chargement des modèles...",
+    "search": "Rechercher des modèles...",
+    "allCategories": "Toutes les catégories",
+    "allStatus": "Tous les statuts",
+    "tabs": {
+      "basic": "Général",
+      "header": "En-tête",
+      "body": "Corps",
+      "footer": "Pied de page & Boutons"
+    },
+    "categories": {
+      "UTILITY": "Utilité",
+      "UTILITY_DESC": "Utilité (factures, alertes, confirmations)",
+      "AUTHENTICATION": "Authentification",
+      "AUTHENTICATION_DESC": "Authentification (codes OTP)",
+      "MARKETING": "Marketing",
+      "MARKETING_DESC": "Marketing (promotions, offres)",
+      "SERVICE": "Service",
+      "SERVICE_DESC": "Service (mises à jour de compte)"
+    },
+    "status": {
+      "PENDING": "En attente",
+      "APPROVED": "Approuvé",
+      "REJECTED": "Rejeté"
+    },
     "form": {
-      "name": "Nom du Modèle",
-      "namePlaceholder": "Ex: Réponse appel manqué",
-      "type": "Type de Modèle",
-      "channel": "Canal d'envoi",
-      "location": "Emplacement (Facultatif)",
-      "allLocations": "Tous les emplacements",
-      "content": "Contenu du Message",
-      "contentPlaceholder": "Bonjour ! Nous avons vu votre appel mais n'avons pas pu répondre...",
-      "variables": "Vous pouvez utiliser des variables comme {nom}, {entreprise}, {date}",
-      "tip": "Incluez un call-to-action clair et un lien pour réserver ou contacter",
+      "name": "Nom du Modèle *",
+      "namePlaceholder": "ex: reponse_appel_manque",
+      "nameHelp": "Lettres minuscules, chiffres et traits de soulignement uniquement. Max 512 car.",
+      "category": "Catégorie *",
+      "language": "Langue *",
+      "headerType": "Type d'En-tête",
+      "headerTypes": {
+        "NONE": "Sans en-tête",
+        "TEXT": "Texte",
+        "IMAGE": "Image",
+        "VIDEO": "Vidéo",
+        "DOCUMENT": "Document PDF"
+      },
+      "headerText": "Texte de l'En-tête",
+      "headerTextPlaceholder": "Titre du message",
+      "headerMediaUrl": "URL du fichier",
+      "headerMediaUrlPlaceholder": "https://exemple.com/fichier.jpg",
+      "headerMediaUrlHelp": "Doit être une URL accessible publiquement",
+      "body": "Contenu du Message *",
+      "bodyPlaceholder": "Bonjour {{1}}, nous avons vu votre appel mais...",
+      "bodyHelp": "caractères. Utilisez des variables comme {{1}}, {{2}}, {{3}}",
+      "tipTitle": "Astuce :",
+      "tipDesc": "Incluez un appel à l'action clair et un lien pour réserver ou contacter",
+      "footer": "Pied de page (facultatif)",
+      "footerPlaceholder": "Texte apparaissant en bas",
+      "buttons": "Boutons (max 3)",
+      "buttonTypes": {
+        "QUICK_REPLY": "Réponse Rapide",
+        "PHONE_NUMBER": "Appeler",
+        "URL": "Visiter le site web"
+      },
+      "buttonText": "Texte du bouton",
+      "addButton": "Ajouter un Bouton",
+      "preview": "Aperçu WhatsApp",
+      "previewBody": "Votre message apparaîtra ici...",
+      "previewButton": "Bouton",
       "cancel": "Annuler",
       "saveChanges": "Enregistrer les Modifications"
+    },
+    "validation": {
+      "nameFormat": "Lettres minuscules, chiffres et traits de soulignement uniquement",
+      "nameLength": "Maximum 512 caractères",
+      "bodyRequired": "Le contenu du message est requis",
+      "bodyLength": "Maximum 1024 caractères",
+      "footerLength": "Maximum 60 caractères",
+      "headerLength": "Maximum 60 caractères",
+      "buttonsMax": "Maximum 3 boutons"
     },
     "types": {
       "missedCall": "Appel Manqué",
@@ -402,11 +462,11 @@
       "createFirstTemplate": "Créer le Premier Modèle"
     }
   },
-  "chatbots": {
+"chatbots": {
     "title": "Chatbots",
     "subtitle": "Configurez des chatbots IA pour des réponses automatiques 24/7",
     "howItWorks": {
-      "title": "Comment ça marche?",
+      "title": "Comment ça marche ?",
       "desc": "Sélectionnez un fournisseur de chatbot, configurez la clé API, et UNMI routera automatiquement les conversations. Si le chatbot échoue, le système de Modèles sera utilisé comme solution de secours."
     },
     "chooseProvider": "Choisissez Votre Fournisseur de Chatbot",
@@ -427,8 +487,8 @@
     "fallback": {
       "title": "Système de Secours (Fallback)",
       "subtitle": "Si le chatbot échoue ou est indisponible, ce système sera utilisé",
-      "conditions": "UNMI utilisera automatiquement vos Modèles comme solution de secours si:",
-      "condition1": "Le chatbot ne répond pas en 5 secondes",
+      "conditions": "UNMI utilisera automatiquement vos Modèles comme solution de secours si :",
+      "condition1": "Le chatbot ne répond pas dans les 5 secondes",
       "condition2": "Il y a une erreur d'API",
       "condition3": "La limite de requêtes est dépassée",
       "configureTemplates": "Configurer les Modèles de Secours"
@@ -447,6 +507,53 @@
       "fallbackHelp": "Message qui sera envoyé si le chatbot échoue complètement",
       "note": "En activant le chatbot, les Modèles automatiques seront mis en pause. Ils ne seront utilisés que comme solution de secours en cas d'erreur.",
       "save": "Enregistrer la Configuration"
+    },
+    "restrictedAccess": {
+      "title": "Accès Restreint",
+      "subtitle": "Cette fonctionnalité est uniquement disponible dans le plan UNMI Pro",
+      "currentPlan": "Votre plan actuel ({{plan}}) n'inclut pas l'accès aux chatbots IA.",
+      "upgrade": "Passez à UNMI Pro pour déployer des assistants conversationnels IA 24/7.",
+      "feature1": "Réponses IA en temps réel",
+      "feature2": "Disponibilité 24/7 sans intervention humaine",
+      "feature3": "Apprentissage continu à partir des conversations"
+    },
+    "providers": {
+      "voiceflow": {
+        "name": "Voiceflow",
+        "description": "Constructeur visuel de chatbots IA, sans code",
+        "pricing": "À partir de 50$/mois",
+        "features": ["Constructeur glisser-déposer", "GPT-4 intégré", "Support multi-canal", "Analyses en temps réel"]
+      },
+      "botpress": {
+        "name": "Botpress",
+        "description": "Plateforme open-source pour les chatbots d'entreprise",
+        "pricing": "Gratuit (auto-hébergé)",
+        "features": ["Open source", "NLU avancé", "Intégration API complète", "Hébergement sur site"]
+      },
+      "tidio": {
+        "name": "Tidio",
+        "description": "Chat en direct + chatbot pour l'e-commerce et le support client",
+        "pricing": "À partir de 29€/mois",
+        "features": ["Chat en direct", "Chatbot visuel", "Intégrations e-commerce", "Modèles prédéfinis"]
+      },
+      "dialogflow": {
+        "name": "Dialogflow (Google)",
+        "description": "NLP de Google pour des conversations naturelles",
+        "pricing": "Paiement à l'usage",
+        "features": ["NLP de Google", "Support de plus de 30 langues", "Intégration Google Cloud", "Machine Learning"]
+      },
+      "landbot": {
+        "name": "Landbot",
+        "description": "Chatbots conversationnels pour landing pages et WhatsApp",
+        "pricing": "À partir de 40$/mois",
+        "features": ["API WhatsApp Business", "Créateur de landing page", "Plus de 100 intégrations", "Modèles prêts à l'emploi"]
+      },
+      "custom": {
+        "name": "API Personnalisée",
+        "description": "Connectez votre propre chatbot via webhook",
+        "pricing": "Selon l'implémentation",
+        "features": ["Flexibilité totale", "Votre propre infrastructure", "Contrôle complet", "Sans limites"]
+      }
     }
   },
   "locations": {

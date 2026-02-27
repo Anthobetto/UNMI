@@ -148,14 +148,18 @@ export default function Dashboard() {
   const recoveredCalls = Math.floor(missedCalls * (Number(conversionRate) / 100));
   const expectedRevenue = recoveredCalls * Number(averageTicket);
 
+  // Limpiamos los nombres del PieChart para que no salga "Contestadas: : X%"
   const pieData = [
-    { name: t('dashboard.charts.answered'), value: callStats?.answered ?? 0 },
-    { name: t('dashboard.charts.missed'), value: callStats?.missed ?? 0 },
+    { name: t('telephony.metrics.answered'), value: callStats?.answered ?? 0 },
+    { name: t('telephony.metrics.missed'), value: callStats?.missed ?? 0 },
   ];
 
   const missedCallRate = callStats?.total
     ? ((callStats.missed / callStats.total) * 100).toFixed(1)
     : '0';
+
+  // Obtener el nombre bonito del plan usando las traducciones de 'plan'
+  const displayPlanName = user?.planType ? t(`plan.${user.planType}.title`) : 'Pequeña Empresa';
 
   return (
     <>
@@ -169,8 +173,9 @@ export default function Dashboard() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.title')}</h1>
+            {/* ✅ CORRECCIÓN 1: Solucionado el "Bienvenido, Bienvenido" */}
             <p className="text-gray-600 mt-1">
-              {t('dashboard.welcome', { username: user?.username || t('dashboard.welcome', { username: 'Usuario' }) })}
+              {t('dashboard.welcome', { username: user?.username || 'Usuario' })}
             </p>
           </div>
 
@@ -184,14 +189,8 @@ export default function Dashboard() {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>
-              {t('dashboard.plan.active', { plan: user.planType === 'templates' ? t('dashboard.plan.templates') : t('dashboard.plan.chatbots') })}
+              {t('dashboard.plan.active', { plan: displayPlanName })}
             </AlertTitle>
-            <AlertDescription>
-              {t('dashboard.plan.access', { access: user.planType === 'templates' ? t('dashboard.plan.templates') : t('dashboard.plan.chatbots') })}{' '}
-              <Link href="/plan">
-                <a className="underline font-medium">{t('dashboard.plan.change')}</a>
-              </Link>
-            </AlertDescription>
           </Alert>
         )}
 
@@ -279,7 +278,8 @@ export default function Dashboard() {
                 €{expectedRevenue.toLocaleString()}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {t('dashboard.metrics.recoveredCalls', { count: recoveredCalls })}
+                {/* ✅ CORRECCIÓN 3: Mostramos el número de llamadas directamente para que no se pierda */}
+                {recoveredCalls} {t('dashboard.metrics.recoveredCalls')}
               </p>
             </CardContent>
           </Card>
@@ -410,8 +410,10 @@ export default function Dashboard() {
                 <p className="text-sm mt-1">{t('dashboard.recentCalls.info')}</p>
                 <Button variant="outline" className="mt-4" asChild>
                   <Link href="/locations">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    {t('dashboard.recentCalls.configureLocations')}
+                    <a className="flex items-center">
+                      <MapPin className="h-4 w-4 mr-2" />
+                      {t('dashboard.recentCalls.configureLocations')}
+                    </a>
                   </Link>
                 </Button>
               </div>
@@ -454,7 +456,6 @@ export default function Dashboard() {
         </Card>
 
         {/* Quick Actions */}
-        {/* Quick Actions */}
         <div className="grid gap-4 md:grid-cols-3">
           {/* Locations */}
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
@@ -494,13 +495,12 @@ export default function Dashboard() {
                 <TrendingUp className="h-4 w-4 text-gray-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-sm font-medium capitalize">{user?.planType || 'Basic'}</div>
+                <div className="text-sm font-medium capitalize">{displayPlanName}</div>
                 <p className="text-xs text-muted-foreground">{t('dashboard.quickActions.upgradePlan')}</p>
               </CardContent>
             </Link>
           </Card>
         </div>
-
       </div>
     </>
   );
