@@ -1,83 +1,34 @@
-# 🧾 Resumen de cambios recientes – Proyecto Lean Refactored
+## Estado del Proyecto UNMI (Última actualización: Mejoras UI Landing & Auth)
 
-## ⚙️ Configuración general
-- Eliminado componente **`ChoosePlan.tsx`**.  
-- Cambiado el **puerto de desarrollo** a **5001** en `vite.config.ts`.  
-- Corregidas importaciones globales:
-  - `import { cn } from "@/lib/utils"` → ✅ `import { cn } from "@/utils/cn"`.  
-- Inicializado **Git** (`git init`) y configurado `.gitignore` para excluir:
-  - `node_modules/`
-  - `dist/`
-  - `.env`
-  - `.vscode/`
-- Instaladas dependencias con **npm**.  
-- Conexión configurada con **Supabase** y **Stripe**.  
+### Contexto General Analizado:
+- **Arquitectura**: Monorepositorio (Frontend en React/Vite + Backend en Node/Express).
+- **Base de datos**: Supabase (PostgreSQL).
+- **Reglas Compartidas**: Uso de Zod en la carpeta `shared` para validar datos en ambos lados.
+- **Despliegue**: Render.com (Backend y Frontend servidos juntos mediante Express).
 
----
+### Últimos Cambios Realizados (Frontend):
+1. **Refactorización de `AuthPage.tsx`**:
+   - Flujo de dos pasos. Paso 1: `PricingSelector` integrado con Framer Motion. Paso 2: Formulario.
+   - **Última iteración (Paso 2)**: Diseño actualizado de horizontal a **vertical centrado** para mejorar la UX. Logo ampliado y centrado, resumen del plan en formato tarjeta compacta en la parte superior y formulario extendido a lo ancho de un contenedor central (`max-w-xl`).
+   - Se añadió lectura inteligente del parámetro `plan` en la URL (`/auth?tab=register&plan=small`) para preseleccionar automáticamente el plan y saltar al Paso 2 sin fricciones. Se importó `framer-motion` para evitar errores de renderizado.
 
-## 🧩 Configuración TypeScript / Vite
-- Creado archivo **`tsconfig.node.json`** para compatibilidad completa con ES2020:
+2. **Refactorización de `LandingPage.tsx` (Mejoras Visuales Hero & Header)**:
+   - **Header de Alto Impacto**: 
+     - Navbar centrado matemáticamente mediante posicionamiento absoluto.
+     - Aumento del tamaño de fuente de los enlaces de navegación a `text-xl` con peso `semibold`.
+     - Añadidos efectos de hover con cambio de color a Rojo UNMI y escala interactiva (`scale-110`).
+     - Eliminación del botón redundante "Empieza hoy" para una estética más limpia y profesional.
+   - **Imagen Hero Interactiva**: 
+     - Implementación de un **Aura de Resplandor Central** uniforme y sutil que reacciona al hover.
+     - Efecto **Shine (Brillo)**: Un haz de luz degradado que recorre la imagen al pasar el cursor.
+     - Animación de zoom suave sincronizada entre el contenedor y la captura de pantalla de la aplicación.
+   - **Sección de Características (Cards)**: Rediseño visual con efecto Glassmorphism (`backdrop-blur`), efectos hover avanzados (elevación, brillo en borde y rotación en iconos) y diseño tipo mosaico interactivo.
+   - **Sección Pricing**: Nueva sección de planes y precios anclada al final de la landing (`#pricing`). Los botones ahora envían dinámicamente al usuario a la página de Auth preseleccionando su plan.
 
-  ```json
-  {
-    "compilerOptions": {
-      "composite": true,
-      "module": "ESNext",
-      "moduleResolution": "Node",
-      "allowSyntheticDefaultImports": true,
-      "esModuleInterop": true,
-      "target": "ES2020",
-      "lib": ["ES2020", "DOM"]
-    },
-    "include": ["vite.config.ts"]
-  }
-  ```
+### Notas de Futura Implementación:
+- **Infraestructura de Comunicaciones**: Se ha identificado **Telnyx** como el proveedor Tier-1 ideal para gestionar el SIP Trunking, IVR dinámico y SMS/WhatsApp debido a su escalabilidad y control de red propia.
 
-- Referenciado correctamente desde el `tsconfig.json` principal:
-
-  ```json
-  "references": [{ "path": "./tsconfig.node.json" }]
-  ```
-
----
-
-## 🔐 Sistema de autenticación unificado
-- Unificados archivos **`authcontext.tsx`** y **`use-auth.tsx`** en un único contexto global.  
-- Eliminado conflicto con variable duplicada `useAuth`.  
-- Nueva implementación centralizada con:
-  - Manejo de **login**, **registro**, **logout**, **actualización de plan** y **validación de acceso**.  
-  - Validación de datos con **Zod** (`loginSchema`, `registerSchema`).  
-  - Gestión de token y sesión a través de `localStorage`.  
-  - Control de estado global (`isLoading`, `error`, `user`).  
-- Añadido soporte para refrescar usuario (`refreshUser`) y validación por plan (`updateUserPlan`, `hasAccessToSection`).  
-
----
-
-## 🧠 Integración con AuthPage
-- `AuthPage` actualizado para trabajar directamente con **AuthContext**.  
-- Integrados los esquemas y tipos (`zodResolver`, `loginSchema`, `registerSchema`, `LoginData`, `RegisterData`).  
-- Eliminadas funciones duplicadas y referencias rotas.  
-- Mejorada la compatibilidad entre formularios de inicio de sesión y registro.  
-
----
-
-## 📍 Gestión de Ubicaciones y Teléfonos
-- Integrada la relación **Locations ↔ PhoneNumbers** para mostrar y editar números desde cada ubicación.  
-- Añadidas queries separadas para **locations** y **phone-numbers**, combinadas en `locationsWithPhones`.  
-- Soporte completo para **crear y actualizar números** al editar o crear ubicaciones.  
-- Corregido warning de TypeScript sobre `phoneNumberId` (`null` → `undefined`).  
-- UI mejorada: **Cards** muestran correctamente el número configurado y permiten edición directa.  
-
-
----
-
-
-## ✅ Estado actual
-El sistema se encuentra:
-- **Unificado y funcional** en la gestión de autenticación.  
-- **Optimizado** para entorno ES2020 y compatibilidad Node/Vite.  
-- **Listo para continuar el desarrollo** con estructura limpia y coherente.  
-
----
-
-📅 *Última actualización:* 19/10/2025
+### Próximos pasos pendientes:
+- El archivo `.env` fue recuperado desde Render.
+- `README_changes.md` ya se encuentra excluido del control de versiones (`.gitignore`).
+- Todo listo para continuar con mejoras de UI adicionales o revisar partes funcionales.
