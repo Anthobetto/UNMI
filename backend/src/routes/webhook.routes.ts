@@ -265,6 +265,89 @@ router.post(
   })
 );
 
+// =================================================================
+// TELNYX WEBHOOK
+// =================================================================
+
+router.post(
+  '/telnyx',
+  asyncHandler(async (req: Request, res: Response) => {
+    const body = req.body;
+    const event = body.data;
+
+    if (!event || !event.event_type) {
+      console.warn('⚠️ Received invalid Telnyx webhook payload');
+      return res.status(400).json({ error: 'Invalid payload' });
+    }
+
+    console.log(`📞 Telnyx Event: ${event.event_type} (Call ID: ${event.payload?.call_control_id})`);
+
+    try {
+      switch (event.event_type) {
+        case 'call.initiated':
+          await handleCallInitiated(event);
+          break;
+        case 'call.answered':
+          await handleCallAnswered(event);
+          break;
+        case 'call.hangup':
+          await handleCallHangup(event);
+          break;
+        case 'call.speak.ended':
+          console.log('🗣️ Telnyx TTS (Text-to-Speech) finished');
+          break;
+        case 'call.dtmf.received':
+          await handleDtmfReceived(event);
+          break;
+        default:
+          console.log(`ℹ️ Telnyx event not handled: ${event.event_type}`);
+      }
+    } catch (error) {
+      console.error(`💥 Error processing Telnyx webhook (${event.event_type}):`, error);
+    }
+
+    // Telnyx espera un 200 OK rápido
+    res.status(200).json({ received: true });
+  })
+);
+
+// ==================
+// TELNYX HANDLERS
+// ==================
+
+async function handleCallInitiated(event: any) {
+  const { call_control_id, direction, from, to } = event.payload;
+  console.log('\n======================================================');
+  console.log(`🚨 ¡LLAMADA ENTRANTE DETECTADA DESDE TELNYX! 🚨`);
+  console.log(`📞 Dirección: ${direction}`);
+  console.log(`👤 De: ${from}`);
+  console.log(`🎯 A: ${to}`);
+  console.log(`🔑 Call ID: ${call_control_id}`);
+  console.log('======================================================\n');
+  
+  // Aquí podríamos registrar la llamada en la base de datos
+}
+
+async function handleCallAnswered(event: any) {
+  const { call_control_id, connection_id } = event.payload;
+  console.log(`✅ Call Answered: ${call_control_id}`);
+  
+  // Ejemplo: Responder con un saludo usando TTS (Text-to-Speech)
+  // Esto requiere llamar a la API de Telnyx usando el call_control_id
+}
+
+async function handleCallHangup(event: any) {
+  const { call_control_id, hangup_source, hangup_cause } = event.payload;
+  console.log(`📴 Call Hangup: ${call_control_id} (Source: ${hangup_source}, Cause: ${hangup_cause})`);
+}
+
+async function handleDtmfReceived(event: any) {
+  const { call_control_id, digit } = event.payload;
+  console.log(`⌨️ DTMF Received: ${digit} on call ${call_control_id}`);
+  
+  // Aquí manejaríamos la lógica del IVR (ej: "Pulse 1 para ventas...")
+}
+
 // ==================
 // WHATSAPP HANDLERS
 // ==================
