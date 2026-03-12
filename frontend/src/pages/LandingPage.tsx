@@ -18,11 +18,18 @@ import {
   Clock,
   BarChart,
   Building,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useTheme } from "@/hooks/useTheme";
 import { OfficialLogo } from "@/components/logo/official-logo";
 import { LanguageSelector } from "@/components/LanguageSelector";
@@ -36,6 +43,14 @@ export default function LandingPage(): JSX.Element {
   const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { t } = useTranslation();
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId.replace("#", ""));
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+      setActiveSection(sectionId);
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -198,10 +213,9 @@ export default function LandingPage(): JSX.Element {
               { id: "#pricing", label: t("landing.nav.pricing", "Pricing") },
               { id: "#faq", label: t("header.nav.faq", "FAQ") },
             ].map((navItem) => (
-              <Link
+              <button
                 key={navItem.id}
-                to={navItem.id}
-                onClick={() => setActiveSection(navItem.id)}
+                onClick={() => scrollToSection(navItem.id)}
                 className={`px-5 py-2 text-sm font-bold rounded-full transition-all duration-300 hover:scale-105 will-change-transform backface-visibility-hidden transform-gpu ${
                   activeSection === navItem.id
                     ? "bg-[#FF0000] text-white shadow-lg shadow-[#FF0000]/20"
@@ -209,7 +223,7 @@ export default function LandingPage(): JSX.Element {
                 }`}
               >
                 {navItem.label}
-              </Link>
+              </button>
             ))}
           </nav>
 
@@ -347,6 +361,91 @@ export default function LandingPage(): JSX.Element {
           </div>
         </section>
 
+        {/* How It Works Section */}
+        <section id="how-it-works" className="w-full py-24 md:py-32 relative overflow-hidden">
+          <div className="container px-4 md:px-6 relative">
+            <div className="text-center mb-16">
+              <Badge className="rounded-full px-4 py-1.5 text-sm font-semibold mb-4 bg-[#FF0000]/10 text-[#FF0000] border-[#FF0000]/20 hover:bg-[#FF0000]/20 transition-colors" variant="outline">
+                {t("howItWorks.badge", "Proceso Simple")}
+              </Badge>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+                {t("howItWorks.title", "Cómo funciona UNMI")}
+              </h2>
+              <p className="max-w-[700px] mx-auto text-muted-foreground md:text-xl leading-relaxed">
+                {t("howItWorks.description", "Transformamos tus llamadas perdidas en oportunidades de negocio en solo tres pasos.")}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+              {/* Step 1 */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+              >
+                <Card className="h-full bg-white/40 dark:bg-black/40 backdrop-blur-xl border-border/60 shadow-xl hover:shadow-[#FF0000]/10 hover:border-[#FF0000]/30 transition-all duration-500 group rounded-[2.5rem] overflow-hidden">
+                  <CardContent className="p-10 flex flex-col items-center text-center">
+                    <div className="size-20 rounded-3xl bg-white dark:bg-white/5 shadow-inner flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                      <Phone className="size-10 text-muted-foreground group-hover:text-[#FF0000] transition-colors" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-4 group-hover:text-[#FF0000] transition-colors">
+                      {t("howItWorks.step1.title", "Llamada Perdida")}
+                    </h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {t("howItWorks.step1.description", "Un cliente llama a tu empresa y no hay respuesta en ese momento.")}
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Step 2 */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <Card className="h-full bg-white/40 dark:bg-black/40 backdrop-blur-xl border-border/60 shadow-xl hover:shadow-[#FF0000]/10 hover:border-[#FF0000]/30 transition-all duration-500 group rounded-[2.5rem] overflow-hidden">
+                  <CardContent className="p-10 flex flex-col items-center text-center">
+                    <div className="size-20 rounded-3xl bg-white dark:bg-white/5 shadow-inner flex items-center justify-center mb-8 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500">
+                      <Zap className="size-10 text-muted-foreground group-hover:text-[#FF0000] transition-colors" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-4 group-hover:text-[#FF0000] transition-colors">
+                      {t("howItWorks.step2.title", "Captura Inteligente")}
+                    </h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {t("howItWorks.step2.description", "UNMI detecta el evento al instante y captura el número de teléfono del cliente.")}
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Step 3 */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+              >
+                <Card className="h-full bg-white/40 dark:bg-black/40 backdrop-blur-xl border-border/60 shadow-xl hover:shadow-[#FF0000]/10 hover:border-[#FF0000]/30 transition-all duration-500 group rounded-[2.5rem] overflow-hidden">
+                  <CardContent className="p-10 flex flex-col items-center text-center">
+                    <div className="size-20 rounded-3xl bg-white dark:bg-white/5 shadow-inner flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                      <MessageCircle className="size-10 text-muted-foreground group-hover:text-[#FF0000] transition-colors" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-4 group-hover:text-[#FF0000] transition-colors">
+                      {t("howItWorks.step3.title", "WhatsApp Instantáneo")}
+                    </h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {t("howItWorks.step3.description", "El cliente recibe un mensaje automático para continuar la atención sin esperas.")}
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
         {/* Features Section */}
         <section id="features" className="w-full py-24 md:py-32 relative overflow-hidden">
           {/* Decoración de fondo - Orbes de luz sutiles */}
@@ -469,10 +568,10 @@ export default function LandingPage(): JSX.Element {
         </section>
 
         {/* Pricing Section */}
-        <section id="pricing" className="w-full py-24 md:py-32 bg-gray-50 dark:bg-black/20">
+        <section id="pricing" className="w-full py-24 md:py-32 relative overflow-hidden">
           <div className="container px-4 md:px-6">
             <div className="text-center mb-16">
-              <Badge className="rounded-full px-4 py-1.5 text-sm font-semibold mb-4 bg-gray-200 text-gray-900 border-transparent" variant="outline">
+              <Badge className="rounded-full px-4 py-1.5 text-sm font-semibold mb-4 bg-[#FF0000]/10 text-[#FF0000] border-[#FF0000]/20 hover:bg-[#FF0000]/20 transition-colors" variant="outline">
                 Precios Transparentes
               </Badge>
               <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">Planes diseñados para tu éxito</h2>
@@ -557,6 +656,97 @@ export default function LandingPage(): JSX.Element {
                 </Link>
               </motion.div>
             </div>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section id="faq" className="w-full py-24 md:py-32 relative overflow-hidden">
+          <div className="container px-4 md:px-6">
+            <div className="text-center mb-16">
+              <Badge className="rounded-full px-4 py-1.5 text-sm font-semibold mb-4 bg-[#FF0000]/10 text-[#FF0000] border-[#FF0000]/20 hover:bg-[#FF0000]/20 transition-colors" variant="outline">
+                {t("faq.badge", "Dudas frecuentes")}
+              </Badge>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">Preguntas Frecuentes</h2>
+              <p className="max-w-[700px] mx-auto text-muted-foreground md:text-xl leading-relaxed">
+                Todo lo que necesitas saber sobre UNMI y cómo puede ayudar a tu negocio.
+              </p>
+            </div>
+
+            <div className="max-w-3xl mx-auto">
+              <Card className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border-border/60 shadow-2xl rounded-[2.5rem] overflow-hidden">
+                <CardContent className="p-8 md:p-12">
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="item-1" className="border-b-border/40 py-2">
+                      <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
+                        ¿Cómo se configura el desvío de llamadas?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground text-base leading-relaxed">
+                        Es muy sencillo. Solo tienes que marcar un código estándar en tu teléfono (ej: *61*número_unmi#) para activar el desvío cuando no contestes. Nosotros te guiaremos paso a paso en el panel de control.
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="item-2" className="border-b-border/40 py-2">
+                      <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
+                        ¿Tengo que cambiar mi número actual?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground text-base leading-relaxed">
+                        No, en absoluto. Sigues usando tu número de siempre para recibir llamadas. UNMI solo entra en acción si no puedes contestar, capturando la llamada perdida para enviar el WhatsApp automático.
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="item-3" className="border-b-border/40 py-2">
+                      <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
+                        ¿Qué pasa si el cliente no tiene WhatsApp?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground text-base leading-relaxed">
+                        Si el sistema detecta que el número no tiene WhatsApp activo, UNMI puede enviar un SMS automático con la misma información, asegurando que el contacto nunca se pierda.
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="item-4" className="border-b-border/40 py-2">
+                      <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
+                        ¿Cómo funciona el periodo de prueba?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground text-base leading-relaxed">
+                        Ofrecemos 14 días de prueba gratuita con todas las funciones activas. Puedes configurar tu número y ver cuántas llamadas recuperas antes de decidirte por un plan.
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section - Final Cierre */}
+        <section className="w-full py-24 md:py-32 relative overflow-hidden">
+          <div className="container px-4 md:px-6 relative">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="max-w-4xl mx-auto"
+            >
+              <Card className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border-border/60 shadow-2xl rounded-[3rem] overflow-hidden border-2 border-[#FF0000]/10">
+                <CardContent className="p-12 md:p-20 text-center relative">
+                  {/* Glow decorativo interno */}
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1/2 bg-[#FF0000]/5 blur-[80px] -z-10" />
+                  
+                  <h2 className="text-4xl md:text-5xl lg:text-5xl font-bold tracking-tight mb-10 leading-tight">
+                    {t("cta.title", "Lleva la comunicación de tu negocio al siguiente nivel")}
+                  </h2>
+                  <div className="flex justify-center">
+                    <Link to="/auth?tab=register">
+                      <Button size="lg" className="rounded-full h-16 px-12 text-xl bg-[#FF0000] hover:bg-[#D32F2F] shadow-2xl shadow-[#FF0000]/40 transition-all duration-500 hover:scale-110 active:scale-95 group">
+                        {t("hero.cta", "Start Today")}
+                        <ArrowRight className="ml-3 size-6 group-hover:translate-x-2 transition-transform" />
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
         </section>
 
