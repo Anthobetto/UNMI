@@ -35,6 +35,7 @@ import { OfficialLogo } from "@/components/logo/official-logo";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useTranslation } from "react-i18next";
 import { Meteors } from "@/components/ui/meteors";
+import { GlowCard } from "@/components/ui/spotlight-card";
 
 export default function LandingPage(): JSX.Element {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -318,13 +319,11 @@ export default function LandingPage(): JSX.Element {
               transition={{ duration: 0.5 }}
               className="text-center max-w-3xl mx-auto mb-12"
             >
-              
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+              <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70 leading-tight px-4">
                 {t("hero.title", "Transform Your Business Communication Strategy")}
               </h1>
-              <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                {t(
-                  "hero.subtitle")}
+              <p className="text-sm sm:text-base md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto px-6">
+                {t("hero.subtitle")}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/auth?tab=register">
@@ -362,21 +361,21 @@ export default function LandingPage(): JSX.Element {
         </section>
 
         {/* How It Works Section */}
-        <section id="how-it-works" className="w-full py-24 md:py-32 relative overflow-hidden">
+        <section id="how-it-works" className="w-full py-16 md:py-32 relative overflow-hidden">
           <div className="container px-4 md:px-6 relative">
-            <div className="text-center mb-16">
-              <Badge className="rounded-full px-4 py-1.5 text-sm font-semibold mb-4 bg-[#FF0000]/10 text-[#FF0000] border-[#FF0000]/20 hover:bg-[#FF0000]/20 transition-colors" variant="outline">
+            <div className="text-center mb-12 md:mb-16">
+              <Badge className="rounded-full px-4 py-1.5 text-xs md:text-sm font-semibold mb-4 bg-[#FF0000]/10 text-[#FF0000] border-[#FF0000]/20 hover:bg-[#FF0000]/20 transition-colors" variant="outline">
                 {t("howItWorks.badge", "Proceso Simple")}
               </Badge>
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">
                 {t("howItWorks.title", "Cómo funciona UNMI")}
               </h2>
-              <p className="max-w-[700px] mx-auto text-muted-foreground md:text-xl leading-relaxed">
+              <p className="max-w-[700px] mx-auto text-muted-foreground text-base md:text-xl leading-relaxed px-2">
                 {t("howItWorks.description", "Transformamos tus llamadas perdidas en oportunidades de negocio en solo tres pasos.")}
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 relative">
               {/* Step 1 */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -384,19 +383,21 @@ export default function LandingPage(): JSX.Element {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
               >
-                <Card className="h-full bg-white/40 dark:bg-black/40 backdrop-blur-xl border-border/60 shadow-xl hover:shadow-[#FF0000]/10 hover:border-[#FF0000]/30 transition-all duration-500 group rounded-[2.5rem] overflow-hidden">
-                  <CardContent className="p-10 flex flex-col items-center text-center">
-                    <div className="size-20 rounded-3xl bg-white dark:bg-white/5 shadow-inner flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
-                      <Phone className="size-10 text-muted-foreground group-hover:text-[#FF0000] transition-colors" />
-                    </div>
-                    <h3 className="text-2xl font-bold mb-4 group-hover:text-[#FF0000] transition-colors">
-                      {t("howItWorks.step1.title", "Llamada Perdida")}
-                    </h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {t("howItWorks.step1.description", "Un cliente llama a tu empresa y no hay respuesta en ese momento.")}
-                    </p>
-                  </CardContent>
-                </Card>
+                <GlowCard glowColor="red" customSize={true} className="h-full">
+                  <Card className="h-full bg-transparent border-none shadow-none group transition-all duration-500">
+                    <CardContent className="p-6 md:p-10 flex flex-col items-center text-center">
+                      <div className="size-16 md:size-20 rounded-3xl bg-white dark:bg-white/5 shadow-inner flex items-center justify-center mb-6 md:mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                        <Phone className="size-8 md:size-10 text-muted-foreground group-hover:text-[#FF0000] transition-colors" />
+                      </div>
+                      <h3 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 group-hover:text-[#FF0000] transition-colors">
+                        {t("howItWorks.step1.title", "Llamada Perdida")}
+                      </h3>
+                      <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                        {t("howItWorks.step1.description", "Un cliente llama a tu empresa y no hay respuesta en ese momento.")}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </GlowCard>
               </motion.div>
 
               {/* Step 2 */}
@@ -406,19 +407,21 @@ export default function LandingPage(): JSX.Element {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                <Card className="h-full bg-white/40 dark:bg-black/40 backdrop-blur-xl border-border/60 shadow-xl hover:shadow-[#FF0000]/10 hover:border-[#FF0000]/30 transition-all duration-500 group rounded-[2.5rem] overflow-hidden">
-                  <CardContent className="p-10 flex flex-col items-center text-center">
-                    <div className="size-20 rounded-3xl bg-white dark:bg-white/5 shadow-inner flex items-center justify-center mb-8 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500">
-                      <Zap className="size-10 text-muted-foreground group-hover:text-[#FF0000] transition-colors" />
-                    </div>
-                    <h3 className="text-2xl font-bold mb-4 group-hover:text-[#FF0000] transition-colors">
-                      {t("howItWorks.step2.title", "Captura Inteligente")}
-                    </h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {t("howItWorks.step2.description", "UNMI detecta el evento al instante y captura el número de teléfono del cliente.")}
-                    </p>
-                  </CardContent>
-                </Card>
+                <GlowCard glowColor="red" customSize={true} className="h-full">
+                  <Card className="h-full bg-transparent border-none shadow-none group transition-all duration-500">
+                    <CardContent className="p-10 flex flex-col items-center text-center">
+                      <div className="size-20 rounded-3xl bg-white dark:bg-white/5 shadow-inner flex items-center justify-center mb-8 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500">
+                        <Zap className="size-10 text-muted-foreground group-hover:text-[#FF0000] transition-colors" />
+                      </div>
+                      <h3 className="text-2xl font-bold mb-4 group-hover:text-[#FF0000] transition-colors">
+                        {t("howItWorks.step2.title", "Captura Inteligente")}
+                      </h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        {t("howItWorks.step2.description", "UNMI detecta el evento al instante y captura el número de teléfono del cliente.")}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </GlowCard>
               </motion.div>
 
               {/* Step 3 */}
@@ -428,44 +431,46 @@ export default function LandingPage(): JSX.Element {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.4 }}
               >
-                <Card className="h-full bg-white/40 dark:bg-black/40 backdrop-blur-xl border-border/60 shadow-xl hover:shadow-[#FF0000]/10 hover:border-[#FF0000]/30 transition-all duration-500 group rounded-[2.5rem] overflow-hidden">
-                  <CardContent className="p-10 flex flex-col items-center text-center">
-                    <div className="size-20 rounded-3xl bg-white dark:bg-white/5 shadow-inner flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
-                      <MessageCircle className="size-10 text-muted-foreground group-hover:text-[#FF0000] transition-colors" />
-                    </div>
-                    <h3 className="text-2xl font-bold mb-4 group-hover:text-[#FF0000] transition-colors">
-                      {t("howItWorks.step3.title", "WhatsApp Instantáneo")}
-                    </h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {t("howItWorks.step3.description", "El cliente recibe un mensaje automático para continuar la atención sin esperas.")}
-                    </p>
-                  </CardContent>
-                </Card>
+                <GlowCard glowColor="red" customSize={true} className="h-full">
+                  <Card className="h-full bg-transparent border-none shadow-none group transition-all duration-500">
+                    <CardContent className="p-10 flex flex-col items-center text-center">
+                      <div className="size-20 rounded-3xl bg-white dark:bg-white/5 shadow-inner flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                        <MessageCircle className="size-10 text-muted-foreground group-hover:text-[#FF0000] transition-colors" />
+                      </div>
+                      <h3 className="text-2xl font-bold mb-4 group-hover:text-[#FF0000] transition-colors">
+                        {t("howItWorks.step3.title", "WhatsApp Instantáneo")}
+                      </h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        {t("howItWorks.step3.description", "El cliente recibe un mensaje automático para continuar la atención sin esperas.")}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </GlowCard>
               </motion.div>
             </div>
           </div>
         </section>
 
         {/* Features Section */}
-        <section id="features" className="w-full py-24 md:py-32 relative overflow-hidden">
+        <section id="features" className="w-full py-16 md:py-32 relative overflow-hidden">
           {/* Decoración de fondo - Orbes de luz sutiles */}
           <div className="absolute top-1/4 -left-20 w-72 h-72 bg-[#FF0000]/5 rounded-full blur-[120px] -z-10" />
           <div className="absolute bottom-1/4 -right-20 w-72 h-72 bg-[#F59E0B]/5 rounded-full blur-[120px] -z-10" />
 
-          <div className="container px-4 md:px-6 text-center mb-16">
+          <div className="container px-4 md:px-6 text-center mb-12 md:mb-16">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
             >
-              <Badge className="rounded-full px-4 py-1.5 text-sm font-semibold mb-4 bg-[#FF0000]/10 text-[#FF0000] border-[#FF0000]/20 hover:bg-[#FF0000]/20 transition-colors" variant="outline">
+              <Badge className="rounded-full px-4 py-1.5 text-xs md:text-sm font-semibold mb-4 bg-[#FF0000]/10 text-[#FF0000] border-[#FF0000]/20 hover:bg-[#FF0000]/20 transition-colors" variant="outline">
                 {t("features.badge", "Potencia tu Comunicación")}
               </Badge>
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-b from-gray-900 to-gray-600 dark:from-white dark:to-white/70">
+              <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-b from-gray-900 to-gray-600 dark:from-white dark:to-white/70 px-2">
                 {t("features.title", "Compara UNMI vs Chatbot AI")}
               </h2>
-              <p className="max-w-[700px] mx-auto text-gray-500 md:text-xl leading-relaxed">
+              <p className="max-w-[700px] mx-auto text-gray-500 text-sm sm:text-base md:text-xl leading-relaxed px-4">
                 {t("features.description", "Elige entre la automatización inteligente basada en llamadas de UNMI o un asistente conversacional de IA completo.")}
               </p>
             </motion.div>
@@ -473,17 +478,17 @@ export default function LandingPage(): JSX.Element {
 
           <div className="container px-4 md:px-6">
             <Tabs defaultValue="unmi" className="w-full">
-              <div className="flex justify-center mb-12">
-                <TabsList className="bg-gray-100/80 dark:bg-white/5 p-1.5 rounded-2xl h-auto border border-gray-200/50 dark:border-white/10 backdrop-blur-sm">
+              <div className="flex justify-center mb-10 md:mb-12">
+                <TabsList className="bg-gray-100/80 dark:bg-white/5 p-1 rounded-xl md:rounded-2xl h-auto border border-gray-200/50 dark:border-white/10 backdrop-blur-sm">
                   <TabsTrigger 
                     value="unmi" 
-                    className="rounded-xl px-8 py-3 text-base font-bold data-[state=active]:bg-white data-[state=active]:text-[#FF0000] data-[state=active]:shadow-md transition-all duration-300"
+                    className="rounded-lg md:rounded-xl px-4 md:px-8 py-2 md:py-3 text-xs md:text-base font-bold data-[state=active]:bg-white data-[state=active]:text-[#FF0000] data-[state=active]:shadow-md transition-all duration-300"
                   >
                     {t("features.tabs.unmi", "Automatización UNMI")}
                   </TabsTrigger>
                   <TabsTrigger 
                     value="chatbot" 
-                    className="rounded-xl px-8 py-3 text-base font-bold data-[state=active]:bg-white data-[state=active]:text-[#F59E0B] data-[state=active]:shadow-md transition-all duration-300"
+                    className="rounded-lg md:rounded-xl px-4 md:px-8 py-2 md:py-3 text-xs md:text-base font-bold data-[state=active]:bg-white data-[state=active]:text-[#F59E0B] data-[state=active]:shadow-md transition-all duration-300"
                   >
                     {t("features.tabs.chatbot", "Chatbot Inteligente")}
                   </TabsTrigger>
@@ -496,32 +501,31 @@ export default function LandingPage(): JSX.Element {
                   initial="hidden"
                   whileInView="show"
                   viewport={{ once: true }}
-                  className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+                  className="grid gap-4 md:gap-6 sm:grid-cols-2 lg:grid-cols-3"
                 >
                   {featuresUNMI.map((feature, i) => (
                     <motion.div key={i} variants={item}>
-                      <Card className="group relative h-full overflow-hidden border-gray-200/60 dark:border-white/10 bg-white/50 dark:bg-white/5 backdrop-blur-md hover:border-[#FF0000]/30 hover:shadow-2xl hover:shadow-[#FF0000]/5 transition-all duration-500 rounded-3xl">
-                        {/* Línea de acento superior */}
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#FF0000]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        
-                        <CardContent className="p-8 flex flex-col h-full relative z-10">
-                          <div className="size-14 rounded-2xl bg-gradient-to-br from-[#FF0000]/10 to-[#FF0000]/5 dark:from-[#FF0000]/20 dark:to-transparent flex items-center justify-center text-[#FF0000] mb-6 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 shadow-inner">
-                            {feature.icon}
-                          </div>
-                          <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white group-hover:text-[#FF0000] transition-colors">
-                            {feature.title}
-                          </h3>
-                          <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
-                            {feature.description}
-                          </p>
-                          <a 
-                            href="#pricing" 
-                            className="mt-auto pt-6 opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-sm font-bold text-[#FF0000] hover:underline"
-                          >
-                            Saber más <ArrowRight className="ml-2 size-4" />
-                          </a>
-                        </CardContent>
-                      </Card>
+                      <GlowCard glowColor="red" customSize={true} className="h-full group">
+                        <Card className="relative h-full overflow-hidden border-none bg-transparent shadow-none transition-all duration-500 rounded-3xl">
+                          <CardContent className="p-6 md:p-8 flex flex-col h-full relative z-10">
+                            <div className="size-12 md:size-14 rounded-2xl bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-[#FF0000]/10 group-hover:text-[#FF0000] transition-all duration-500 shadow-inner mb-4 md:mb-6">
+                              {feature.icon}
+                            </div>
+                            <h3 className="text-xl md:text-2xl font-bold mb-2 md:mb-3 text-gray-900 dark:text-white group-hover:text-[#FF0000] transition-colors">
+                              {feature.title}
+                            </h3>
+                            <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 leading-relaxed">
+                              {feature.description}
+                            </p>
+                            <a 
+                              href="#pricing" 
+                              className="mt-auto pt-4 md:pt-6 opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs md:text-sm font-bold text-[#FF0000] hover:underline"
+                            >
+                              Saber más <ArrowRight className="ml-2 size-4" />
+                            </a>
+                          </CardContent>
+                        </Card>
+                      </GlowCard>
                     </motion.div>
                   ))}
                 </motion.div>
@@ -537,28 +541,27 @@ export default function LandingPage(): JSX.Element {
                 >
                   {featuresChatbot.map((feature, i) => (
                     <motion.div key={i} variants={item}>
-                      <Card className="group relative h-full overflow-hidden border-gray-200/60 dark:border-white/10 bg-white/50 dark:bg-white/5 backdrop-blur-md hover:border-[#F59E0B]/30 hover:shadow-2xl hover:shadow-[#F59E0B]/5 transition-all duration-500 rounded-3xl">
-                        {/* Línea de acento superior */}
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#F59E0B]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        
-                        <CardContent className="p-8 flex flex-col h-full relative z-10">
-                          <div className="size-14 rounded-2xl bg-gradient-to-br from-[#F59E0B]/10 to-[#F59E0B]/5 dark:from-[#F59E0B]/20 dark:to-transparent flex items-center justify-center text-[#F59E0B] mb-6 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500 shadow-inner">
-                            {feature.icon}
-                          </div>
-                          <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white group-hover:text-[#F59E0B] transition-colors">
-                            {feature.title}
-                          </h3>
-                          <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
-                            {feature.description}
-                          </p>
-                          <a 
-                            href="#pricing" 
-                            className="mt-auto pt-6 opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-sm font-bold text-[#F59E0B] hover:underline"
-                          >
-                            Descubrir más <ArrowRight className="ml-2 size-4" />
-                          </a>
-                        </CardContent>
-                      </Card>
+                      <GlowCard glowColor="orange" customSize={true} className="h-full group">
+                        <Card className="relative h-full overflow-hidden border-none bg-transparent shadow-none transition-all duration-500 rounded-3xl">
+                          <CardContent className="p-8 flex flex-col h-full relative z-10">
+                            <div className="size-14 rounded-2xl bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-[#F59E0B]/10 group-hover:text-[#F59E0B] transition-all duration-500 shadow-inner">
+                              {feature.icon}
+                            </div>
+                            <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white group-hover:text-[#F59E0B] transition-colors">
+                              {feature.title}
+                            </h3>
+                            <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
+                              {feature.description}
+                            </p>
+                            <a 
+                              href="#pricing" 
+                              className="mt-auto pt-6 opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-sm font-bold text-[#F59E0B] hover:underline"
+                            >
+                              Descubrir más <ArrowRight className="ml-2 size-4" />
+                            </a>
+                          </CardContent>
+                        </Card>
+                      </GlowCard>
                     </motion.div>
                   ))}
                 </motion.div>
@@ -673,47 +676,49 @@ export default function LandingPage(): JSX.Element {
             </div>
 
             <div className="max-w-3xl mx-auto">
-              <Card className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border-border/60 shadow-2xl rounded-[2.5rem] overflow-hidden">
-                <CardContent className="p-8 md:p-12">
-                  <Accordion type="single" collapsible className="w-full">
-                    <AccordionItem value="item-1" className="border-b-border/40 py-2">
-                      <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
-                        ¿Cómo se configura el desvío de llamadas?
-                      </AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground text-base leading-relaxed">
-                        Es muy sencillo. Solo tienes que marcar un código estándar en tu teléfono (ej: *61*número_unmi#) para activar el desvío cuando no contestes. Nosotros te guiaremos paso a paso en el panel de control.
-                      </AccordionContent>
-                    </AccordionItem>
+              <GlowCard glowColor="red" customSize={true} className="w-full">
+                <Card className="bg-transparent border-none shadow-none rounded-[2.5rem] overflow-hidden">
+                  <CardContent className="p-8 md:p-12">
+                    <Accordion type="single" collapsible className="w-full">
+                      <AccordionItem value="item-1" className="border-b-border/40 py-2">
+                        <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
+                          ¿Cómo se configura el desvío de llamadas?
+                        </AccordionTrigger>
+                        <AccordionContent className="text-muted-foreground text-base leading-relaxed">
+                          Es muy sencillo. Solo tienes que marcar un código estándar en tu teléfono (ej: *61*número_unmi#) para activar el desvío cuando no contestes. Nosotros te guiaremos paso a paso en el panel de control.
+                        </AccordionContent>
+                      </AccordionItem>
 
-                    <AccordionItem value="item-2" className="border-b-border/40 py-2">
-                      <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
-                        ¿Tengo que cambiar mi número actual?
-                      </AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground text-base leading-relaxed">
-                        No, en absoluto. Sigues usando tu número de siempre para recibir llamadas. UNMI solo entra en acción si no puedes contestar, capturando la llamada perdida para enviar el WhatsApp automático.
-                      </AccordionContent>
-                    </AccordionItem>
+                      <AccordionItem value="item-2" className="border-b-border/40 py-2">
+                        <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
+                          ¿Tengo que cambiar mi número actual?
+                        </AccordionTrigger>
+                        <AccordionContent className="text-muted-foreground text-base leading-relaxed">
+                          No, en absoluto. Sigues usando tu número de siempre para recibir llamadas. UNMI solo entra en acción si no puedes contestar, capturando la llamada perdida para enviar el WhatsApp automático.
+                        </AccordionContent>
+                      </AccordionItem>
 
-                    <AccordionItem value="item-3" className="border-b-border/40 py-2">
-                      <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
-                        ¿Qué pasa si el cliente no tiene WhatsApp?
-                      </AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground text-base leading-relaxed">
-                        Si el sistema detecta que el número no tiene WhatsApp activo, UNMI puede enviar un SMS automático con la misma información, asegurando que el contacto nunca se pierda.
-                      </AccordionContent>
-                    </AccordionItem>
+                      <AccordionItem value="item-3" className="border-b-border/40 py-2">
+                        <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
+                          ¿Qué pasa si el cliente no tiene WhatsApp?
+                        </AccordionTrigger>
+                        <AccordionContent className="text-muted-foreground text-base leading-relaxed">
+                          Si el sistema detecta que el número no tiene WhatsApp activo, UNMI puede enviar un SMS automático con la misma información, asegurando que el contacto nunca se pierda.
+                        </AccordionContent>
+                      </AccordionItem>
 
-                    <AccordionItem value="item-4" className="border-b-border/40 py-2">
-                      <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
-                        ¿Cómo funciona el periodo de prueba?
-                      </AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground text-base leading-relaxed">
-                        Ofrecemos 14 días de prueba gratuita con todas las funciones activas. Puedes configurar tu número y ver cuántas llamadas recuperas antes de decidirte por un plan.
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                </CardContent>
-              </Card>
+                      <AccordionItem value="item-4" className="border-b-border/40 py-2">
+                        <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
+                          ¿Cómo funciona el periodo de prueba?
+                        </AccordionTrigger>
+                        <AccordionContent className="text-muted-foreground text-base leading-relaxed">
+                          Ofrecemos 14 días de prueba gratuita con todas las funciones activas. Puedes configurar tu número y ver cuántas llamadas recuperas antes de decidirte por un plan.
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  </CardContent>
+                </Card>
+              </GlowCard>
             </div>
           </div>
         </section>
@@ -728,24 +733,26 @@ export default function LandingPage(): JSX.Element {
               transition={{ duration: 0.5 }}
               className="max-w-4xl mx-auto"
             >
-              <Card className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border-border/60 shadow-2xl rounded-[3rem] overflow-hidden border-2 border-[#FF0000]/10">
-                <CardContent className="p-12 md:p-20 text-center relative">
-                  {/* Glow decorativo interno */}
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1/2 bg-[#FF0000]/5 blur-[80px] -z-10" />
-                  
-                  <h2 className="text-4xl md:text-5xl lg:text-5xl font-bold tracking-tight mb-10 leading-tight">
-                    {t("cta.title", "Lleva la comunicación de tu negocio al siguiente nivel")}
-                  </h2>
-                  <div className="flex justify-center">
-                    <Link to="/auth?tab=register">
-                      <Button size="lg" className="rounded-full h-16 px-12 text-xl bg-[#FF0000] hover:bg-[#D32F2F] shadow-2xl shadow-[#FF0000]/40 transition-all duration-500 hover:scale-110 active:scale-95 group">
-                        {t("hero.cta", "Start Today")}
-                        <ArrowRight className="ml-3 size-6 group-hover:translate-x-2 transition-transform" />
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
+              <GlowCard glowColor="red" customSize={true} className="w-full">
+                <Card className="bg-transparent border-none shadow-none rounded-[3rem] overflow-hidden">
+                  <CardContent className="p-12 md:p-20 text-center relative">
+                    {/* Glow decorativo interno */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1/2 bg-[#FF0000]/5 blur-[80px] -z-10" />
+                    
+                    <h2 className="text-4xl md:text-5xl lg:text-5xl font-bold tracking-tight mb-10 leading-tight">
+                      {t("cta.title", "Lleva la comunicación de tu negocio al siguiente nivel")}
+                    </h2>
+                    <div className="flex justify-center">
+                      <Link to="/auth?tab=register">
+                        <Button size="lg" className="rounded-full h-16 px-12 text-xl bg-[#FF0000] hover:bg-[#D32F2F] shadow-2xl shadow-[#FF0000]/40 transition-all duration-500 hover:scale-110 active:scale-95 group">
+                          {t("hero.cta", "Start Today")}
+                          <ArrowRight className="ml-3 size-6 group-hover:translate-x-2 transition-transform" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              </GlowCard>
             </motion.div>
           </div>
         </section>
