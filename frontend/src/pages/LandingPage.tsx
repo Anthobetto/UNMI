@@ -583,38 +583,44 @@ export default function LandingPage(): JSX.Element {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto items-stretch">
               {/* Plan Pequeña Empresa */}
               <motion.div 
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.05, y: -10 }}
                 viewport={{ once: true }}
-                className="bg-white dark:bg-white/5 rounded-[2.5rem] border border-gray-200 dark:border-white/10 p-10 shadow-sm hover:shadow-xl transition-all duration-300"
+                transition={{ type: "spring", stiffness: 300 }}
+                className="bg-white dark:bg-white/5 rounded-[2.5rem] border-2 border-gray-200 dark:border-white/10 p-10 shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col cursor-pointer"
               >
                 <div className="mb-8">
-                  <h3 className="text-2xl font-bold mb-2">Pequeña Empresa</h3>
+                  <h3 className="text-2xl font-bold mb-2 text-blue-600">Pequeña Empresa</h3>
                   <p className="text-gray-500 text-sm">Todo lo esencial para empezar.</p>
                 </div>
                 <div className="mb-8">
                   <span className="text-5xl font-bold tracking-tighter">€60</span>
                   <span className="text-gray-500 ml-2">/mes</span>
                 </div>
-                <ul className="space-y-4 mb-10">
+                <ul className="space-y-4 mb-10 flex-grow">
                   <li className="flex items-center gap-3 text-sm">
-                    <Check className="size-5 text-green-500 flex-shrink-0" />
+                    <Check className="size-5 text-blue-500 flex-shrink-0" />
                     <span>150 mensajes/mes incluidos</span>
                   </li>
                   <li className="flex items-center gap-3 text-sm">
-                    <Check className="size-5 text-green-500 flex-shrink-0" />
+                    <Check className="size-5 text-blue-500 flex-shrink-0" />
                     <span>1 Localización física</span>
                   </li>
                   <li className="flex items-center gap-3 text-sm">
-                    <Check className="size-5 text-green-500 flex-shrink-0" />
+                    <Check className="size-5 text-blue-500 flex-shrink-0" />
                     <span>Respuesta automática a llamadas</span>
+                  </li>
+                  <li className="flex items-center gap-3 text-sm">
+                    <Check className="size-5 text-blue-500 flex-shrink-0" />
+                    <span>Panel de control básico</span>
                   </li>
                 </ul>
                 <Link to="/auth?tab=register&plan=small">
-                  <Button className="w-full h-14 rounded-2xl text-lg font-bold border-2 border-gray-200 hover:bg-gray-50 transition-all" variant="outline">
+                  <Button className="w-full h-14 rounded-2xl text-lg font-bold border-2 border-blue-100 hover:bg-blue-50 text-blue-600 transition-all" variant="outline">
                     Elegir Plan
                   </Button>
                 </Link>
@@ -622,39 +628,87 @@ export default function LandingPage(): JSX.Element {
 
               {/* Plan PRO */}
               <motion.div 
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.1, y: -15 }}
                 viewport={{ once: true }}
-                className="bg-white dark:bg-white/5 rounded-[2.5rem] border-2 border-[#FF0000] p-10 shadow-2xl shadow-[#FF0000]/10 relative overflow-hidden"
+                transition={{ type: "spring", stiffness: 300, delay: 0.1 }}
+                className="bg-white dark:bg-white/5 rounded-[2.5rem] border-2 border-[#FF0000] p-10 shadow-2xl shadow-[#FF0000]/10 relative overflow-hidden flex flex-col scale-105 z-10 cursor-pointer"
               >
                 <div className="absolute top-0 right-0 bg-[#FF0000] text-white px-6 py-1.5 rounded-bl-2xl text-xs font-bold uppercase tracking-widest">
                   Popular
                 </div>
                 <div className="mb-8">
                   <h3 className="text-2xl font-bold mb-2">UNMI Pro</h3>
-                  <p className="text-gray-500 text-sm">Para negocios con múltiples sedes.</p>
+                  <p className="text-gray-500 text-sm">Optimiza tu atención al cliente.</p>
                 </div>
                 <div className="mb-8">
                   <span className="text-5xl font-bold tracking-tighter">€120</span>
                   <span className="text-gray-500 ml-2">/mes</span>
                 </div>
-                <ul className="space-y-4 mb-10">
+                <ul className="space-y-4 mb-10 flex-grow">
                   <li className="flex items-center gap-3 text-sm font-bold">
                     <Check className="size-5 text-green-500 flex-shrink-0" />
                     <span>360 mensajes/mes incluidos</span>
                   </li>
                   <li className="flex items-center gap-3 text-sm font-bold">
                     <Check className="size-5 text-green-500 flex-shrink-0" />
-                    <span>Multi-Localización ilimitada</span>
+                    <span>Hasta 3 Localizaciones</span>
                   </li>
                   <li className="flex items-center gap-3 text-sm font-bold">
                     <Check className="size-5 text-green-500 flex-shrink-0" />
                     <span>Chatbots de IA personalizados</span>
                   </li>
+                  <li className="flex items-center gap-3 text-sm font-bold">
+                    <Check className="size-5 text-green-500 flex-shrink-0" />
+                    <span>Analítica avanzada</span>
+                  </li>
                 </ul>
                 <Link to="/auth?tab=register&plan=pro">
                   <Button className="w-full h-14 rounded-2xl text-lg font-bold bg-[#FF0000] hover:bg-[#D32F2F] text-white shadow-lg shadow-[#FF0000]/20 transition-all">
                     Elegir Plan Pro
+                  </Button>
+                </Link>
+              </motion.div>
+
+              {/* Plan PREMIUM */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.05, y: -10 }}
+                viewport={{ once: true }}
+                transition={{ type: "spring", stiffness: 300, delay: 0.2 }}
+                className="bg-white dark:bg-white/5 rounded-[2.5rem] border-2 border-gray-200 dark:border-white/10 p-10 shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col cursor-pointer"
+              >
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold mb-2 text-[#FF0000]">UNMI Premium</h3>
+                  <p className="text-gray-500 text-sm">Escalabilidad total sin límites.</p>
+                </div>
+                <div className="mb-8">
+                  <span className="text-5xl font-bold tracking-tighter">€200</span>
+                  <span className="text-gray-500 ml-2">/mes</span>
+                </div>
+                <ul className="space-y-4 mb-10 flex-grow">
+                  <li className="flex items-center gap-3 text-sm font-bold">
+                    <Check className="size-5 text-[#FF0000] flex-shrink-0" />
+                    <span>Mensajes ILIMITADOS</span>
+                  </li>
+                  <li className="flex items-center gap-3 text-sm font-bold">
+                    <Check className="size-5 text-[#FF0000] flex-shrink-0" />
+                    <span>Multi-Localización ilimitada</span>
+                  </li>
+                  <li className="flex items-center gap-3 text-sm font-bold">
+                    <Check className="size-5 text-[#FF0000] flex-shrink-0" />
+                    <span>IA de Voz Avanzada</span>
+                  </li>
+                  <li className="flex items-center gap-3 text-sm font-bold">
+                    <Check className="size-5 text-[#FF0000] flex-shrink-0" />
+                    <span>Soporte Prioritario 24/7</span>
+                  </li>
+                </ul>
+                <Link to="/auth?tab=register&plan=premium">
+                  <Button className="w-full h-14 rounded-2xl text-lg font-bold border-2 border-[#FF0000] hover:bg-[#FF0000]/5 text-[#FF0000] transition-all" variant="outline">
+                    Elegir Premium
                   </Button>
                 </Link>
               </motion.div>
