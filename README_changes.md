@@ -1,34 +1,45 @@
-## Estado del Proyecto UNMI (Última actualización: Mejoras UI Landing & Auth)
+## Estado del Proyecto UNMI (Última actualización: Integración Técnica Telnyx & Ngrok)
 
 ### Contexto General Analizado:
 - **Arquitectura**: Monorepositorio (Frontend en React/Vite + Backend en Node/Express).
 - **Base de datos**: Supabase (PostgreSQL).
-- **Reglas Compartidas**: Uso de Zod en la carpeta `shared` para validar datos en ambos lados.
-- **Despliegue**: Render.com (Backend y Frontend servidos juntos mediante Express).
+- **Despliegue**: Render.com (Backend y Frontend).
+- **Proveedor de Telefonía**: **Telnyx** (V2 API).
 
-### Últimos Cambios Realizados (Frontend):
-1. **Refactorización de `AuthPage.tsx`**:
-   - Flujo de dos pasos. Paso 1: `PricingSelector` integrado con Framer Motion. Paso 2: Formulario.
-   - **Última iteración (Paso 2)**: Diseño actualizado de horizontal a **vertical centrado** para mejorar la UX. Logo ampliado y centrado, resumen del plan en formato tarjeta compacta en la parte superior y formulario extendido a lo ancho de un contenedor central (`max-w-xl`).
-   - Se añadió lectura inteligente del parámetro `plan` en la URL (`/auth?tab=register&plan=small`) para preseleccionar automáticamente el plan y saltar al Paso 2 sin fricciones. Se importó `framer-motion` para evitar errores de renderizado.
+### Avances Realizados Hoy (Integración Telnyx):
 
-2. **Refactorización de `LandingPage.tsx` (Mejoras Visuales Hero & Header)**:
-   - **Header de Alto Impacto**: 
-     - Navbar centrado matemáticamente mediante posicionamiento absoluto.
-     - Aumento del tamaño de fuente de los enlaces de navegación a `text-xl` con peso `semibold`.
-     - Añadidos efectos de hover con cambio de color a Rojo UNMI y escala interactiva (`scale-110`).
-     - Eliminación del botón redundante "Empieza hoy" para una estética más limpia y profesional.
-   - **Imagen Hero Interactiva**: 
-     - Implementación de un **Aura de Resplandor Central** uniforme y sutil que reacciona al hover.
-     - Efecto **Shine (Brillo)**: Un haz de luz degradado que recorre la imagen al pasar el cursor.
-     - Animación de zoom suave sincronizada entre el contenedor y la captura de pantalla de la aplicación.
-   - **Sección de Características (Cards)**: Rediseño visual con efecto Glassmorphism (`backdrop-blur`), efectos hover avanzados (elevación, brillo en borde y rotación en iconos) y diseño tipo mosaico interactivo.
-   - **Sección Pricing**: Nueva sección de planes y precios anclada al final de la landing (`#pricing`). Los botones ahora envían dinámicamente al usuario a la página de Auth preseleccionando su plan.
+1. **Backend - Infraestructura de Voz**:
+   - **Instalación del SDK**: Se ha añadido la dependencia oficial `telnyx` al backend.
+   - **TelnyxService.ts**: Nuevo servicio creado para gestionar llamadas salientes, envío de SMS y consulta de recursos de la cuenta (aplicaciones y números).
+   - **Webhook.routes.ts**: Implementación del endpoint `/api/webhooks/telnyx`. Configurados manejadores iniciales para eventos de llamada:
+     - `call.initiated`: Detecta llamadas entrantes (con log visual gigante para pruebas).
+     - `call.answered`: Punto de entrada para la respuesta automática (IVR).
+     - `call.hangup`: Registro de finalización de llamadas.
+     - `call.dtmf.received`: Preparado para capturar pulsaciones de teclas (Menú interactivo).
 
-### Notas de Futura Implementación:
-- **Infraestructura de Comunicaciones**: Se ha identificado **Telnyx** como el proveedor Tier-1 ideal para gestionar el SIP Trunking, IVR dinámico y SMS/WhatsApp debido a su escalabilidad y control de red propia.
+2. **Infraestructura de Desarrollo Local**:
+   - **Ngrok**: Instalación y configuración de un túnel seguro hacia `http://localhost:5001`.
+   - **URL del Túnel**: `https://wonderingly-overfoul-eli.ngrok-free.dev` (Vinculada en el panel de Telnyx).
+   - **Seguridad**: Se ha verificado el AuthToken de ngrok para garantizar la estabilidad del túnel.
+
+3. **Configuración de la Plataforma Telnyx**:
+   - **Cuenta**: Creada y configurada con API Key (V2).
+   - **Número de Teléfono**: Adquisición de un número de prueba de EE.UU. (+1 201 377 3769).
+   - **Voice Application**: Creada la aplicación `UNMI_Local` en el portal de Telnyx, vinculada al número y configurada con el Webhook de ngrok.
+
+4. **Validación y Testing**:
+   - **test-telnyx-config.ts**: Script de prueba creado y ejecutado con éxito. Confirma que la API Key es válida y que el backend puede listar las aplicaciones y números de la cuenta de Telnyx en tiempo real.
+
+5. **Mantenimiento y Git**:
+   - **Fix Gitignore**: Se ha corregido un error de codificación en el archivo `.gitignore` que impedía ignorar el archivo `.env.local`.
+   - **Limpieza de Caché**: Se ha eliminado el rastreo de archivos sensibles mediante `git rm --cached`.
+   - **Push Seguro**: Código sincronizado en GitHub (Rama `develop-collab`) sin filtrar credenciales.
+
+### Notas de Implementación Actual:
+- **Ngrok**: Es necesario mantener abierta la terminal de ngrok y actualizar la "Webhook URL" en el panel de Telnyx si la dirección del túnel cambia en futuras sesiones.
+- **API Key**: Almacenada de forma segura en la raíz del proyecto (`.env.local`).
 
 ### Próximos pasos pendientes:
-- El archivo `.env` fue recuperado desde Render.
-- `README_changes.md` ya se encuentra excluido del control de versiones (`.gitignore`).
-- Todo listo para continuar con mejoras de UI adicionales o revisar partes funcionales.
+- Implementar la lógica de respuesta de voz (IVR) usando Call Control (Text-to-Speech o archivos de audio).
+- Configurar el flujo de desvío de llamadas dinámico.
+- Iniciar el proceso de verificación eKYC en Telnyx para adquirir números de España (+34).

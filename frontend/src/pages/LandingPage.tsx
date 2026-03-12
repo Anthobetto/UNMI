@@ -27,10 +27,12 @@ import { useTheme } from "@/hooks/useTheme";
 import { OfficialLogo } from "@/components/logo/official-logo";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useTranslation } from "react-i18next";
+import { Meteors } from "@/components/ui/meteors";
 
 export default function LandingPage(): JSX.Element {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
   const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { t } = useTranslation();
@@ -170,7 +172,12 @@ export default function LandingPage(): JSX.Element {
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[100dvh]">
+    <div className="flex flex-col items-center justify-center min-h-[100dvh] relative">
+      {/* Global Fixed Meteor Background */}
+      <div className="fixed inset-0 pointer-events-none -z-20 overflow-hidden h-screen w-full">
+        <Meteors number={60} />
+      </div>
+
       <header
         className={`sticky top-0 z-50 w-full backdrop-blur-lg transition-all duration-300 ${isScrolled ? "bg-background/80 shadow-sm" : "bg-transparent"
           }`}
@@ -184,31 +191,26 @@ export default function LandingPage(): JSX.Element {
           </div>
 
           {/* Navigation - Desktop Centered */}
-          <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 gap-10 items-center">
-            <Link
-              to="#featuresUNMI"
-              className="text-xl font-semibold text-muted-foreground transition-all hover:text-[#FF0000] hover:scale-110"
-            >
-              {t("landing.nav.features", "Features")}
-            </Link>
-            <Link
-              to="#testimonials"
-              className="text-xl font-semibold text-muted-foreground transition-all hover:text-[#FF0000] hover:scale-110"
-            >
-              {t("landing.nav.testimonials", "Testimonials")}
-            </Link>
-            <Link
-              to="#pricing"
-              className="text-xl font-semibold text-muted-foreground transition-all hover:text-[#FF0000] hover:scale-110"
-            >
-              {t("landing.nav.pricing", "Pricing")}
-            </Link>
-            <Link
-              to="#faq"
-              className="text-xl font-semibold text-muted-foreground transition-all hover:text-[#FF0000] hover:scale-110"
-            >
-              {t("header.nav.faq", "FAQ")}
-            </Link>
+          <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 gap-2 items-center p-1 rounded-full">
+            {[
+              { id: "#features", label: t("landing.nav.features", "Features") },
+              { id: "#how-it-works", label: t("landing.nav.howItWorks", "Cómo funciona") },
+              { id: "#pricing", label: t("landing.nav.pricing", "Pricing") },
+              { id: "#faq", label: t("header.nav.faq", "FAQ") },
+            ].map((navItem) => (
+              <Link
+                key={navItem.id}
+                to={navItem.id}
+                onClick={() => setActiveSection(navItem.id)}
+                className={`px-5 py-2 text-sm font-bold rounded-full transition-all duration-300 hover:scale-105 will-change-transform backface-visibility-hidden transform-gpu ${
+                  activeSection === navItem.id
+                    ? "bg-[#FF0000] text-white shadow-lg shadow-[#FF0000]/20"
+                    : "text-muted-foreground hover:bg-[#FF0000]/10 hover:text-[#FF0000]"
+                }`}
+              >
+                {navItem.label}
+              </Link>
+            ))}
           </nav>
 
           {/* Right Controls - Desktop */}
@@ -260,11 +262,11 @@ export default function LandingPage(): JSX.Element {
             className="md:hidden absolute top-16 inset-x-0 bg-background/95 backdrop-blur-lg border-b"
           >
             <div className="container py-4 flex flex-col gap-4">
-              <Link to="#featuresUNMI" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
+              <Link to="#features" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
                 {t("header.nav.features", "Features")}
               </Link>
-              <Link to="#testimonials" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
-                {t("header.nav.testimonials", "Testimonials")}
+              <Link to="#how-it-works" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
+                {t("landing.nav.howItWorks", "Cómo funciona")}
               </Link>
               <Link to="#pricing" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
                 {t("header.nav.pricing", "Pricing")}
@@ -293,9 +295,8 @@ export default function LandingPage(): JSX.Element {
       </header>
 
       <main className="flex-1">
-        <section className="w-full py-10 md:py-22 lg:py-30 overflow-hidden">
+        <section className="w-full py-10 md:py-22 lg:py-30 overflow-hidden relative">
           <div className="container px-4 md:px-6 relative">
-            <div className="absolute inset-0 -z-10 h-full w-full bg-white dark:bg-black bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f1f1f_1px,transparent_1px),linear-gradient(to_bottom,#1f1f1f_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]"></div>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
