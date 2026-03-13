@@ -35,7 +35,35 @@ import { OfficialLogo } from "@/components/logo/official-logo";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useTranslation } from "react-i18next";
 import { Meteors } from "@/components/ui/meteors";
-import { GlowCard } from "@/components/ui/spotlight-card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+// Definición de los tiers de precios
+const PRICING_TIERS = {
+  small: [
+    { messages: 50, price: 25 },
+    { messages: 100, price: 50 },
+    { messages: 150, price: 60 },
+    { messages: 200, price: 80 },
+  ],
+  pro: [
+    { messages: 250, price: 100 },
+    { messages: 300, price: 110 },
+    { messages: 350, price: 135 },
+    { messages: 400, price: 150 },
+  ],
+  premium: [
+    { messages: 500, price: 175 },
+    { messages: 600, price: 200 },
+    { messages: 800, price: 250 },
+    { messages: 1000, price: 300 },
+  ],
+};
 
 export default function LandingPage(): JSX.Element {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -44,6 +72,11 @@ export default function LandingPage(): JSX.Element {
   const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { t } = useTranslation();
+
+  // Estados para los planes seleccionados
+  const [smallTier, setSmallTier] = useState(PRICING_TIERS.small[2]); // Default 150
+  const [proTier, setProTier] = useState(PRICING_TIERS.pro[1]); // Default 300
+  const [premiumTier, setPremiumTier] = useState(PRICING_TIERS.premium[1]); // Default 600
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId.replace("#", ""));
@@ -200,10 +233,10 @@ export default function LandingPage(): JSX.Element {
       >
         <div className="container flex h-20 items-center justify-between relative">
           {/* Logo - Left Side */}
-          <div className="flex items-center gap-2 font-bold z-10">
-            <div className="mb-3">
-              <OfficialLogo width={220} />
-            </div>
+          <div className="flex items-center z-10">
+            <Link to="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity ml-2">
+              <OfficialLogo width={160} />
+            </Link>
           </div>
 
           {/* Navigation - Desktop Centered */}
@@ -382,22 +415,21 @@ export default function LandingPage(): JSX.Element {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
+                className="h-full"
               >
-                <GlowCard glowColor="red" customSize={true} className="h-full">
-                  <Card className="h-full bg-transparent border-none shadow-none group transition-all duration-500">
-                    <CardContent className="p-6 md:p-10 flex flex-col items-center text-center">
-                      <div className="size-16 md:size-20 rounded-3xl bg-white dark:bg-white/5 shadow-inner flex items-center justify-center mb-6 md:mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
-                        <Phone className="size-8 md:size-10 text-muted-foreground group-hover:text-[#FF0000] transition-colors" />
-                      </div>
-                      <h3 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 group-hover:text-[#FF0000] transition-colors">
-                        {t("howItWorks.step1.title", "Llamada Perdida")}
-                      </h3>
-                      <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                        {t("howItWorks.step1.description", "Un cliente llama a tu empresa y no hay respuesta en ese momento.")}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </GlowCard>
+                <Card className="h-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-xl rounded-[2.5rem] group transition-all duration-500 hover:shadow-2xl hover:border-[#FF0000]/20">
+                  <CardContent className="p-6 md:p-10 flex flex-col items-center text-center">
+                    <div className="size-16 md:size-20 rounded-3xl bg-white dark:bg-white/10 shadow-inner flex items-center justify-center mb-6 md:mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                      <Phone className="size-8 md:size-10 text-muted-foreground group-hover:text-[#FF0000] transition-colors" />
+                    </div>
+                    <h3 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 group-hover:text-[#FF0000] transition-colors">
+                      {t("howItWorks.step1.title", "Llamada Perdida")}
+                    </h3>
+                    <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                      {t("howItWorks.step1.description", "Un cliente llama a tu empresa y no hay respuesta en ese momento.")}
+                    </p>
+                  </CardContent>
+                </Card>
               </motion.div>
 
               {/* Step 2 */}
@@ -406,22 +438,21 @@ export default function LandingPage(): JSX.Element {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.2 }}
+                className="h-full"
               >
-                <GlowCard glowColor="red" customSize={true} className="h-full">
-                  <Card className="h-full bg-transparent border-none shadow-none group transition-all duration-500">
-                    <CardContent className="p-10 flex flex-col items-center text-center">
-                      <div className="size-20 rounded-3xl bg-white dark:bg-white/5 shadow-inner flex items-center justify-center mb-8 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500">
-                        <Zap className="size-10 text-muted-foreground group-hover:text-[#FF0000] transition-colors" />
-                      </div>
-                      <h3 className="text-2xl font-bold mb-4 group-hover:text-[#FF0000] transition-colors">
-                        {t("howItWorks.step2.title", "Captura Inteligente")}
-                      </h3>
-                      <p className="text-muted-foreground leading-relaxed">
-                        {t("howItWorks.step2.description", "UNMI detecta el evento al instante y captura el número de teléfono del cliente.")}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </GlowCard>
+                <Card className="h-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-xl rounded-[2.5rem] group transition-all duration-500 hover:shadow-2xl hover:border-[#FF0000]/20">
+                  <CardContent className="p-10 flex flex-col items-center text-center">
+                    <div className="size-20 rounded-3xl bg-white dark:bg-white/10 shadow-inner flex items-center justify-center mb-8 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500">
+                      <Zap className="size-10 text-muted-foreground group-hover:text-[#FF0000] transition-colors" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-4 group-hover:text-[#FF0000] transition-colors">
+                      {t("howItWorks.step2.title", "Captura Inteligente")}
+                    </h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {t("howItWorks.step2.description", "UNMI detecta el evento al instante y captura el número de teléfono del cliente.")}
+                    </p>
+                  </CardContent>
+                </Card>
               </motion.div>
 
               {/* Step 3 */}
@@ -430,22 +461,21 @@ export default function LandingPage(): JSX.Element {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.4 }}
+                className="h-full"
               >
-                <GlowCard glowColor="red" customSize={true} className="h-full">
-                  <Card className="h-full bg-transparent border-none shadow-none group transition-all duration-500">
-                    <CardContent className="p-10 flex flex-col items-center text-center">
-                      <div className="size-20 rounded-3xl bg-white dark:bg-white/5 shadow-inner flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
-                        <MessageCircle className="size-10 text-muted-foreground group-hover:text-[#FF0000] transition-colors" />
-                      </div>
-                      <h3 className="text-2xl font-bold mb-4 group-hover:text-[#FF0000] transition-colors">
-                        {t("howItWorks.step3.title", "WhatsApp Instantáneo")}
-                      </h3>
-                      <p className="text-muted-foreground leading-relaxed">
-                        {t("howItWorks.step3.description", "El cliente recibe un mensaje automático para continuar la atención sin esperas.")}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </GlowCard>
+                <Card className="h-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-xl rounded-[2.5rem] group transition-all duration-500 hover:shadow-2xl hover:border-[#FF0000]/20">
+                  <CardContent className="p-10 flex flex-col items-center text-center">
+                    <div className="size-20 rounded-3xl bg-white dark:bg-white/10 shadow-inner flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                      <MessageCircle className="size-10 text-muted-foreground group-hover:text-[#FF0000] transition-colors" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-4 group-hover:text-[#FF0000] transition-colors">
+                      {t("howItWorks.step3.title", "WhatsApp Instantáneo")}
+                    </h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {t("howItWorks.step3.description", "El cliente recibe un mensaje automático para continuar la atención sin esperas.")}
+                    </p>
+                  </CardContent>
+                </Card>
               </motion.div>
             </div>
           </div>
@@ -488,9 +518,11 @@ export default function LandingPage(): JSX.Element {
                   </TabsTrigger>
                   <TabsTrigger 
                     value="chatbot" 
-                    className="rounded-lg md:rounded-xl px-4 md:px-8 py-2 md:py-3 text-xs md:text-base font-bold data-[state=active]:bg-white data-[state=active]:text-[#F59E0B] data-[state=active]:shadow-md transition-all duration-300"
+                    disabled
+                    className="rounded-lg md:rounded-xl px-4 md:px-8 py-2 md:py-3 text-xs md:text-base font-bold cursor-not-allowed flex items-center gap-2 transition-all duration-300"
                   >
-                    {t("features.tabs.chatbot", "Chatbot Inteligente")}
+                    <span className="opacity-50 grayscale">{t("features.tabs.chatbot", "Chatbot Inteligente")}</span>
+                    <Badge className="bg-[#F59E0B] text-white border-none text-[10px] px-1.5 py-0 shadow-sm opacity-100">Soon</Badge>
                   </TabsTrigger>
                 </TabsList>
               </div>
@@ -505,27 +537,25 @@ export default function LandingPage(): JSX.Element {
                 >
                   {featuresUNMI.map((feature, i) => (
                     <motion.div key={i} variants={item}>
-                      <GlowCard glowColor="red" customSize={true} className="h-full group">
-                        <Card className="relative h-full overflow-hidden border-none bg-transparent shadow-none transition-all duration-500 rounded-3xl">
-                          <CardContent className="p-6 md:p-8 flex flex-col h-full relative z-10">
-                            <div className="size-12 md:size-14 rounded-2xl bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-[#FF0000]/10 group-hover:text-[#FF0000] transition-all duration-500 shadow-inner mb-4 md:mb-6">
-                              {feature.icon}
-                            </div>
-                            <h3 className="text-xl md:text-2xl font-bold mb-2 md:mb-3 text-gray-900 dark:text-white group-hover:text-[#FF0000] transition-colors">
-                              {feature.title}
-                            </h3>
-                            <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 leading-relaxed">
-                              {feature.description}
-                            </p>
-                            <a 
-                              href="#pricing" 
-                              className="mt-auto pt-4 md:pt-6 opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs md:text-sm font-bold text-[#FF0000] hover:underline"
-                            >
-                              Saber más <ArrowRight className="ml-2 size-4" />
-                            </a>
-                          </CardContent>
-                        </Card>
-                      </GlowCard>
+                      <Card className="relative h-full overflow-hidden border border-gray-200 dark:border-white/10 bg-white/50 dark:bg-white/5 shadow-lg hover:shadow-2xl transition-all duration-500 rounded-3xl group hover:border-[#FF0000]/20">
+                        <CardContent className="p-6 md:p-8 flex flex-col h-full relative z-10">
+                          <div className="size-12 md:size-14 rounded-2xl bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-[#FF0000]/10 group-hover:text-[#FF0000] transition-all duration-500 shadow-inner mb-4 md:mb-6">
+                            {feature.icon}
+                          </div>
+                          <h3 className="text-xl md:text-2xl font-bold mb-2 md:mb-3 text-gray-900 dark:text-white group-hover:text-[#FF0000] transition-colors">
+                            {feature.title}
+                          </h3>
+                          <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 leading-relaxed">
+                            {feature.description}
+                          </p>
+                          <a 
+                            href="#pricing" 
+                            className="mt-auto pt-4 md:pt-6 opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs md:text-sm font-bold text-[#FF0000] hover:underline"
+                          >
+                            Saber más <ArrowRight className="ml-2 size-4" />
+                          </a>
+                        </CardContent>
+                      </Card>
                     </motion.div>
                   ))}
                 </motion.div>
@@ -541,27 +571,25 @@ export default function LandingPage(): JSX.Element {
                 >
                   {featuresChatbot.map((feature, i) => (
                     <motion.div key={i} variants={item}>
-                      <GlowCard glowColor="orange" customSize={true} className="h-full group">
-                        <Card className="relative h-full overflow-hidden border-none bg-transparent shadow-none transition-all duration-500 rounded-3xl">
-                          <CardContent className="p-8 flex flex-col h-full relative z-10">
-                            <div className="size-14 rounded-2xl bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-[#F59E0B]/10 group-hover:text-[#F59E0B] transition-all duration-500 shadow-inner">
-                              {feature.icon}
-                            </div>
-                            <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white group-hover:text-[#F59E0B] transition-colors">
-                              {feature.title}
-                            </h3>
-                            <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
-                              {feature.description}
-                            </p>
-                            <a 
-                              href="#pricing" 
-                              className="mt-auto pt-6 opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-sm font-bold text-[#F59E0B] hover:underline"
-                            >
-                              Descubrir más <ArrowRight className="ml-2 size-4" />
-                            </a>
-                          </CardContent>
-                        </Card>
-                      </GlowCard>
+                      <Card className="relative h-full overflow-hidden border border-gray-200 dark:border-white/10 bg-white/50 dark:bg-white/5 shadow-lg hover:shadow-2xl transition-all duration-500 rounded-3xl group hover:border-[#F59E0B]/20">
+                        <CardContent className="p-8 flex flex-col h-full relative z-10">
+                          <div className="size-14 rounded-2xl bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-[#F59E0B]/10 group-hover:text-[#F59E0B] transition-all duration-500 shadow-inner">
+                            {feature.icon}
+                          </div>
+                          <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white group-hover:text-[#F59E0B] transition-colors">
+                            {feature.title}
+                          </h3>
+                          <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
+                            {feature.description}
+                          </p>
+                          <a 
+                            href="#pricing" 
+                            className="mt-auto pt-6 opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-sm font-bold text-[#F59E0B] hover:underline"
+                          >
+                            Descubrir más <ArrowRight className="ml-2 size-4" />
+                          </a>
+                        </CardContent>
+                      </Card>
                     </motion.div>
                   ))}
                 </motion.div>
@@ -588,39 +616,55 @@ export default function LandingPage(): JSX.Element {
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                whileHover={{ scale: 1.05, y: -10 }}
+                whileHover={{ scale: 1.05, y: -5 }}
                 viewport={{ once: true }}
-                transition={{ type: "spring", stiffness: 300 }}
-                className="bg-white dark:bg-white/5 rounded-[2.5rem] border-2 border-gray-200 dark:border-white/10 p-10 shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col cursor-pointer"
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="bg-white/50 dark:bg-white/5 rounded-[2.5rem] border-2 border-gray-200 dark:border-white/10 p-10 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col cursor-pointer"
               >
                 <div className="mb-8">
-                  <h3 className="text-2xl font-bold mb-2 text-blue-600">Pequeña Empresa</h3>
-                  <p className="text-gray-500 text-sm">Todo lo esencial para empezar.</p>
+                  <h3 className="text-2xl font-bold mb-2 text-foreground">Pequeña Empresa</h3>
+                  <p className="text-gray-500 text-sm mb-4">Todo lo esencial para empezar.</p>
+                  
+                  <Select 
+                    defaultValue={smallTier.messages.toString()} 
+                    onValueChange={(val) => setSmallTier(PRICING_TIERS.small.find(t => t.messages.toString() === val)!)}
+                  >
+                    <SelectTrigger className="w-full bg-white dark:bg-white/10 border-gray-200 dark:border-white/10 rounded-xl h-12">
+                      <SelectValue placeholder="Seleccionar volumen" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PRICING_TIERS.small.map((tier) => (
+                        <SelectItem key={tier.messages} value={tier.messages.toString()}>
+                          {tier.messages} mensajes - €{tier.price}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="mb-8">
-                  <span className="text-5xl font-bold tracking-tighter">€60</span>
+                  <span className="text-5xl font-bold tracking-tighter">€{smallTier.price}</span>
                   <span className="text-gray-500 ml-2">/mes</span>
                 </div>
                 <ul className="space-y-4 mb-10 flex-grow">
                   <li className="flex items-center gap-3 text-sm">
-                    <Check className="size-5 text-blue-500 flex-shrink-0" />
-                    <span>150 mensajes/mes incluidos</span>
+                    <Check className="size-5 text-[#FF0000] flex-shrink-0" />
+                    <span className="font-bold">{smallTier.messages} mensajes/mes incluidos</span>
                   </li>
                   <li className="flex items-center gap-3 text-sm">
-                    <Check className="size-5 text-blue-500 flex-shrink-0" />
+                    <Check className="size-5 text-gray-400 flex-shrink-0" />
                     <span>1 Localización física</span>
                   </li>
                   <li className="flex items-center gap-3 text-sm">
-                    <Check className="size-5 text-blue-500 flex-shrink-0" />
+                    <Check className="size-5 text-gray-400 flex-shrink-0" />
                     <span>Respuesta automática a llamadas</span>
                   </li>
                   <li className="flex items-center gap-3 text-sm">
-                    <Check className="size-5 text-blue-500 flex-shrink-0" />
+                    <Check className="size-5 text-gray-400 flex-shrink-0" />
                     <span>Panel de control básico</span>
                   </li>
                 </ul>
-                <Link to="/auth?tab=register&plan=small">
-                  <Button className="w-full h-14 rounded-2xl text-lg font-bold border-2 border-blue-100 hover:bg-blue-50 text-blue-600 transition-all" variant="outline">
+                <Link to={`/auth?tab=register&plan=small&price=${smallTier.price}`}>
+                  <Button className="w-full h-14 rounded-2xl text-lg font-bold border-2 border-gray-200 hover:bg-gray-50 text-foreground transition-all" variant="outline">
                     Elegir Plan
                   </Button>
                 </Link>
@@ -630,26 +674,42 @@ export default function LandingPage(): JSX.Element {
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                whileHover={{ scale: 1.1, y: -15 }}
+                whileHover={{ scale: 1.05, y: -5 }}
                 viewport={{ once: true }}
-                transition={{ type: "spring", stiffness: 300, delay: 0.1 }}
-                className="bg-white dark:bg-white/5 rounded-[2.5rem] border-2 border-[#FF0000] p-10 shadow-2xl shadow-[#FF0000]/10 relative overflow-hidden flex flex-col scale-105 z-10 cursor-pointer"
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="bg-white/50 dark:bg-white/5 rounded-[2.5rem] border-2 border-[#FF0000] p-10 shadow-2xl shadow-[#FF0000]/10 relative overflow-hidden flex flex-col z-10 cursor-pointer"
               >
                 <div className="absolute top-0 right-0 bg-[#FF0000] text-white px-6 py-1.5 rounded-bl-2xl text-xs font-bold uppercase tracking-widest">
                   Popular
                 </div>
                 <div className="mb-8">
                   <h3 className="text-2xl font-bold mb-2">UNMI Pro</h3>
-                  <p className="text-gray-500 text-sm">Optimiza tu atención al cliente.</p>
+                  <p className="text-gray-500 text-sm mb-4">Optimiza tu atención al cliente.</p>
+                  
+                  <Select 
+                    defaultValue={proTier.messages.toString()} 
+                    onValueChange={(val) => setProTier(PRICING_TIERS.pro.find(t => t.messages.toString() === val)!)}
+                  >
+                    <SelectTrigger className="w-full bg-white dark:bg-white/10 border-[#FF0000]/20 rounded-xl h-12">
+                      <SelectValue placeholder="Seleccionar volumen" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PRICING_TIERS.pro.map((tier) => (
+                        <SelectItem key={tier.messages} value={tier.messages.toString()}>
+                          {tier.messages} mensajes - €{tier.price}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="mb-8">
-                  <span className="text-5xl font-bold tracking-tighter">€120</span>
+                  <span className="text-5xl font-bold tracking-tighter">€{proTier.price}</span>
                   <span className="text-gray-500 ml-2">/mes</span>
                 </div>
                 <ul className="space-y-4 mb-10 flex-grow">
                   <li className="flex items-center gap-3 text-sm font-bold">
                     <Check className="size-5 text-green-500 flex-shrink-0" />
-                    <span>360 mensajes/mes incluidos</span>
+                    <span>{proTier.messages} mensajes/mes incluidos</span>
                   </li>
                   <li className="flex items-center gap-3 text-sm font-bold">
                     <Check className="size-5 text-green-500 flex-shrink-0" />
@@ -664,7 +724,7 @@ export default function LandingPage(): JSX.Element {
                     <span>Analítica avanzada</span>
                   </li>
                 </ul>
-                <Link to="/auth?tab=register&plan=pro">
+                <Link to={`/auth?tab=register&plan=pro&price=${proTier.price}`}>
                   <Button className="w-full h-14 rounded-2xl text-lg font-bold bg-[#FF0000] hover:bg-[#D32F2F] text-white shadow-lg shadow-[#FF0000]/20 transition-all">
                     Elegir Plan Pro
                   </Button>
@@ -675,23 +735,39 @@ export default function LandingPage(): JSX.Element {
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                whileHover={{ scale: 1.05, y: -10 }}
+                whileHover={{ scale: 1.05, y: -5 }}
                 viewport={{ once: true }}
-                transition={{ type: "spring", stiffness: 300, delay: 0.2 }}
-                className="bg-white dark:bg-white/5 rounded-[2.5rem] border-2 border-gray-200 dark:border-white/10 p-10 shadow-sm hover:shadow-2xl transition-all duration-300 flex flex-col cursor-pointer"
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="bg-white/50 dark:bg-white/5 rounded-[2.5rem] border-2 border-gray-200 dark:border-white/10 p-10 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col cursor-pointer"
               >
                 <div className="mb-8">
                   <h3 className="text-2xl font-bold mb-2 text-[#FF0000]">UNMI Premium</h3>
-                  <p className="text-gray-500 text-sm">Escalabilidad total sin límites.</p>
+                  <p className="text-gray-500 text-sm mb-4">Escalabilidad total sin límites.</p>
+                  
+                  <Select 
+                    defaultValue={premiumTier.messages.toString()} 
+                    onValueChange={(val) => setPremiumTier(PRICING_TIERS.premium.find(t => t.messages.toString() === val)!)}
+                  >
+                    <SelectTrigger className="w-full bg-white dark:bg-white/10 border-gray-200 dark:border-white/10 rounded-xl h-12">
+                      <SelectValue placeholder="Seleccionar volumen" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PRICING_TIERS.premium.map((tier) => (
+                        <SelectItem key={tier.messages} value={tier.messages.toString()}>
+                          {tier.messages} mensajes - €{tier.price}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="mb-8">
-                  <span className="text-5xl font-bold tracking-tighter">€200</span>
+                  <span className="text-5xl font-bold tracking-tighter">€{premiumTier.price}</span>
                   <span className="text-gray-500 ml-2">/mes</span>
                 </div>
                 <ul className="space-y-4 mb-10 flex-grow">
                   <li className="flex items-center gap-3 text-sm font-bold">
                     <Check className="size-5 text-[#FF0000] flex-shrink-0" />
-                    <span>Mensajes ILIMITADOS</span>
+                    <span>{premiumTier.messages} mensajes/mes incluidos</span>
                   </li>
                   <li className="flex items-center gap-3 text-sm font-bold">
                     <Check className="size-5 text-[#FF0000] flex-shrink-0" />
@@ -706,7 +782,7 @@ export default function LandingPage(): JSX.Element {
                     <span>Soporte Prioritario 24/7</span>
                   </li>
                 </ul>
-                <Link to="/auth?tab=register&plan=premium">
+                <Link to={`/auth?tab=register&plan=premium&price=${premiumTier.price}`}>
                   <Button className="w-full h-14 rounded-2xl text-lg font-bold border-2 border-[#FF0000] hover:bg-[#FF0000]/5 text-[#FF0000] transition-all" variant="outline">
                     Elegir Premium
                   </Button>
@@ -730,49 +806,47 @@ export default function LandingPage(): JSX.Element {
             </div>
 
             <div className="max-w-3xl mx-auto">
-              <GlowCard glowColor="red" customSize={true} className="w-full">
-                <Card className="bg-transparent border-none shadow-none rounded-[2.5rem] overflow-hidden">
-                  <CardContent className="p-8 md:p-12">
-                    <Accordion type="single" collapsible className="w-full">
-                      <AccordionItem value="item-1" className="border-b-border/40 py-2">
-                        <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
-                          ¿Cómo se configura el desvío de llamadas?
-                        </AccordionTrigger>
-                        <AccordionContent className="text-muted-foreground text-base leading-relaxed">
-                          Es muy sencillo. Solo tienes que marcar un código estándar en tu teléfono (ej: *61*número_unmi#) para activar el desvío cuando no contestes. Nosotros te guiaremos paso a paso en el panel de control.
-                        </AccordionContent>
-                      </AccordionItem>
+              <Card className="bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-xl rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:border-[#FF0000]/20">
+                <CardContent className="p-8 md:p-12">
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="item-1" className="border-b-border/40 py-2">
+                      <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
+                        ¿Cómo se configura el desvío de llamadas?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground text-base leading-relaxed">
+                        Es muy sencillo. Solo tienes que marcar un código estándar en tu teléfono (ej: *61*número_unmi#) para activar el desvío cuando no contestes. Nosotros te guiaremos paso a paso en el panel de control.
+                      </AccordionContent>
+                    </AccordionItem>
 
-                      <AccordionItem value="item-2" className="border-b-border/40 py-2">
-                        <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
-                          ¿Tengo que cambiar mi número actual?
-                        </AccordionTrigger>
-                        <AccordionContent className="text-muted-foreground text-base leading-relaxed">
-                          No, en absoluto. Sigues usando tu número de siempre para recibir llamadas. UNMI solo entra en acción si no puedes contestar, capturando la llamada perdida para enviar el WhatsApp automático.
-                        </AccordionContent>
-                      </AccordionItem>
+                    <AccordionItem value="item-2" className="border-b-border/40 py-2">
+                      <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
+                        ¿Tengo que cambiar mi número actual?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground text-base leading-relaxed">
+                        No, en absoluto. Sigues usando tu número de siempre para recibir llamadas. UNMI solo entra en acción si no puedes contestar, capturando la llamada perdida para enviar el WhatsApp automático.
+                      </AccordionContent>
+                    </AccordionItem>
 
-                      <AccordionItem value="item-3" className="border-b-border/40 py-2">
-                        <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
-                          ¿Qué pasa si el cliente no tiene WhatsApp?
-                        </AccordionTrigger>
-                        <AccordionContent className="text-muted-foreground text-base leading-relaxed">
-                          Si el sistema detecta que el número no tiene WhatsApp activo, UNMI puede enviar un SMS automático con la misma información, asegurando que el contacto nunca se pierda.
-                        </AccordionContent>
-                      </AccordionItem>
+                    <AccordionItem value="item-3" className="border-b-border/40 py-2">
+                      <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
+                        ¿Qué pasa si el cliente no tiene WhatsApp?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground text-base leading-relaxed">
+                        Si el sistema detecta que el número no tiene WhatsApp activo, UNMI puede enviar un SMS automático con la misma información, asegurando que el contacto nunca se pierda.
+                      </AccordionContent>
+                    </AccordionItem>
 
-                      <AccordionItem value="item-4" className="border-b-border/40 py-2">
-                        <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
-                          ¿Cómo funciona el periodo de prueba?
-                        </AccordionTrigger>
-                        <AccordionContent className="text-muted-foreground text-base leading-relaxed">
-                          Ofrecemos 14 días de prueba gratuita con todas las funciones activas. Puedes configurar tu número y ver cuántas llamadas recuperas antes de decidirte por un plan.
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  </CardContent>
-                </Card>
-              </GlowCard>
+                    <AccordionItem value="item-4" className="border-b-border/40 py-2">
+                      <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
+                        ¿Cómo funciona el periodo de prueba?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground text-base leading-relaxed">
+                        Ofrecemos 14 días de prueba gratuita con todas las funciones activas. Puedes configurar tu número y ver cuántas llamadas recuperas antes de decidirte por un plan.
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </section>
@@ -787,26 +861,24 @@ export default function LandingPage(): JSX.Element {
               transition={{ duration: 0.5 }}
               className="max-w-4xl mx-auto"
             >
-              <GlowCard glowColor="red" customSize={true} className="w-full">
-                <Card className="bg-transparent border-none shadow-none rounded-[3rem] overflow-hidden">
-                  <CardContent className="p-12 md:p-20 text-center relative">
-                    {/* Glow decorativo interno */}
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1/2 bg-[#FF0000]/5 blur-[80px] -z-10" />
-                    
-                    <h2 className="text-4xl md:text-5xl lg:text-5xl font-bold tracking-tight mb-10 leading-tight">
-                      {t("cta.title", "Lleva la comunicación de tu negocio al siguiente nivel")}
-                    </h2>
-                    <div className="flex justify-center">
-                      <Link to="/auth?tab=register">
-                        <Button size="lg" className="rounded-full h-16 px-12 text-xl bg-[#FF0000] hover:bg-[#D32F2F] shadow-2xl shadow-[#FF0000]/40 transition-all duration-500 hover:scale-110 active:scale-95 group">
-                          {t("hero.cta", "Start Today")}
-                          <ArrowRight className="ml-3 size-6 group-hover:translate-x-2 transition-transform" />
-                        </Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-              </GlowCard>
+              <Card className="bg-white dark:bg-white/5 border-2 border-gray-200 dark:border-white/10 shadow-2xl rounded-[3rem] overflow-hidden transition-all duration-500 hover:border-[#FF0000]/30 hover:shadow-[#FF0000]/10">
+                <CardContent className="p-12 md:p-20 text-center relative">
+                  {/* Glow decorativo interno sutil */}
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1/2 bg-[#FF0000]/5 blur-[80px] -z-10" />
+                  
+                  <h2 className="text-4xl md:text-5xl lg:text-5xl font-bold tracking-tight mb-10 leading-tight">
+                    {t("cta.title", "Lleva la comunicación de tu negocio al siguiente nivel")}
+                  </h2>
+                  <div className="flex justify-center">
+                    <Link to="/auth?tab=register">
+                      <Button size="lg" className="rounded-full h-16 px-12 text-xl bg-[#FF0000] hover:bg-[#D32F2F] shadow-2xl shadow-[#FF0000]/40 transition-all duration-500 hover:scale-110 active:scale-95 group">
+                        {t("hero.cta", "Start Today")}
+                        <ArrowRight className="ml-3 size-6 group-hover:translate-x-2 transition-transform" />
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
           </div>
         </section>
