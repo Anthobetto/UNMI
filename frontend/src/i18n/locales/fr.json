@@ -28,7 +28,7 @@
     "telephony": "Téléphonie",
     "templates": "Modèles",
     "chatbots": "Chatbots",
-    "locations": "Emplacements",
+    "locations": "Établissements",
     "plan": "Mon Plan",
     "logout": "Déconnexion"
   },
@@ -55,50 +55,50 @@
   },
   "features": {
     "badge": "Fonctionnalités",
-    "title": "Comparez UNMI et Chatbot",
-    "subtitle": "Basculez entre les automatisations d'UNMI et un chatbot IA complet.",
+    "title": "Comparez UNMI vs Chatbot",
+    "subtitle": "Basculez entre les automatisations d'UNMI et un chatbot avec IA complet.",
     "unmi": {
       "omnichannel": {
-        "title": "Messagerie omnicanal",
-        "description": "Gérez WhatsApp, SMS et appels depuis un tableau de bord unifié, garantissant qu'aucune demande ne reste sans réponse."
+        "title": "Messagerie omnicanale",
+        "description": "Gérez WhatsApp, SMS et appels depuis un seul panneau unifié, garantissant qu'aucune demande ne reste sans réponse."
       },
       "routing": {
         "title": "Routage intelligent des appels",
-        "description": "Notre système intelligent garantit que les appels atteignent le bon service, réduisant les occasions manquées et améliorant la satisfaction client."
+        "description": "Notre système intelligent garantit que les appels atteignent le bon service ou département, réduisant les opportunités manquées et améliorant la satisfaction client."
       },
       "autoResponse": {
-        "title": "Réponses automatisées",
-        "description": "Interagissez instantanément avec les clients même en dehors des heures d'ouverture grâce à des modèles intelligents."
+        "title": "Réponses automatiques",
+        "description": "Interagissez instantanément avec les clients même en dehors des heures d'ouverture grâce à des modèles intelligents qui fournissent les informations nécessaires."
       },
       "analytics": {
         "title": "Analyses de performance",
-        "description": "Obtenez des informations précieuses sur les volumes d'appels, les temps de réponse et les taux de conversion."
+        "description": "Obtenez des informations précieuses avec des analyses détaillées sur les volumes d'appels, les temps de réponse et les taux de conversion."
       },
       "multiLocation": {
         "title": "Support multi-sites",
-        "description": "Gérez facilement plusieurs emplacements d'entreprise depuis un seul tableau de bord."
+        "description": "Gérez facilement plusieurs établissements commerciaux depuis un seul panneau, avec des configurations et des rapports personnalisés par site."
       },
       "revenueCalc": {
         "title": "Calculateur de revenus",
-        "description": "Notre calculateur intégré vous aide à mesurer l'impact financier direct de vos améliorations de communication."
+        "description": "Notre calculateur intégré vous aide à suivre l'impact financier direct de l'amélioration de la communication, montrant le ROI de votre investissement."
       }
     },
     "chatbot": {
       "engagement": {
-        "title": "Engagement omnicanal",
-        "description": "Gérez les conversations sur WhatsApp et les appels vocaux à partir d'une seule interface."
+        "title": "Interaction omnicanale",
+        "description": "Gérez les conversations sur WhatsApp et les appels vocaux à partir d'une seule interface unifiée."
       },
       "availability": {
-        "title": "Disponibilité 24h/24 et 7j/7",
-        "description": "Gérez les demandes des clients à tout moment sans intervention humaine."
+        "title": "Disponibilité 24/7",
+        "description": "Gérez les demandes des clients à tout moment sans intervention manuelle."
       },
       "personalization": {
-        "title": "Personnalisation alimentée par l'IA",
-        "description": "Utilisez l'IA pour fournir des réponses adaptées selon le contexte et l'historique de l'utilisateur."
+        "title": "Personnalisation par l'IA",
+        "description": "Utilisez l'IA pour offrir des réponses personnalisées selon le contexte et l'historique de l'utilisateur."
       },
       "scalable": {
         "title": "Architecture évolutive",
-        "description": "S'adapte automatiquement pour gérer une augmentation du volume de discussions."
+        "description": "S'adapte automatiquement pour gérer un plus grand volume de discussions sans affecter les performances."
       },
       "analytics": {
         "title": "Analyses en temps réel",
@@ -106,32 +106,32 @@
       },
       "costCalc": {
         "title": "Calculateur d'efficacité des coûts",
-        "description": "Estimez votre retour sur investissement et vos économies grâce à l'automatisation des flux de discussion."
+        "description": "Calculez votre ROI et vos économies en automatisant les flux de discussion avec notre calculateur intégré."
       }
     }
   },
   "auth": {
     "login": {
-      "title": "Se Connecter",
-      "email": "Email",
+      "title": "Se connecter",
+      "email": "E-mail",
       "password": "Mot de passe",
-      "submit": "Se Connecter",
+      "submit": "Se connecter",
       "loading": "Connexion en cours..."
     },
     "register": {
       "title": "S'inscrire",
-      "fullName": "Nom Complet",
-      "email": "Email",
+      "fullName": "Nom complet",
+      "email": "E-mail",
       "password": "Mot de passe",
-      "companyName": "Nom de l'Entreprise",
+      "companyName": "Nom de l'entreprise",
       "terms": "J'accepte les",
       "termsLink": "Conditions d'utilisation",
-      "andThe": "et les",
+      "andThe": "et la",
       "privacy": "Politique de confidentialité",
       "submit": "S'inscrire",
       "loading": "Inscription en cours...",
       "tagline": "Transformez votre communication d'entreprise",
-      "selectPlan": "Choisissez votre plan ",
+      "selectPlan": "Choisissez votre plan",
       "planRequired": "Vous devez sélectionner un plan",
       "quantity": "Quantité",
       "location": "emplacement",
@@ -139,10 +139,10 @@
       "addMore": "Ajouter plus"
     },
     "choosePlan": {
-      "title": "Choisissez le Plan Parfait pour Votre Entreprise",
-      "subtitle": "Commencez avec un essai gratuit de 14 jours. Pas de carte de crédit requise. Annulez à tout moment.",
-      "trial": "Démarrer l'Essai Gratuit",
-      "contactSales": "Contacter les Ventes",
+      "title": "Sélectionnez le plan parfait pour votre entreprise",
+      "subtitle": "Commencez par un essai. Aucune carte de crédit requise. Annulez à tout moment.",
+      "trial": "Démarrer l'essai gratuit",
+      "contactSales": "Contacter les ventes",
       "features": {
         "noCard": "Pas de carte de crédit",
         "cancel": "Annulez à tout moment",
@@ -157,46 +157,53 @@
     "welcome": "Bienvenue, {{username}}",
     "plan": {
       "active": "Plan actif : {{plan}}",
-      "chatbots": "small",
-      "templates": "pro",
+      "chatbots": "pro",
+      "templates": "small",
       "access": "Vous avez accès à {{access}}.",
-      "change": "Changer de plan"
+      "change": "Changer de plan",
+      "dailyUsage": "Consommation quotidienne",
+      "limit": "Limite de messages",
+      "upgradeNow": "Améliorer !"
     },
     "metrics": {
-      "callsToday": "Appels Aujourd'hui",
-      "missedCalls": "Appels Manqués",
-      "messagesSent": "Messages Envoyés",
-      "expectedRevenue": "Revenu Estimé",
+      "callsToday": "Appels aujourd'hui",
+      "missedCalls": "Appels manqués",
+      "messagesSent": "Messages envoyés",
+      "expectedRevenue": "Revenus estimés",
       "vsYesterday": "vs hier",
       "delivered": "{{count}} livrés",
       "missedRate": "{{rate}}% du total",
-      "recoveredCalls": "appels récupérés"
+      "recoveredCalls": "appels récupérés",
+      "activeLines": "Lignes actives",
+      "managing": "Gestion de {{count}} siège",
+      "managing_plural": "Gestion de {{count}} sièges",
+      "recoverableRevenue": "CA récupérable"
     },
     "charts": {
-      "callDistribution": "Répartition des Appels",
+      "callDistribution": "Distribution des appels",
       "totalCalls": "Total : {{count}} appels",
-      "answered": "Répondu : {{count}}",
-      "missed": "Manqué : {{count}}"
+      "answered": "Répondus : {{count}}",
+      "missed": "Manqués : {{count}}"
     },
     "calculator": {
-      "title": "Calculateur de Rentabilité",
-      "description": "Estime le revenu généré par la récupération des appels",
-      "averageTicket": "Ticket Moyen (€)",
-      "conversionRate": "Taux de Conversion (%)",
+      "title": "Calculateur de rentabilité",
+      "description": "Estimez les revenus générés par la récupération d'appels",
+      "averageTicket": "Panier moyen (€)",
+      "conversionRate": "Taux de conversion (%)",
       "missedCalls": "Appels manqués :",
       "recoveredCalls": "Appels récupérés ({{rate}}%) :",
-      "estimatedRevenue": "Revenu Estimé :",
+      "estimatedRevenue": "Revenus estimés :",
       "tip": "💡 Avec UNMI, vous récupérez automatiquement en moyenne 30% des appels manqués"
     },
     "recentCalls": {
-      "title": "Appels Récents",
+      "title": "Appels récents",
       "description": "Derniers appels reçus",
       "noCalls": "Aucun appel enregistré pour le moment",
-      "info": "Les appels apparaîtront ici lorsque vous configurerez vos numéros",
-      "configureLocations": "Configurer les Emplacements",
+      "info": "Les appels apparaîtront ici une fois vos numéros configurés",
+      "configureLocations": "Configurer les emplacements",
       "table": {
         "number": "Numéro",
-        "status": "Statut",
+        "status": "État",
         "duration": "Durée",
         "location": "Emplacement",
         "time": "Heure",
@@ -205,12 +212,15 @@
       }
     },
     "quickActions": {
-      "locations": "Emplacements",
-      "manageLocations": "Gérer les emplacements",
+      "locations": "Établissements",
+      "manageLocations": "Gérer les établissements",
       "templates": "Modèles",
       "manageTemplates": "Gérer les modèles",
-      "yourPlan": "Votre Plan",
+      "yourPlan": "Votre plan",
       "upgradePlan": "Améliorer le plan"
+    },
+    "table": {
+      "general": "Général"
     }
   },
   "profitability": {
@@ -226,24 +236,24 @@
       "margin": "Marge"
     },
     "calculator": {
-      "title": "Calculateur de Rentabilité",
+      "title": "Calculateur de rentabilité",
       "subtitle": "Ajustez les paramètres pour projeter votre ROI",
-      "avgTicket": "Ticket Moyen (€)",
+      "avgTicket": "Panier moyen (€)",
       "avgValue": "Valeur moyenne de chaque vente/réservation",
-      "conversionRate": "Taux de Conversion (%)",
+      "conversionRate": "Taux de conversion (%)",
       "conversionDesc": "% des appels manqués qui se convertissent en ventes",
-      "monthlyGrowth": "Croissance Mensuelle Prévue (%)",
+      "monthlyGrowth": "Croissance mensuelle prévue (%)",
       "growthDesc": "Projection de croissance pour le mois prochain",
       "missedCalls": "Appels manqués",
       "recovered": "Appels récupérés",
       "monthlyCost": "Coût mensuel UNMI",
       "expectedProfit": "Bénéfice attendu",
-      "recommendation": "Avec UNMI, les entreprises récupèrent en moyenne 30 à 40% des appels manqués, générant un ROI positif dès le premier mois.",
-      "exportPDF": "🚧 L’export PDF sera disponible prochainement."
+      "recommendation": "Avec UNMI, les entreprises récupèrent en moyenne 30-40% des appels manqués, générant un ROI positif dès le premier mois.",
+      "exportPDF": "🚧 L'exportation au format PDF sera disponible prochainement."
     },
     "trends": {
-      "title": "Tendance de Rentabilité",
-      "subtitle": "Évolution mensuelle des revenus vs. coûts",
+      "title": "Tendance de rentabilité",
+      "subtitle": "Évolution mensuelle des revenus vs coûts",
       "revenue": "Revenus",
       "costs": "Coûts",
       "profit": "Bénéfice"
@@ -254,17 +264,17 @@
       "beforeUNMI": "Avant UNMI",
       "withUNMI": "Avec UNMI",
       "improvement": "amélioration",
-      "recoveredCalls": "Appels Récupérés",
-      "responseTime": "Temps de Réponse",
-      "monthlyRevenue": "Revenus Mensuels"
+      "recoveredCalls": "Appels récupérés",
+      "responseTime": "Temps de réponse",
+      "monthlyRevenue": "Revenus mensuels"
     },
     "cta": {
       "title": "Vous souhaitez améliorer encore plus votre rentabilité ?",
       "subtitle": "Optimisez vos conversions avec des stratégies avancées",
-      "upgrade": "Mettre à niveau mon plan",
+      "upgrade": "Actualiser mon plan",
       "consult": "Demander une consultation gratuite",
       "benefits": [
-        "Personnalisez les modèles selon l’horaire des appels manqués",
+        "Personnalisez les modèles selon l'horaire de l'appel manqué",
         "Implémentez des chatbots IA pour des réponses 24/7",
         "Configurez des suivis automatisés pour les leads non convertis"
       ]
@@ -277,14 +287,14 @@
       "last7days": "7 derniers jours",
       "last30days": "30 derniers jours",
       "last90days": "90 derniers jours",
-      "allLocations": "Tous les sites",
-      "placeholder": "Filtrer par site"
+      "allLocations": "Tous les établissements",
+      "placeholder": "Filtrer par emplacement"
     },
     "metrics": {
-      "callsToday": "Appels Aujourd'hui",
-      "answered": "Répondu",
-      "missed": "Manqué",
-      "avgDuration": "Durée Moyenne",
+      "callsToday": "Appels aujourd'hui",
+      "answered": "Répondus",
+      "missed": "Manqués",
+      "avgDuration": "Durée moyenne",
       "ofTotal": "du total",
       "vsYesterday": "vs hier",
       "total": "Total",
@@ -293,39 +303,39 @@
     },
     "charts": {
       "trend": "Tendance des appels",
-      "evolution": "Évolution quotidienne sur les derniers",
+      "evolution": "Évolution quotidienne derniers",
       "days": "jours",
-      "distribution": "Répartition des appels"
+      "distribution": "Distribution des appels"
     },
     "performance": {
-      "title": "Performance par Site",
-      "subtitle": "Sites classés par appels manqués",
-      "noLocations": "Aucun site configuré",
-      "addLocations": "Ajoutez des sites pour voir les statistiques détaillées"
+      "title": "Performance par emplacement",
+      "subtitle": "Établissements classés par appels manqués",
+      "noLocations": "Aucun établissement configuré",
+      "addLocations": "Ajoutez des établissements pour voir les statistiques détaillées"
     },
     "history": {
-      "title": "Historique des Appels",
+      "title": "Historique des appels",
       "subtitle": "Derniers appels enregistrés",
       "number": "Numéro",
-      "status": "Statut",
+      "status": "État",
       "duration": "Durée",
-      "location": "Site",
+      "location": "Emplacement",
       "datetime": "Date/Heure",
       "noCalls": "Aucun appel enregistré",
       "noLocation": "N/D"
     },
     "actions": {
       "export": "Exporter",
-      "exportAlert": "🚧 L'exportation des données sera disponible prochainement."
+      "exportAlert": "🚧 L'exportation des données sera bientôt disponible."
     },
     "dateFormat": "dd/MM/yyyy HH:mm"
   },
-"templates": {
+  "templates": {
     "title": "Modèles",
-    "subtitle": "Créez et gérez des messages prédéfinis pour différentes situations",
-    "new": "Nouveau Modèle",
-    "create": "Créer un Modèle",
-    "edit": "Modifier le Modèle",
+    "subtitle": "Créez et gérez des messages prédéfinis pour diverses situations",
+    "new": "Nouveau modèle",
+    "create": "Créer un modèle",
+    "edit": "Modifier le modèle",
     "noTemplates": "Pas encore de modèles",
     "firstTemplate": "Créez votre premier modèle pour commencer à automatiser les réponses",
     "loading": "Chargement des modèles...",
@@ -333,7 +343,7 @@
     "allCategories": "Toutes les catégories",
     "allStatus": "Tous les statuts",
     "tabs": {
-      "basic": "Général",
+      "basic": "Basique",
       "header": "En-tête",
       "body": "Corps",
       "footer": "Pied de page & Boutons"
@@ -354,12 +364,12 @@
       "REJECTED": "Rejeté"
     },
     "form": {
-      "name": "Nom du Modèle *",
+      "name": "Nom du modèle *",
       "namePlaceholder": "ex: reponse_appel_manque",
-      "nameHelp": "Lettres minuscules, chiffres et traits de soulignement uniquement. Max 512 car.",
+      "nameHelp": "Uniquement minuscules, chiffres et underscores. Max 512 caractères",
       "category": "Catégorie *",
       "language": "Langue *",
-      "headerType": "Type d'En-tête",
+      "headerType": "Type d'en-tête",
       "headerTypes": {
         "NONE": "Sans en-tête",
         "TEXT": "Texte",
@@ -367,105 +377,50 @@
         "VIDEO": "Vidéo",
         "DOCUMENT": "Document PDF"
       },
-      "headerText": "Texte de l'En-tête",
+      "headerText": "Texte de l'en-tête",
       "headerTextPlaceholder": "Titre du message",
       "headerMediaUrl": "URL du fichier",
       "headerMediaUrlPlaceholder": "https://exemple.com/fichier.jpg",
-      "headerMediaUrlHelp": "Doit être une URL accessible publiquement",
-      "body": "Contenu du Message *",
-      "bodyPlaceholder": "Bonjour {{1}}, nous avons vu votre appel mais...",
+      "headerMediaUrlHelp": "Doit être une URL publique accessible",
+      "body": "Contenu du message *",
+      "bodyPlaceholder": "Bonjour {{1}}, nous avons vu votre appel mais nous n'avons pas pu répondre...",
       "bodyHelp": "caractères. Utilisez des variables comme {{1}}, {{2}}, {{3}}",
-      "tipTitle": "Astuce :",
+      "tipTitle": "Conseil:",
       "tipDesc": "Incluez un appel à l'action clair et un lien pour réserver ou contacter",
-      "footer": "Pied de page (facultatif)",
-      "footerPlaceholder": "Texte apparaissant en bas",
-      "buttons": "Boutons (max 3)",
+      "footer": "Pied de page (optionnel)",
+      "footerPlaceholder": "Texte qui apparaît à la fin",
+      "buttons": "Boutons (maximum 3)",
       "buttonTypes": {
-        "QUICK_REPLY": "Réponse Rapide",
+        "QUICK_REPLY": "Réponse rapide",
         "PHONE_NUMBER": "Appeler",
-        "URL": "Visiter le site web"
+        "URL": "Visiter le Web"
       },
       "buttonText": "Texte du bouton",
-      "addButton": "Ajouter un Bouton",
+      "addButton": "Ajouter un bouton",
       "preview": "Aperçu WhatsApp",
       "previewBody": "Votre message apparaîtra ici...",
       "previewButton": "Bouton",
       "cancel": "Annuler",
-      "saveChanges": "Enregistrer les Modifications"
+      "saveChanges": "Enregistrer les modifications"
     },
     "validation": {
-      "nameFormat": "Lettres minuscules, chiffres et traits de soulignement uniquement",
+      "nameFormat": "Uniquement minuscules, chiffres et underscores",
       "nameLength": "Maximum 512 caractères",
-      "bodyRequired": "Le contenu du message est requis",
+      "bodyRequired": "Le corps du message est obligatoire",
       "bodyLength": "Maximum 1024 caractères",
       "footerLength": "Maximum 60 caractères",
       "headerLength": "Maximum 60 caractères",
       "buttonsMax": "Maximum 3 boutons"
-    },
-    "types": {
-      "missedCall": "Appel Manqué",
-      "afterHours": "Hors Horaires",
-      "welcome": "Bienvenue",
-      "followUp": "Suivi",
-      "appointment": "Rendez-vous"
-    },
-    "channels": {
-      "sms": "SMS uniquement",
-      "whatsapp": "WhatsApp uniquement",
-      "both": "SMS & WhatsApp"
-    },
-    "actions": {
-      "copy": "Copier",
-      "copied": "Copié dans le presse-papier",
-      "delete": "Supprimer",
-      "confirmDelete": "Êtes-vous sûr ?",
-      "deleteWarning": "Cette action est irréversible. Le modèle sera supprimé définitivement.",
-      "send": "Envoyer maintenant",
-      "sending": "Envoi..."
-    },
-    "restrictedAccess": {
-      "title": "Accès Restreint",
-      "subtitle": "Cette fonctionnalité est uniquement disponible dans le plan Modèles",
-      "currentPlan": "Votre plan actuel n'inclut pas l'accès à la gestion des modèles.",
-      "upgrade": "Passez au plan Modèles pour créer des modèles WhatsApp et SMS personnalisés.",
-      "viewPlans": "Voir les Plans Disponibles"
-    },
-    "dialogs": {
-      "sendTemplateTitle": "Envoyer le Modèle",
-      "sendTemplateDescription": "Envoyer \"{templateName}\" à un numéro WhatsApp",
-      "recipientNumber": "Numéro du destinataire",
-      "recipientNumberHint": "Incluez l'indicatif pays (ex: +33 pour la France)",
-      "messagePreview": "Aperçu du message"
-    },
-    "toast": {
-      "templateCreatedTitle": "Modèle créé",
-      "templateCreatedDescription": "Le modèle a été créé avec succès",
-      "templateUpdatedTitle": "Modèle mis à jour",
-      "templateUpdatedDescription": "Les modifications ont été enregistrées avec succès",
-      "templateDeletedTitle": "Modèle supprimé",
-      "templateDeletedDescription": "Le modèle a été supprimé avec succès",
-      "templateSentTitle": "Modèle envoyé",
-      "templateSentDescription": "Message envoyé avec succès à {recipientNumber}",
-      "errorTitle": "Erreur",
-      "errorCreate": "Impossible de créer le modèle",
-      "errorUpdate": "Impossible de mettre à jour le modèle",
-      "errorDelete": "Impossible de supprimer le modèle",
-      "errorSend": "Impossible d'envoyer le modèle",
-      "copied": "Contenu du modèle copié dans le presse-papier"
-    },
-    "buttons": {
-      "newTemplate": "Nouveau Modèle",
-      "createFirstTemplate": "Créer le Premier Modèle"
     }
   },
-"chatbots": {
+  "chatbots": {
     "title": "Chatbots",
     "subtitle": "Configurez des chatbots IA pour des réponses automatiques 24/7",
     "howItWorks": {
       "title": "Comment ça marche ?",
-      "desc": "Sélectionnez un fournisseur de chatbot, configurez la clé API, et UNMI routera automatiquement les conversations. Si le chatbot échoue, le système de Modèles sera utilisé comme solution de secours."
+      "desc": "Sélectionnez un fournisseur de chatbot, configurez la clé API, et UNMI redirigera automatiquement les conversations. Si le chatbot échoue, le système de modèles sera utilisé en secours."
     },
-    "chooseProvider": "Choisissez Votre Fournisseur de Chatbot",
+    "chooseProvider": "Choisissez votre fournisseur de chatbot",
     "difficulty": {
       "easy": "Facile",
       "medium": "Moyen",
@@ -474,124 +429,154 @@
     "configure": "Configurer",
     "price": "Prix",
     "preview": {
-      "title": "Aperçu du Chatbot",
-      "subtitle": "Voici comment votre chatbot apparaîtra intégré dans les conversations",
-      "placeholder": "L'interface de votre chatbot sera affichée ici une fois configurée",
-      "test": "Tester le Chatbot (Démo)",
-      "stop": "Arrêter le Test"
+      "title": "Aperçu du chatbot",
+      "subtitle": "Voici comment votre chatbot intégré apparaîtra dans les conversations",
+      "placeholder": "L'interface de votre chatbot s'affichera ici une fois configurée",
+      "test": "Tester le chatbot (Démo)",
+      "stop": "Arrêter le test"
     },
     "fallback": {
-      "title": "Système de Secours (Fallback)",
-      "subtitle": "Si le chatbot échoue ou est indisponible, ce système sera utilisé",
-      "conditions": "UNMI utilisera automatiquement vos Modèles comme solution de secours si :",
+      "title": "Système de secours (Fallback)",
+      "subtitle": "Si le chatbot échoue ou n'est pas disponible, ce système sera utilisé",
+      "conditions": "UNMI utilisera automatiquement vos modèles en secours si:",
       "condition1": "Le chatbot ne répond pas dans les 5 secondes",
       "condition2": "Il y a une erreur d'API",
       "condition3": "La limite de requêtes est dépassée",
-      "configureTemplates": "Configurer les Modèles de Secours"
+      "configureTemplates": "Configurer les modèles de secours"
     },
     "config": {
       "title": "Configurer",
       "subtitle": "Connectez votre compte avec UNMI",
       "apiKey": "Clé API",
       "apiKeyPlaceholder": "sk-xxxxxxxxxxxxxxxxxxxxxxxx",
-      "apiKeyHelp": "Obtenez votre clé API depuis le panneau. Voir la documentation →",
-      "webhook": "URL Webhook (Optionnel)",
+      "apiKeyHelp": "Obtenez votre clé API dans le panneau. Voir documentation →",
+      "webhook": "URL du Webhook (Optionnel)",
       "webhookPlaceholder": "https://votre-chatbot.com/webhook",
       "webhookHelp": "URL où UNMI enverra les conversations pour que votre chatbot réponde",
-      "fallbackMessage": "Message de Secours",
-      "fallbackPlaceholder": "Désolé, je rencontre des difficultés techniques...",
-      "fallbackHelp": "Message qui sera envoyé si le chatbot échoue complètement",
-      "note": "En activant le chatbot, les Modèles automatiques seront mis en pause. Ils ne seront utilisés que comme solution de secours en cas d'erreur.",
-      "save": "Enregistrer la Configuration"
+      "fallbackMessage": "Message de secours",
+      "fallbackPlaceholder": "Désolé, je rencontre des problèmes techniques...",
+      "fallbackHelp": "Message envoyé si le chatbot échoue complètement",
+      "note": "Lors de l'activation du chatbot, les modèles automatiques seront mis en pause. Ils ne seront utilisés qu'en secours.",
+      "save": "Enregistrer la configuration"
     },
     "restrictedAccess": {
-      "title": "Accès Restreint",
-      "subtitle": "Cette fonctionnalité est uniquement disponible dans le plan UNMI Pro",
+      "title": "Accès restreint",
+      "subtitle": "Cette fonction est disponible uniquement dans le plan UNMI Pro",
       "currentPlan": "Votre plan actuel ({{plan}}) n'inclut pas l'accès aux chatbots IA.",
-      "upgrade": "Passez à UNMI Pro pour déployer des assistants conversationnels IA 24/7.",
-      "feature1": "Réponses IA en temps réel",
+      "upgrade": "Passez à UNMI Pro pour implémenter des assistants conversationnels 24/7 avec IA.",
+      "feature1": "Réponses avec IA en temps réel",
       "feature2": "Disponibilité 24/7 sans intervention humaine",
-      "feature3": "Apprentissage continu à partir des conversations"
+      "feature3": "Apprentissage continu des conversations"
     },
     "providers": {
       "voiceflow": {
         "name": "Voiceflow",
-        "description": "Constructeur visuel de chatbots IA, sans code",
+        "description": "Constructeur visuel de chatbots avec IA, sans code nécessaire",
         "pricing": "À partir de 50$/mois",
-        "features": ["Constructeur glisser-déposer", "GPT-4 intégré", "Support multi-canal", "Analyses en temps réel"]
+        "features": [
+          "Constructeur drag & drop",
+          "GPT-4 intégré",
+          "Support multi-canal",
+          "Analyses en temps réel"
+        ]
       },
       "botpress": {
         "name": "Botpress",
-        "description": "Plateforme open-source pour les chatbots d'entreprise",
-        "pricing": "Gratuit (auto-hébergé)",
-        "features": ["Open source", "NLU avancé", "Intégration API complète", "Hébergement sur site"]
+        "description": "Plateforme open-source pour chatbots d'entreprise",
+        "pricing": "Gratuit (self-hosted)",
+        "features": [
+          "Open source",
+          "NLU avancé",
+          "Intégration complète d'API",
+          "Hébergement on-premise"
+        ]
       },
       "tidio": {
         "name": "Tidio",
-        "description": "Chat en direct + chatbot pour l'e-commerce et le support client",
+        "description": "Chat en direct + chatbot pour l'e-commerce et le service client",
         "pricing": "À partir de 29€/mois",
-        "features": ["Chat en direct", "Chatbot visuel", "Intégrations e-commerce", "Modèles prédéfinis"]
+        "features": [
+          "Chat en direct",
+          "Chatbot visuel",
+          "Intégrations e-commerce",
+          "Modèles prédéfinis"
+        ]
       },
       "dialogflow": {
         "name": "Dialogflow (Google)",
         "description": "NLP de Google pour des conversations naturelles",
         "pricing": "Paiement à l'usage",
-        "features": ["NLP de Google", "Support de plus de 30 langues", "Intégration Google Cloud", "Machine Learning"]
+        "features": [
+          "NLP de Google",
+          "Support 30+ langues",
+          "Intégration Google Cloud",
+          "Apprentissage automatique"
+        ]
       },
       "landbot": {
         "name": "Landbot",
         "description": "Chatbots conversationnels pour landing pages et WhatsApp",
         "pricing": "À partir de 40$/mois",
-        "features": ["API WhatsApp Business", "Créateur de landing page", "Plus de 100 intégrations", "Modèles prêts à l'emploi"]
+        "features": [
+          "API WhatsApp Business",
+          "Générateur de landing page",
+          "Plus de 100 intégrations",
+          "Modèles prêts à l'emploi"
+        ]
       },
       "custom": {
-        "name": "API Personnalisée",
+        "name": "API personnalisée",
         "description": "Connectez votre propre chatbot via webhook",
-        "pricing": "Selon l'implémentation",
-        "features": ["Flexibilité totale", "Votre propre infrastructure", "Contrôle complet", "Sans limites"]
+        "pricing": "Selon votre implémentation",
+        "features": [
+          "Flexibilité totale",
+          "Votre propre infrastructure",
+          "Contrôle complet",
+          "Sans limitations"
+        ]
       }
     }
   },
   "locations": {
-    "title": "Emplacements",
-    "subtitle": "Gérez les emplacements de votre entreprise",
-    "new": "Nouvel emplacement",
-    "edit": "Modifier l'emplacement",
-    "create": "Créer un nouvel emplacement",
-    "createLocation": "Créer l'emplacement",
+    "title": "Établissements",
+    "subtitle": "Gérez les établissements de votre entreprise",
+    "new": "Nouvel établissement",
+    "edit": "Modifier l'établissement",
+    "create": "Créer un nouvel établissement",
+    "createLocation": "Créer l'établissement",
     "cancel": "Annuler",
     "saveChanges": "Enregistrer les modifications",
-    "createFirstLocation": "Créer le premier emplacement",
+    "createFirstLocation": "Créer le premier établissement",
     "form": {
-      "name": "Nom de l'emplacement",
-      "namePlaceholder": "Ex: Boutique Centre-ville",
-      "nameHelp": "Un nom descriptif pour identifier l'emplacement",
+      "name": "Nom de l'établissement",
+      "namePlaceholder": "Ex: Boutique Centre",
+      "nameHelp": "Un nom descriptif pour identifier l'établissement",
       "address": "Adresse",
-      "addressPlaceholder": "123 rue Principale, Madrid",
+      "addressPlaceholder": "Rue Principale 123, Paris",
       "phone": "Téléphone",
-      "phonePlaceholder": "+34 600 123 456",
+      "phonePlaceholder": "+33 600 123 456",
       "phoneHelp": "Optionnel. Pour les appels et messages",
       "timezone": "Fuseau horaire",
-      "timezoneHelp": "Utilisé pour planifier les messages et horaires",
+      "timezoneHelp": "Utilisé pour programmer les messages et horaires",
       "planType": "Type de plan",
-      "planTypeHelp": "Choisissez le plan à utiliser pour cet emplacement",
+      "planTypeHelp": "Choisissez le plan à utiliser pour cet établissement",
       "creditsAvailable": "crédits disponibles"
     },
     "dialog": {
-      "editDesc": "Modifiez les détails de l'emplacement sélectionné",
-      "createDesc": "Ajoutez un nouvel emplacement pour gérer les appels et messages"
+      "editDesc": "Modifiez les données de l'établissement sélectionné",
+      "createDesc": "Ajoutez un nouvel établissement pour gérer les appels et messages"
     },
-    "noLocations": "Aucun emplacement pour le moment",
-    "firstLocation": "Créez votre premier emplacement pour commencer à recevoir et gérer les appels",
+    "noLocations": "Pas encore d'établissements",
+    "firstLocation": "Créez votre premier établissement pour commencer à gérer les appels",
     "details": {
       "main": "Principal",
-      "noAddress": "Pas d'adresse",
-      "noNumber": "Pas de numéro",
+      "noAddress": "Sans adresse",
+      "noNumber": "Sans numéro",
       "configure": "Configurer"
     },
     "nextStep": {
       "title": "Étape suivante",
-      "desc": "Vous pouvez maintenant configurer les numéros de téléphone pour chaque emplacement et commencer à recevoir des appels. Les modèles et règles de routage peuvent être attribués par emplacement."
+      "desc": "Vous pouvez maintenant configurer les numéros de téléphone pour chaque établissement et commencer à recevoir des appels."
     },
     "validation": {
       "nameRequired": "Le nom est requis",
@@ -599,11 +584,11 @@
     },
     "toast": {
       "created": {
-        "title": "Emplacement créé",
-        "description": "L'emplacement a été créé avec succès"
+        "title": "Établissement créé",
+        "description": "L'établissement a été créé avec succès"
       },
       "updated": {
-        "title": "Emplacement mis à jour",
+        "title": "Établissement mis à jour",
         "description": "Modifications enregistrées avec succès"
       },
       "phoneCreated": {
@@ -612,90 +597,68 @@
       },
       "error": {
         "title": "Erreur",
-        "description": "Une erreur s'est produite"
+        "description": "Une erreur est survenue"
       }
     }
   },
-"plan": {
-    "header": {
-      "title": "Gérer votre abonnement",
-      "subtitle": "Choisissez le plan le mieux adapté à votre entreprise."
-    },
-    "small": {
-      "title": "Petite Entreprise",
-      "features": {
-        "locations": "1 Emplacement",
-        "departments": "1 Département",
-        "messages": "150 Messages inclus"
-      }
-    },
-    "pro": {
-      "title": "UNMI Pro",
-      "badge": "RECOMMANDÉ",
-      "features": {
-        "locations": "Multi-sites",
-        "departments": "Multi-départements",
-        "messages": "360 Messages inclus"
-      }
-    },
+  "plan": {
+    "header": { "title": "Mon plan", "subtitle": "Gérez votre abonnement et explorez les options d'amélioration" },
+    "small": { "title": "Petite entreprise", "feature1": "1 Établissement", "feature2": "Webhooks voix" },
+    "pro": { "title": "UNMI Pro", "feature1": "Multi-site évolutif", "feature2": "Chatbots IA" },
+    "premium": { "title": "UNMI Premium", "feature1": "Support 24/7", "feature2": "API haute vitesse" },
     "config": {
-      "locationsLabel": "Nombre d'emplacements (+30€/u)",
-      "departmentsLabel": "Nombre de départements (+15€/u)",
-      "sedes": "Sites",
-      "depts": "Dépts"
+      "locationsLabel": "Sites / Établissements (+30€/unité)",
+      "departmentsLabel": "Départements (+15€/unité)",
+      "sedes": "sièges",
+      "depts": "depts"
     },
     "summary": {
-      "title": "Résumé du changement",
-      "current": "Plan actuel",
-      "none": "Aucun",
-      "arrow": "->",
-      "total": "Total mensuel estimé",
+      "title": "Résumé de la mise à jour",
+      "keep": "Conserver",
+      "change": "Passer à",
+      "total": "(TVA incl.)",
       "confirm": "Confirmer le changement",
       "processing": "Traitement..."
     },
-    "perMonth": "/mois",
-    "base": "base",
-    "toast": {
-      "success": "Plan mis à jour avec succès (Simulation)",
-      "error": "Erreur lors de la mise à jour du plan"
-    }
+    "perMonth": "mois",
+    "message": "message"
   },
   "header": {
-    "selectLanguage": "Sélectionner la langue",
+    "selectLanguage": "Choisir la langue",
     "spanish": "Español",
     "english": "English",
     "french": "Français"
   },
   "notifications": {
     "success": {
-      "planUpdated": "Plan mis à jour!",
+      "planUpdated": "Plan mis à jour !",
       "planChanged": "Votre plan a été modifié avec succès",
       "templateCreated": "Modèle créé",
       "templateCreatedDesc": "Le modèle a été créé avec succès",
       "templateUpdated": "Modèle mis à jour",
-      "templateUpdatedDesc": "Les modifications ont été enregistrées avec succès",
+      "templateUpdatedDesc": "Les modifications ont été enregistrées",
       "templateDeleted": "Modèle supprimé",
       "templateDeletedDesc": "Le modèle a été supprimé avec succès",
-      "locationCreated": "Emplacement créé",
-      "locationCreatedDesc": "L'emplacement a été créé avec succès",
+      "locationCreated": "Établissement créé",
+      "locationCreatedDesc": "L'établissement a été créé avec succès",
       "chatbotConfigured": "Chatbot configuré",
       "chatbotConfiguredDesc": "a été configuré avec succès"
     },
     "error": {
-      "generic": "Une erreur s'est produite",
+      "generic": "Une erreur est survenue",
       "tryAgain": "Veuillez réessayer",
-      "planChange": "Impossible de changer de plan. Réessayez.",
+      "planChange": "Impossible de modifier le plan. Réessayez.",
       "templateCreate": "Impossible de créer le modèle",
       "templateUpdate": "Impossible de mettre à jour le modèle",
       "templateDelete": "Impossible de supprimer le modèle",
-      "locationCreate": "Impossible de créer l'emplacement"
+      "locationCreate": "Impossible de créer l'établissement"
     }
   },
   "errors": {
     "pageNotFound": "Page non trouvée",
-    "backToDashboard": "Retour au Tableau de bord",
+    "backToDashboard": "Retour au tableau de bord",
     "somethingWrong": "Quelque chose s'est mal passé",
-    "tryRefresh": "Essayez de rafraîchir la page"
+    "tryRefresh": "Essayez d'actualiser la page"
   },
   "footer": {
     "text": "Transformez la communication de votre entreprise avec notre plateforme tout-en-un.",
