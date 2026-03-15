@@ -7,6 +7,7 @@ import { supabase } from '../config/database'; // Asegúrate de que exportas 'su
 import { supabaseService } from '../services/SupabaseService';
 import { stripeService } from '../services/StripeService';
 import { asyncHandler, ValidationError } from '../middleware/errorHandler';
+import { flowService } from '@/services/FlowService';
 import crypto from 'crypto'; 
 
 const router = Router();
@@ -316,16 +317,27 @@ router.post(
 // ==================
 
 async function handleCallInitiated(event: any) {
-  const { call_control_id, direction, from, to } = event.payload;
-  console.log('\n======================================================');
-  console.log(`🚨 ¡LLAMADA ENTRANTE DETECTADA DESDE TELNYX! 🚨`);
-  console.log(`📞 Dirección: ${direction}`);
-  console.log(`👤 De: ${from}`);
-  console.log(`🎯 A: ${to}`);
-  console.log(`🔑 Call ID: ${call_control_id}`);
-  console.log('======================================================\n');
+  const { from, to } = event.payload;
+
+  const { data: phoneNumber, error } = await supabase
+    .from('phone_numbers')
+    .select('id, user_id, location_id')
+    .eq('phone_number', to) 
+    .single();
+
+  if (error || !phoneNumber) {
+    console.error('❌ Número de Telnyx no reconocido en nuestra DB:', to);
+    return;
+  }
+
+  console.log(`🚀 Disparando automatización para ${from}...`);
   
-  // Aquí podríamos registrar la llamada en la base de datos
+  await flowService.handleMissedCallWithWhatsApp({
+    callerNumber: from,             
+    phoneNumberId: phoneNumber.id,   
+    locationId: phoneNumber.location_id,
+    userId: phoneNumber.user_id
+  });
 }
 
 async function handleCallAnswered(event: any) {
