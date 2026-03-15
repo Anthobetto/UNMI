@@ -38,6 +38,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Link } from 'wouter';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 import { LanguageSelector } from '@/components/LanguageSelector';
+import { usePlanStats } from '@/hooks/usePlans';
+
 
 const COLORS = {
   answered: '#10b981',
@@ -136,6 +138,15 @@ export default function Dashboard() {
     },
     enabled: !!user,
   });
+
+  const phoneCount = locations.length;
+  const messagesUsedToday = callStats?.todayCallsCount ?? 0;
+
+  const { data: stats } = usePlanStats(
+    user?.planType || 'small',
+    messagesUsedToday,
+    phoneCount
+  );
 
   // Calculations
   const todayCalls = callStats?.todayCallsCount ?? 0;
@@ -457,6 +468,25 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <div className="grid gap-4 md:grid-cols-3">
+          {/* Margin */}
+          <Card className="border-blue-100 bg-blue-50/30">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Consumo del Plan</CardTitle>
+              <TrendingUp className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{messagesUsedToday} / {stats?.messagesPerDay || 5} </div>
+              <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all"
+                  style={{ width: `${Math.min(stats?.usagePercentage || 0, 100)}%` }}
+                />
+              </div>
+              <p className="text-[10px] text-gray-500 mt-2 uppercase font-bold tracking-wider">
+                Límite diario de mensajes
+              </p>
+            </CardContent>
+          </Card>
           {/* Locations */}
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <Link href="/locations" className="block">

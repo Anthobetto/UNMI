@@ -548,11 +548,10 @@ export class SupabaseService implements ISupabaseService {
   // ==================
   // PHONE NUMBERS
   // ==================
-  async getPhoneNumbers(userId: string): Promise<PhoneNumber[]> {
-    const { data, error } = await supabase.from('phone_numbers').select('*').eq('user_id', userId);
-    if (error) return [];
-    return data.map(this.mapPhoneNumberFromDb);
-  }
+async getPhoneNumbers(userId: string): Promise<any[]> {
+  const { data, error } = await supabase.from('phone_numbers').select(`*,groups (name)`).eq('user_id', userId);
+  if (error) 
+    return [];return data; }
 
   async getPhoneNumberById(phoneNumberId: number): Promise<PhoneNumber | null> {
     const { data, error } = await supabase.from('phone_numbers').select('*').eq('id', phoneNumberId).single();

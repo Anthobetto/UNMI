@@ -7,34 +7,25 @@ export interface PricingTier {
   includedMessages: number; 
   maxMessages: number;  
   messageOverageRate: number; 
-  
-  // Límites y Costos de Infraestructura
   includedLocations: number;
   extraLocationPrice: number;
   maxLocations: number;
-  
   includedDepartments: number;
   extraDepartmentPrice: number;
   maxDepartments: number;
-
   features: string[];
   popular?: boolean;
 }
 
 export interface PricingCalculation {
   tier: PricingTier;
-  // Entradas
   dailyMessages: number;
   locations: number;
   departments: number;
-  
-  // Desglose de Costos
   basePrice: number;
   locationsCost: number;
   departmentsCost: number;
   messagesCost: number;
-  
-  // Totales
   totalMonthly: number;
   totalYearly: number; 
 }
@@ -47,22 +38,13 @@ export const PRICING_TIERS: PricingTier[] = [
     includedMessages: 5,   
     maxMessages: 5,       
     messageOverageRate: 0, 
-    
     includedLocations: 1,
-    extraLocationPrice: 0, // No permite extras
+    extraLocationPrice: 0,
     maxLocations: 1,
-    
     includedDepartments: 1,
-    extraDepartmentPrice: 0, // No permite extras
+    extraDepartmentPrice: 0,
     maxDepartments: 1,
-
-    features: [
-      '150 mensajes/mes (5 diarios)',
-      '1 Localización',
-      '1 Departamento',
-      'Soporte por Email',
-      'Analítica Básica',
-    ],
+    features: ['150 mensajes/mes (5 diarios)', '1 Localización', '1 Departamento', 'Soporte por Email', 'Analítica Básica'],
   },
   {
     id: 'pro',
@@ -71,32 +53,38 @@ export const PRICING_TIERS: PricingTier[] = [
     includedMessages: 12, 
     maxMessages: 100,      
     messageOverageRate: 0.15, 
-
     includedLocations: 1,
     extraLocationPrice: 30,
     maxLocations: 20,
-    
     includedDepartments: 1,
     extraDepartmentPrice: 15,
     maxDepartments: 10,
-
-    features: [
-      '360 mensajes/mes base (12 diarios)',
-      'Multi-localización',
-      'Multi-departamento',
-      'Enrutamiento Inteligente',
-      'Soporte Prioritario',
-      'Dashboard Avanzado',
-    ],
+    features: ['360 mensajes/mes base (12 diarios)', 'Multi-localización', 'Multi-departamento', 'Enrutamiento Inteligente', 'Soporte Prioritario', 'Dashboard Avanzado'],
     popular: true,
   }
 ];
 
 export class PricingService {
+
+  public calculatePlan(tierId: PlanType, dailyMessages: number, phoneCount: number) {
+    const basePriceMsg = 12;
+    const discountFactor = 1 - Math.log10(dailyMessages || 1) / 10;
+    const messagePrice = Math.round((dailyMessages || 5) * basePriceMsg * discountFactor);
+
+    const pricePerPhone = 5;
+    const phonePrice = (phoneCount || 1) * pricePerPhone;
+
+    const totalMonthly = messagePrice + phonePrice;
+
+    return {
+      messagesPerDay: dailyMessages,
+      messagePrice,
+      phonePrice,
+      totalMonthly,
+      totalYearly: Math.round(totalMonthly * 12 * 0.8) // 20% ahorro anual
+    };
+  }
   
-  /**
-   * Calcula el precio mensual total basado en la configuración del usuario.
-   */
   calculateMonthly(
     tierId: PlanType,
     dailyMessages: number,
@@ -106,31 +94,20 @@ export class PricingService {
     const tier = PRICING_TIERS.find(t => t.id === tierId);
     if (!tier) throw new Error(`Invalid tier ID: ${tierId}`);
 
-    // Asegurar límites (Clamping)
     const validLocations = Math.max(1, Math.min(locations, tier.maxLocations));
     const validDepartments = Math.max(1, Math.min(departments, tier.maxDepartments));
     const validMessages = Math.max(tier.includedMessages, Math.min(dailyMessages, tier.maxMessages));
 
-    // 1. Costo Base
     const basePrice = tier.basePrice;
-
-    // 2. Costo de Localizaciones Extra
-    // (Total locales - incluidos) * precio extra. Si es negativo, es 0.
     const extraLocs = Math.max(0, validLocations - tier.includedLocations);
     const locationsCost = extraLocs * tier.extraLocationPrice;
-
-    // 3. Costo de Departamentos Extra
     const extraDepts = Math.max(0, validDepartments - tier.includedDepartments);
     const departmentsCost = extraDepts * tier.extraDepartmentPrice;
-
-    // 4. Costo de Mensajes Extra (Upsell dinámico)
-    // Si el usuario selecciona más mensajes de los incluidos en el base
     const extraMsgs = Math.max(0, validMessages - tier.includedMessages);
-    // Costo mensual de los mensajes extra (ej: 5 extras * 30 días * 0.15€)
     const messagesCost = extraMsgs * 30 * tier.messageOverageRate;
 
     const totalMonthly = basePrice + locationsCost + departmentsCost + messagesCost;
-    const totalYearly = totalMonthly * 12 * 0.9; // 10% descuento anual
+    const totalYearly = totalMonthly * 12 * 0.9;
 
     return {
       tier,
@@ -146,20 +123,8 @@ export class PricingService {
     };
   }
 
-  // Alias para compatibilidad con código existente si lo hubiera
   calculatePrice(tierId: PlanType, dailyMessages: number, locations: number, departments: number) {
     return this.calculateMonthly(tierId, dailyMessages, locations, departments);
-  }
-
-  /**
-   * Genera una comparación de todos los planes para una configuración dada
-   */
-  compareAllTiers(dailyMessages: number, locations: number, departments: number): PricingCalculation[] {
-    return PRICING_TIERS.map(tier => {
-      // Si el plan no soporta la cantidad solicitada (ej: Small con 2 locales), 
-      // forzamos el cálculo a sus límites máximos para mostrar la diferencia
-      return this.calculateMonthly(tier.id, dailyMessages, locations, departments);
-    });
   }
 
   getStripePriceId(plan: PlanType): string {

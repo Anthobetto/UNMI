@@ -4,6 +4,7 @@
 import { useQuery, useMutation, UseQueryResult, UseMutationResult } from '@tanstack/react-query';
 import { stripeMockService } from '@/services/StripeMockService';
 import type { Plan, PlanSelectionForm, StripeSession } from '@/types';
+import { pricingService, PlanType } from '@/services/PricingService';
 
 // Hook para obtener todos los planes
 export function usePlans(planType?: 'small' | 'pro'): UseQueryResult<Plan[]> {
@@ -151,36 +152,34 @@ export function useRecommendedPlan(
   });
 }
 
-// Hook para obtener estadísticas del plan actual
-export function usePlanStats(planId: string, messagesUsed: number) {
-  return useQuery({
-    queryKey: ['plan-stats', planId, messagesUsed],
-    queryFn: () => {
-      const plan = stripeMockService.getPlanById(planId);
-      if (!plan) return null;
+// Path: hooks/usePlans.ts
 
-      const usagePercentage = (messagesUsed / plan.messageLimit) * 100;
-      const remaining = plan.messageLimit - messagesUsed;
-      const overLimit = messagesUsed > plan.messageLimit;
-      const extraMessages = overLimit ? messagesUsed - plan.messageLimit : 0;
-      const extraCost = stripeMockService.calculateExtraMessageCost(planId, extraMessages);
+export function usePlanStats(planId: string, messagesUsed: number, phoneCount: number) {
+  return useQuery({
+    queryKey: ['plan-stats', planId, messagesUsed, phoneCount],
+    queryFn: () => {
+      const calculation = pricingService.calculatePlan(
+        planId as PlanType, 
+        messagesUsed || 5, 
+        phoneCount || 1
+      );
 
       return {
-        plan,
+        planId,
         messagesUsed,
-        remaining,
-        usagePercentage,
-        overLimit,
-        extraMessages,
-        extraCost,
-        totalCost: plan.price + extraCost,
+        phoneCount,
+        // ✅ AÑADIMOS ESTO: Es el límite diario que viene del servicio
+        messagesPerDay: calculation.messagesPerDay, 
+        usagePercentage: (messagesUsed / calculation.messagesPerDay) * 100,
+        totalCost: calculation.totalMonthly,
+        messageCost: calculation.messagePrice,
+        phoneCost: calculation.phonePrice,
+        remainingMessages: Math.max(0, calculation.messagesPerDay - messagesUsed)
       };
     },
-    staleTime: 1 * 60 * 1000, // 1 minute
     enabled: !!planId,
   });
 }
-
 
 
 
