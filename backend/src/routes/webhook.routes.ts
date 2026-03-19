@@ -3,11 +3,12 @@
 
 import { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
-import { supabase } from '../config/database'; // Asegúrate de que exportas 'supabase' (cliente admin) aquí
+import { supabase } from '../config/database'; 
 import { supabaseService } from '../services/SupabaseService';
 import { stripeService } from '../services/StripeService';
 import { asyncHandler, ValidationError } from '../middleware/errorHandler';
 import { flowService } from '@/services/FlowService';
+import { telnyxService } from '../services/TelnyxService'; // Importamos el servicio actualizado
 import crypto from 'crypto'; 
 
 const router = Router();
@@ -22,7 +23,6 @@ router.post('/stripe', async (req: Request, res: Response) => {
     console.error('❌ Missing stripe-signature header');
     return res.status(400).send('Missing Stripe signature');
   }
-
 
   const payload = req.body;
 
@@ -67,7 +67,6 @@ router.post('/stripe', async (req: Request, res: Response) => {
         console.log(`ℹ️ Evento Stripe no manejado: ${event.type}`);
     }
 
-
   } catch (error) {
     console.error(`💥 Error procesando webhook (${event.type}):`, error);
     return res.status(500).json({
@@ -86,7 +85,7 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
   const metadata = session.metadata || {};
   
   const email = session.customer_details?.email || session.customer_email;
-  const authUserId = metadata.userId; // This might be the auth_id OR the public.users.id
+  const authUserId = metadata.userId;
 
   console.log(`💰 Procesando Checkout para: ${email} (ID recibido: ${authUserId})`);
 
@@ -142,7 +141,7 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
     const { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert({
-        auth_id: authUserId, // Assuming it's an auth_id if we have to create them
+        auth_id: authUserId,
         email: email,
         username: email ? email.split('@')[0] : 'Usuario', 
         company_name: metadata.companyName || 'Sin Empresa',
@@ -201,14 +200,12 @@ async function handleSubscriptionCreated(event: Stripe.Event) {
 async function handleSubscriptionUpdated(event: Stripe.Event) {
   const subscription = event.data.object as Stripe.Subscription;
   console.log('📝 Suscripción actualizada:', subscription.id);
-  const status = subscription.status;
 }
 
 async function handleSubscriptionDeleted(event: Stripe.Event) {
   const subscription = event.data.object as Stripe.Subscription;
   console.log('❌ Suscripción cancelada:', subscription.id);
 }
-
 
 // =================================================================
 // WHATSAPP WEBHOOK
@@ -239,7 +236,6 @@ router.post(
   '/whatsapp',
   asyncHandler(async (req: Request, res: Response) => {
     const body = req.body;
-    // console.log('📬 WA Event received'); // Comentado para no saturar logs
 
     if (!body?.entry || !Array.isArray(body.entry)) {
       throw new ValidationError('Invalid webhook payload');
@@ -317,8 +313,11 @@ router.post(
 // ==================
 
 async function handleCallInitiated(event: any) {
-  const { from, to } = event.payload;
+  const { call_control_id, direction, from, to } = event.payload;
 
+  console.log(`🚀 Llamada iniciada (${direction}) - De: ${from} Para: ${to}`);
+
+  // 1. Buscamos el número en la base de datos de todos modos
   const { data: phoneNumber, error } = await supabase
     .from('phone_numbers')
     .select('id, user_id, location_id')
@@ -327,25 +326,43 @@ async function handleCallInitiated(event: any) {
 
   if (error || !phoneNumber) {
     console.error('❌ Número de Telnyx no reconocido en nuestra DB:', to);
+    // Podrías rechazar la llamada aquí si quisieras: await telnyxService.hangupCall(call_control_id);
     return;
   }
 
-  console.log(`🚀 Disparando automatización para ${from}...`);
-  
-  await flowService.handleMissedCallWithWhatsApp({
-    callerNumber: from,             
-    phoneNumberId: phoneNumber.id,   
-    locationId: phoneNumber.location_id,
-    userId: phoneNumber.user_id
-  });
+  // 2. Si es una llamada ENTRANTE, la contestamos
+  if (direction === 'incoming') {
+    try {
+      await telnyxService.answerCall(call_control_id);
+      
+      // Opcional: También disparamos el flujo de WhatsApp (por si cuelgan, ya queda registrado)
+      await flowService.handleMissedCallWithWhatsApp({
+        callerNumber: from,             
+        phoneNumberId: phoneNumber.id,   
+        locationId: phoneNumber.location_id,
+        userId: phoneNumber.user_id
+      });
+    } catch (error) {
+      console.error('❌ Error al intentar contestar la llamada:', error);
+    }
+  }
 }
 
 async function handleCallAnswered(event: any) {
-  const { call_control_id, connection_id } = event.payload;
+  const { call_control_id } = event.payload;
   console.log(`✅ Call Answered: ${call_control_id}`);
   
-  // Ejemplo: Responder con un saludo usando TTS (Text-to-Speech)
-  // Esto requiere llamar a la API de Telnyx usando el call_control_id
+  // Una vez contestada, usamos TTS para saludar
+  try {
+    await telnyxService.speak(
+      call_control_id,
+      "Hola, bienvenido a UNMI. Hemos registrado su llamada y le contactaremos en breve vía WhatsApp.",
+      "es-ES",
+      "female"
+    );
+  } catch (error) {
+    console.error('❌ Error al intentar hablar en la llamada:', error);
+  }
 }
 
 async function handleCallHangup(event: any) {
@@ -356,8 +373,6 @@ async function handleCallHangup(event: any) {
 async function handleDtmfReceived(event: any) {
   const { call_control_id, digit } = event.payload;
   console.log(`⌨️ DTMF Received: ${digit} on call ${call_control_id}`);
-  
-  // Aquí manejaríamos la lógica del IVR (ej: "Pulse 1 para ventas...")
 }
 
 // ==================
@@ -431,8 +446,6 @@ async function handleIncomingMessages(value: any) {
 async function handleMessageStatuses(value: any) {
   const statuses = value.statuses;
   if (!statuses?.length) return;
-
-  // console.log(`📊 Processing ${statuses.length} status update(s)`);
 
   for (const status of statuses) {
     try {
