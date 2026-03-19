@@ -2,7 +2,6 @@ import telnyx from 'telnyx';
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Cargar variables de entorno desde la raíz
 dotenv.config({ path: path.resolve(process.cwd(), '../.env.local') });
 
 const TELNYX_API_KEY = process.env.TELNYX_API_KEY;
@@ -15,7 +14,7 @@ export interface TelnyxCallParams {
   to: string;
   from: string;
   connectionId: string;
-  webhookUrl: string;
+  webhookUrl?: string;
 }
 
 export interface TelnyxSmsParams {
@@ -32,9 +31,7 @@ export class TelnyxService {
     this.client = new telnyx(TELNYX_API_KEY || 'dummy_key');
   }
 
-  /**
-   * Iniciar una llamada saliente (Call Control)
-   */
+
   async createCall(params: TelnyxCallParams): Promise<any> {
     try {
       console.log('📞 Initiating Telnyx call to:', params.to);
@@ -51,9 +48,6 @@ export class TelnyxService {
     }
   }
 
-  /**
-   * Enviar un mensaje de texto (SMS)
-   */
   async sendSms(params: TelnyxSmsParams): Promise<any> {
     try {
       console.log('💬 Sending SMS to:', params.to);
@@ -65,6 +59,59 @@ export class TelnyxService {
       return message;
     } catch (error) {
       console.error('❌ Error sending Telnyx SMS:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtiene la instancia de una llamada activa
+   */
+  getCall(callControlId: string) {
+    return new this.client.Call({ call_control_id: callControlId });
+  }
+
+  /**
+   * Contestar una llamada entrante
+   */
+  async answerCall(callControlId: string): Promise<any> {
+    try {
+      const call = this.getCall(callControlId);
+      await call.answer();
+      console.log(`✅ Llamada contestada: ${callControlId}`);
+    } catch (error) {
+      console.error(`❌ Error contestando llamada ${callControlId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Reproducir audio usando Text-to-Speech (TTS)
+   */
+  async speak(callControlId: string, payload: string, language: string = 'es-ES', voice: string = 'female'): Promise<any> {
+    try {
+      const call = this.getCall(callControlId);
+      await call.speak({
+        payload,
+        language,
+        voice
+      });
+      console.log(`🗣️ Hablando en llamada ${callControlId}...`);
+    } catch (error) {
+      console.error(`❌ Error en TTS llamada ${callControlId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Colgar una llamada
+   */
+  async hangupCall(callControlId: string): Promise<any> {
+    try {
+      const call = this.getCall(callControlId);
+      await call.hangup();
+      console.log(`📴 Llamada colgada: ${callControlId}`);
+    } catch (error) {
+      console.error(`❌ Error colgando llamada ${callControlId}:`, error);
       throw error;
     }
   }
