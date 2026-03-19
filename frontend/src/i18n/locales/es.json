@@ -37,11 +37,29 @@
       "features": "Características",
       "testimonials": "Testimonios",
       "pricing": "Precios",
-      "faq": "Preguntas frecuentes"
+      "faq": "Preguntas frecuentes",
+      "howItWorks": "Cómo funciona"
     },
     "toggleTheme": "Cambiar tema",
     "access": "Acceso",
-    "trial": "Empieza hoy"
+    "trial": "Empieza hoy",
+    "howItWorks": {
+      "badge": "Proceso Simple",
+      "title": "Cómo funciona UNMI",
+      "description": "Transformamos tus llamadas perdidas en oportunidades de negocio en solo tres pasos.",
+      "step1": {
+        "title": "Llamada Perdida",
+        "description": "Un cliente llama a tu empresa y no hay respuesta en ese momento."
+      },
+      "step2": {
+        "title": "Captura Inteligente",
+        "description": "UNMI detecta el evento al instante y captura el número de teléfono del cliente."
+      },
+      "step3": {
+        "title": "WhatsApp Instantáneo",
+        "description": "El cliente recibe un mensaje automático para continuar la atención sin esperas."
+      }
+    }
   },
   "hero": {
     "badge": "Transforma tu negocio",
@@ -229,7 +247,7 @@
     "kpis": {
       "roi": "ROI",
       "profitable": "Rentable",
-      "adjust": "Ajustar estrategia",
+      "adjust": "Ajuster estrategia",
       "revenue": "Ingresos generados",
       "costs": "Costes totales",
       "profit": "Beneficio neto",
@@ -560,7 +578,7 @@
       "timezoneHelp": "Se usa para programar mensajes y horarios",
       "planType": "Tipo de plan",
       "planTypeHelp": "Elige qué plan usar para esta ubicación",
-      "creditsAvailable": "créditos disponibles"
+      "creditsAvailable": "crédits disponibles"
     },
     "dialog": {
       "editDesc": "Modifica los datos de la ubicación seleccionada",
@@ -602,10 +620,25 @@
     }
   },
   "plan": {
-    "header": { "title": "Mi Plan", "subtitle": "Gestiona tu suscripción y explora opciones de mejora" },
-    "small": { "title": "Pequeña Empresa", "feature1": "1 Localización", "feature2": "Webhooks de voz" },
-    "pro": { "title": "UNMI Pro", "feature1": "Multi-sede escalable", "feature2": "Chatbots IA" },
-    "premium": { "title": "UNMI Premium", "feature1": "Soporte 24/7", "feature2": "API de alta velocidad" },
+    "header": {
+      "title": "Mi Plan",
+      "subtitle": "Gestiona tu suscripción y explora opciones de mejora"
+    },
+    "small": {
+      "title": "Pequeña Empresa",
+      "feature1": "1 Localización",
+      "feature2": "Webhooks de voz"
+    },
+    "pro": {
+      "title": "UNMI Pro",
+      "feature1": "Multi-sede escalable",
+      "feature2": "Chatbots IA"
+    },
+    "premium": {
+      "title": "UNMI Premium",
+      "feature1": "Soporte 24/7",
+      "feature2": "API de alta velocidad"
+    },
     "config": {
       "locationsLabel": "Sedes / Localizaciones (+30€/ud)",
       "departmentsLabel": "Departamentos (+15€/ud)",
