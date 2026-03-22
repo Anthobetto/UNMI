@@ -18,22 +18,73 @@ import {
   Clock,
   BarChart,
   Building,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useTheme } from "@/hooks/useTheme";
 import { OfficialLogo } from "@/components/logo/official-logo";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useTranslation } from "react-i18next";
+import { Meteors } from "@/components/ui/meteors";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+// Definición de los tiers de precios
+const PRICING_TIERS = {
+  small: [
+    { messages: 50, price: 25 },
+    { messages: 100, price: 50 },
+    { messages: 150, price: 60 },
+    { messages: 200, price: 80 },
+  ],
+  pro: [
+    { messages: 250, price: 100 },
+    { messages: 300, price: 110 },
+    { messages: 350, price: 135 },
+    { messages: 400, price: 150 },
+  ],
+  premium: [
+    { messages: 500, price: 175 },
+    { messages: 600, price: 200 },
+    { messages: 800, price: 250 },
+    { messages: 1000, price: 300 },
+  ],
+};
 
 export default function LandingPage(): JSX.Element {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
   const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { t } = useTranslation();
+
+  // Estados para los planes seleccionados
+  const [smallTier, setSmallTier] = useState(PRICING_TIERS.small[2]); // Default 150
+  const [proTier, setProTier] = useState(PRICING_TIERS.pro[1]); // Default 300
+  const [premiumTier, setPremiumTier] = useState(PRICING_TIERS.premium[1]); // Default 600
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId.replace("#", ""));
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+      setActiveSection(sectionId);
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -170,69 +221,60 @@ export default function LandingPage(): JSX.Element {
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[100dvh]">
+    <div className="flex flex-col items-center justify-center min-h-[100dvh] relative">
+      {/* Global Fixed Meteor Background */}
+      <div className="fixed inset-0 pointer-events-none -z-20 overflow-hidden h-screen w-full">
+        <Meteors number={60} />
+      </div>
+
       <header
         className={`sticky top-0 z-50 w-full backdrop-blur-lg transition-all duration-300 ${isScrolled ? "bg-background/80 shadow-sm" : "bg-transparent"
           }`}
       >
-        <div className="container flex h-16 items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-2 font-bold">
-            <div className="mb-3">
-              <OfficialLogo width={220} />
-            </div>
+        <div className="container flex h-20 items-center justify-between relative">
+          {/* Logo - Left Side */}
+          <div className="flex items-center z-10">
+            <Link to="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity ml-2">
+              <OfficialLogo width={160} />
+            </Link>
           </div>
 
-          {/* Navigation - Desktop */}
-          <nav className="hidden md:flex gap-8 items-center">
-            <Link
-              to="#featuresUNMI"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {t("landing.nav.features", "Features")}
-            </Link>
-            <Link
-              to="#testimonials"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {t("landing.nav.testimonials", "Testimonials")}
-            </Link>
-            <Link
-              to="#pricing"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {t("landing.nav.pricing", "Pricing")}
-            </Link>
-            <Link
-              to="#faq"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {t("header.nav.faq", "FAQ")}
-            </Link>
+          {/* Navigation - Desktop Centered */}
+          <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 gap-2 items-center p-1 rounded-full">
+            {[
+              { id: "#features", label: t("landing.nav.features", "Features") },
+              { id: "#how-it-works", label: t("landing.nav.howItWorks", "Cómo funciona") },
+              { id: "#pricing", label: t("landing.nav.pricing", "Pricing") },
+              { id: "#faq", label: t("header.nav.faq", "FAQ") },
+            ].map((navItem) => (
+              <button
+                key={navItem.id}
+                onClick={() => scrollToSection(navItem.id)}
+                className={`px-5 py-2 text-sm font-bold rounded-full transition-all duration-300 hover:scale-105 will-change-transform backface-visibility-hidden transform-gpu ${
+                  activeSection === navItem.id
+                    ? "bg-[#FF0000] text-white shadow-lg shadow-[#FF0000]/20"
+                    : "text-muted-foreground hover:bg-[#FF0000]/10 hover:text-[#FF0000]"
+                }`}
+              >
+                {navItem.label}
+              </button>
+            ))}
           </nav>
 
           {/* Right Controls - Desktop */}
-          <div className="hidden md:flex items-center gap-4 ml-auto">
+          <div className="hidden md:flex items-center gap-6 z-10">
             {/* Theme toggle */}
-            <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full">
-              {mounted && theme === "dark" ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
+            <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full hover:bg-muted/50">
+              {mounted && theme === "dark" ? <Sun className="size-6" /> : <Moon className="size-6" />}
               <span className="sr-only">{t("header.toggleTheme", "Toggle theme")}</span>
             </Button>
 
             {/* Access link */}
             <Link
               to="/auth"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="text-lg font-bold text-muted-foreground transition-all hover:text-foreground border-2 border-transparent hover:border-[#FF0000]/20 px-4 py-1.5 rounded-full"
             >
               {t("landing.access", "Access")}
-            </Link>
-
-            {/* Start Today button */}
-            <Link to="/auth">
-              <Button className="rounded-full bg-[#FF0000] hover:bg-[#D32F2F]">
-                {t("landing.trial", "Start Today")}
-                <ChevronRight className="ml-1 size-4" />
-              </Button>
             </Link>
 
             {/* Language selector */}
@@ -243,23 +285,17 @@ export default function LandingPage(): JSX.Element {
           <div className="flex items-center gap-4 md:hidden ml-auto">
             {/* Theme toggle */}
             <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full">
-              {mounted && theme === "dark" ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
+              {mounted && theme === "dark" ? <Sun className="size-5" /> : <Moon className="size-5" />}
             </Button>
 
-            {/* Start Today + Language selector */}
+            {/* Language selector */}
             <div className="flex items-center gap-2">
-              <Link to="/auth">
-                <Button className="rounded-full bg-[#FF0000] hover:bg-[#D32F2F]">
-                  {t("header.trial", "Start Today")}
-                  <ChevronRight className="ml-1 size-4" />
-                </Button>
-              </Link>
               <LanguageSelector />
             </div>
 
             {/* Mobile menu */}
             <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+              {mobileMenuOpen ? <X className="size-6" /> : <Menu className="size-6" />}
               <span className="sr-only">{t("header.toggleMenu", "Toggle menu")}</span>
             </Button>
           </div>
@@ -274,11 +310,11 @@ export default function LandingPage(): JSX.Element {
             className="md:hidden absolute top-16 inset-x-0 bg-background/95 backdrop-blur-lg border-b"
           >
             <div className="container py-4 flex flex-col gap-4">
-              <Link to="#featuresUNMI" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
+              <Link to="#features" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
                 {t("header.nav.features", "Features")}
               </Link>
-              <Link to="#testimonials" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
-                {t("header.nav.testimonials", "Testimonials")}
+              <Link to="#how-it-works" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
+                {t("landing.nav.howItWorks", "Cómo funciona")}
               </Link>
               <Link to="#pricing" className="py-2 text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
                 {t("header.nav.pricing", "Pricing")}
@@ -307,9 +343,8 @@ export default function LandingPage(): JSX.Element {
       </header>
 
       <main className="flex-1">
-        <section className="w-full py-10 md:py-22 lg:py-30 overflow-hidden">
+        <section className="w-full py-10 md:py-22 lg:py-30 overflow-hidden relative">
           <div className="container px-4 md:px-6 relative">
-            <div className="absolute inset-0 -z-10 h-full w-full bg-white dark:bg-black bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1f1f1f_1px,transparent_1px),linear-gradient(to_bottom,#1f1f1f_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]"></div>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -317,15 +352,11 @@ export default function LandingPage(): JSX.Element {
               transition={{ duration: 0.5 }}
               className="text-center max-w-3xl mx-auto mb-12"
             >
-              <Badge className="mb-4 rounded-full px-4 py-1.5 text-sm font-medium" variant="secondary">
-                {t("hero.badge", "Transform Your Business")}
-              </Badge>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+              <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70 leading-tight px-4">
                 {t("hero.title", "Transform Your Business Communication Strategy")}
               </h1>
-              <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                {t(
-                  "hero.subtitle")}
+              <p className="text-sm sm:text-base md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto px-6">
+                {t("hero.subtitle")}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/auth?tab=register">
@@ -335,80 +366,194 @@ export default function LandingPage(): JSX.Element {
                   </Button>
                 </Link>
               </div>
-              <div className="flex items-center justify-center gap-4 mt-6 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <Check className="size-4 text-[#FF0000]" />
-                  <span>{t("hero.features.trial", "Start Today")}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Check className="size-4 text-[#FF0000]" />
-                  <span>{t("hero.features.cancel", "Cancel anytime")}</span>
-                </div>
-              </div>
+              
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="relative mx-auto max-w-5xl"
+              className="relative mx-auto max-w-5xl group"
             >
               <Link to="/">
-                <div className="relative rounded-xl overflow-hidden shadow-2xl border border-border/40 bg-gradient-to-b from-background to-muted/20">
+                <div className="relative rounded-xl overflow-hidden shadow-2xl border border-border/40 bg-gradient-to-b from-background to-muted/20 transition-all duration-500 group-hover:scale-[1.01] group-hover:shadow-[0_0_40px_rgba(255,0,0,0.8)] group-hover:border-[#FF0000]/20">
                   <img
                     src="/business-communication-dashboard-with-whatsapp-sms.png"
                     alt={t("hero.imageAlt", "Unmi dashboard")}
-                    className="w-full h-auto"
+                    className="w-full h-auto transition-transform duration-700 group-hover:scale-105"
                   />
+                  {/* Shine effect */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out"></div>
                   <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-black/10 dark:ring-white/10"></div>
                 </div>
               </Link>
-              <div className="absolute -bottom-6 -right-6 -z-10 h-[300px] w-[300px] rounded-full bg-gradient-to-br from-[#FF0000]/30 to-[#D32F2F]/30 blur-3xl opacity-70"></div>
-              <div className="absolute -top-6 -left-6 -z-10 h-[300px] w-[300px] rounded-full bg-gradient-to-br from-[#D32F2F]/30 to-[#FF0000]/30 blur-3xl opacity-70"></div>
+              {/* Central Uniform Glow Aura */}
+              <div className="absolute inset-0 -z-10 bg-[#FF0000]/10 blur-[100px] rounded-full scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"></div>
             </motion.div>
           </div>
         </section>
 
+        {/* How It Works Section */}
+        <section id="how-it-works" className="w-full py-16 md:py-32 relative overflow-hidden">
+          <div className="container px-4 md:px-6 relative">
+            <div className="text-center mb-12 md:mb-16">
+              <Badge className="rounded-full px-4 py-1.5 text-xs md:text-sm font-semibold mb-4 bg-[#FF0000]/10 text-[#FF0000] border-[#FF0000]/20 hover:bg-[#FF0000]/20 transition-colors" variant="outline">
+                {t("howItWorks.badge", "Proceso Simple")}
+              </Badge>
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">
+                {t("howItWorks.title", "Cómo funciona UNMI")}
+              </h2>
+              <p className="max-w-[700px] mx-auto text-muted-foreground text-base md:text-xl leading-relaxed px-2">
+                {t("howItWorks.description", "Transformamos tus llamadas perdidas en oportunidades de negocio en solo tres pasos.")}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 relative">
+              {/* Step 1 */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="h-full"
+              >
+                <Card className="h-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-xl rounded-[2.5rem] group transition-all duration-500 hover:shadow-2xl hover:border-[#FF0000]/20">
+                  <CardContent className="p-6 md:p-10 flex flex-col items-center text-center">
+                    <div className="size-16 md:size-20 rounded-3xl bg-white dark:bg-white/10 shadow-inner flex items-center justify-center mb-6 md:mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                      <Phone className="size-8 md:size-10 text-muted-foreground group-hover:text-[#FF0000] transition-colors" />
+                    </div>
+                    <h3 className="text-xl md:text-2xl font-bold mb-3 md:mb-4 group-hover:text-[#FF0000] transition-colors">
+                      {t("howItWorks.step1.title", "Llamada Perdida")}
+                    </h3>
+                    <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                      {t("howItWorks.step1.description", "Un cliente llama a tu empresa y no hay respuesta en ese momento.")}
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Step 2 */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="h-full"
+              >
+                <Card className="h-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-xl rounded-[2.5rem] group transition-all duration-500 hover:shadow-2xl hover:border-[#FF0000]/20">
+                  <CardContent className="p-10 flex flex-col items-center text-center">
+                    <div className="size-20 rounded-3xl bg-white dark:bg-white/10 shadow-inner flex items-center justify-center mb-8 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500">
+                      <Zap className="size-10 text-muted-foreground group-hover:text-[#FF0000] transition-colors" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-4 group-hover:text-[#FF0000] transition-colors">
+                      {t("howItWorks.step2.title", "Captura Inteligente")}
+                    </h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {t("howItWorks.step2.description", "UNMI detecta el evento al instante y captura el número de teléfono del cliente.")}
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Step 3 */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+                className="h-full"
+              >
+                <Card className="h-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-xl rounded-[2.5rem] group transition-all duration-500 hover:shadow-2xl hover:border-[#FF0000]/20">
+                  <CardContent className="p-10 flex flex-col items-center text-center">
+                    <div className="size-20 rounded-3xl bg-white dark:bg-white/10 shadow-inner flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                      <MessageCircle className="size-10 text-muted-foreground group-hover:text-[#FF0000] transition-colors" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-4 group-hover:text-[#FF0000] transition-colors">
+                      {t("howItWorks.step3.title", "WhatsApp Instantáneo")}
+                    </h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {t("howItWorks.step3.description", "El cliente recibe un mensaje automático para continuar la atención sin esperas.")}
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
         {/* Features Section */}
-        <section id="features" className="w-full py-20 md:py-32">
-          <div className="container px-4 md:px-6 text-center mb-12">
-            <Badge className="rounded-full px-4 py-1.5 text-sm font-medium mb-4" variant="secondary">
-              {t("features.badge", "Features")}
-            </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">{t("features.title", "Compare UNMI vs Chatbot")}</h2>
-            <p className="max-w-[800px] mx-auto text-muted-foreground md:text-lg">
-              {t("features.description", "Toggle between UNMI's call-based automations and a full-fledged AI chatbot.")}
-            </p>
+        <section id="features" className="w-full py-16 md:py-32 relative overflow-hidden">
+          {/* Decoración de fondo - Orbes de luz sutiles */}
+          <div className="absolute top-1/4 -left-20 w-72 h-72 bg-[#FF0000]/5 rounded-full blur-[120px] -z-10" />
+          <div className="absolute bottom-1/4 -right-20 w-72 h-72 bg-[#F59E0B]/5 rounded-full blur-[120px] -z-10" />
+
+          <div className="container px-4 md:px-6 text-center mb-12 md:mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              <Badge className="rounded-full px-4 py-1.5 text-xs md:text-sm font-semibold mb-4 bg-[#FF0000]/10 text-[#FF0000] border-[#FF0000]/20 hover:bg-[#FF0000]/20 transition-colors" variant="outline">
+                {t("features.badge", "Potencia tu Comunicación")}
+              </Badge>
+              <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-b from-gray-900 to-gray-600 dark:from-white dark:to-white/70 px-2">
+                {t("features.title", "Compara UNMI vs Chatbot AI")}
+              </h2>
+              <p className="max-w-[700px] mx-auto text-gray-500 text-sm sm:text-base md:text-xl leading-relaxed px-4">
+                {t("features.description", "Elige entre la automatización inteligente basada en llamadas de UNMI o un asistente conversacional de IA completo.")}
+              </p>
+            </motion.div>
           </div>
 
-          <div className="container px-4 md:px-6 text-center">
-            <Tabs defaultValue="unmi">
-              <TabsList className="rounded-full p-1 inline-flex mb-8">
-                <TabsTrigger value="unmi" className="rounded-full px-6">
-                  {t("features.tabs.unmi", "UNMI")}
-                </TabsTrigger>
-                <TabsTrigger value="chatbot" className="rounded-full px-6">
-                  {t("features.tabs.chatbot", "Chatbot")}
-                </TabsTrigger>
-              </TabsList>
+          <div className="container px-4 md:px-6">
+            <Tabs defaultValue="unmi" className="w-full">
+              <div className="flex justify-center mb-10 md:mb-12">
+                <TabsList className="bg-gray-100/80 dark:bg-white/5 p-1 rounded-xl md:rounded-2xl h-auto border border-gray-200/50 dark:border-white/10 backdrop-blur-sm">
+                  <TabsTrigger 
+                    value="unmi" 
+                    className="rounded-lg md:rounded-xl px-4 md:px-8 py-2 md:py-3 text-xs md:text-base font-bold data-[state=active]:bg-white data-[state=active]:text-[#FF0000] data-[state=active]:shadow-md transition-all duration-300"
+                  >
+                    {t("features.tabs.unmi", "Automatización UNMI")}
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="chatbot" 
+                    disabled
+                    className="rounded-lg md:rounded-xl px-4 md:px-8 py-2 md:py-3 text-xs md:text-base font-bold cursor-not-allowed flex items-center gap-2 transition-all duration-300"
+                  >
+                    <span className="opacity-50 grayscale">{t("features.tabs.chatbot", "Chatbot Inteligente")}</span>
+                    <Badge className="bg-[#F59E0B] text-white border-none text-[10px] px-1.5 py-0 shadow-sm opacity-100">Soon</Badge>
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
-              <TabsContent value="unmi">
+              <TabsContent value="unmi" className="mt-0 focus-visible:outline-none">
                 <motion.div
                   variants={container}
                   initial="hidden"
                   whileInView="show"
                   viewport={{ once: true }}
-                  className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+                  className="grid gap-4 md:gap-6 sm:grid-cols-2 lg:grid-cols-3"
                 >
                   {featuresUNMI.map((feature, i) => (
                     <motion.div key={i} variants={item}>
-                      <Card className="h-full overflow-hidden border-border/40 bg-gradient-to-b from-background to-muted/10 backdrop-blur hover:shadow-md transition-all">
-                        <CardContent className="p-6 flex flex-col h-full">
-                          <div className="size-10 rounded-full bg-[#FF0000]/10 dark:bg-[#FF0000]/20 flex items-center justify-center text-[#FF0000] mb-4">
+                      <Card className="relative h-full overflow-hidden border border-gray-200 dark:border-white/10 bg-white/50 dark:bg-white/5 shadow-lg hover:shadow-2xl transition-all duration-500 rounded-3xl group hover:border-[#FF0000]/20">
+                        <CardContent className="p-6 md:p-8 flex flex-col h-full relative z-10">
+                          <div className="size-12 md:size-14 rounded-2xl bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-[#FF0000]/10 group-hover:text-[#FF0000] transition-all duration-500 shadow-inner mb-4 md:mb-6">
                             {feature.icon}
                           </div>
-                          <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
-                          <p className="text-muted-foreground">{feature.description}</p>
+                          <h3 className="text-xl md:text-2xl font-bold mb-2 md:mb-3 text-gray-900 dark:text-white group-hover:text-[#FF0000] transition-colors">
+                            {feature.title}
+                          </h3>
+                          <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 leading-relaxed">
+                            {feature.description}
+                          </p>
+                          <a 
+                            href="#pricing" 
+                            className="mt-auto pt-4 md:pt-6 opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-xs md:text-sm font-bold text-[#FF0000] hover:underline"
+                          >
+                            Saber más <ArrowRight className="ml-2 size-4" />
+                          </a>
                         </CardContent>
                       </Card>
                     </motion.div>
@@ -416,7 +561,7 @@ export default function LandingPage(): JSX.Element {
                 </motion.div>
               </TabsContent>
 
-              <TabsContent value="chatbot">
+              <TabsContent value="chatbot" className="mt-0 focus-visible:outline-none">
                 <motion.div
                   variants={container}
                   initial="hidden"
@@ -426,13 +571,23 @@ export default function LandingPage(): JSX.Element {
                 >
                   {featuresChatbot.map((feature, i) => (
                     <motion.div key={i} variants={item}>
-                      <Card className="h-full overflow-hidden border-border/40 bg-gradient-to-b from-background to-muted/10 backdrop-blur hover:shadow-md transition-all">
-                        <CardContent className="p-6 flex flex-col h-full">
-                          <div className="size-10 rounded-full bg-[#F59E0B]/10 dark:bg-[#F59E0B]/20 flex items-center justify-center text-[#F59E0B] mb-4">
+                      <Card className="relative h-full overflow-hidden border border-gray-200 dark:border-white/10 bg-white/50 dark:bg-white/5 shadow-lg hover:shadow-2xl transition-all duration-500 rounded-3xl group hover:border-[#F59E0B]/20">
+                        <CardContent className="p-8 flex flex-col h-full relative z-10">
+                          <div className="size-14 rounded-2xl bg-muted/50 flex items-center justify-center text-muted-foreground group-hover:bg-[#F59E0B]/10 group-hover:text-[#F59E0B] transition-all duration-500 shadow-inner">
                             {feature.icon}
                           </div>
-                          <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
-                          <p className="text-muted-foreground">{feature.description}</p>
+                          <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white group-hover:text-[#F59E0B] transition-colors">
+                            {feature.title}
+                          </h3>
+                          <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
+                            {feature.description}
+                          </p>
+                          <a 
+                            href="#pricing" 
+                            className="mt-auto pt-6 opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-sm font-bold text-[#F59E0B] hover:underline"
+                          >
+                            Descubrir más <ArrowRight className="ml-2 size-4" />
+                          </a>
                         </CardContent>
                       </Card>
                     </motion.div>
@@ -440,6 +595,291 @@ export default function LandingPage(): JSX.Element {
                 </motion.div>
               </TabsContent>
             </Tabs>
+          </div>
+        </section>
+
+        {/* Pricing Section */}
+        <section id="pricing" className="w-full py-24 md:py-32 relative overflow-hidden">
+          <div className="container px-4 md:px-6">
+            <div className="text-center mb-16">
+              <Badge className="rounded-full px-4 py-1.5 text-sm font-semibold mb-4 bg-[#FF0000]/10 text-[#FF0000] border-[#FF0000]/20 hover:bg-[#FF0000]/20 transition-colors" variant="outline">
+                Precios Transparentes
+              </Badge>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">Planes diseñados para tu éxito</h2>
+              <p className="max-w-[700px] mx-auto text-gray-500 md:text-xl leading-relaxed">
+                Escala tu comunicación con soluciones que crecen contigo. Sin costes ocultos.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto items-stretch">
+              {/* Plan Pequeña Empresa */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.05, y: -5 }}
+                viewport={{ once: true }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="bg-white/50 dark:bg-white/5 rounded-[2.5rem] border-2 border-gray-200 dark:border-white/10 p-10 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col cursor-pointer"
+              >
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold mb-2 text-foreground">Pequeña Empresa</h3>
+                  <p className="text-gray-500 text-sm mb-4">Todo lo esencial para empezar.</p>
+                  
+                  <Select 
+                    defaultValue={smallTier.messages.toString()} 
+                    onValueChange={(val) => setSmallTier(PRICING_TIERS.small.find(t => t.messages.toString() === val)!)}
+                  >
+                    <SelectTrigger className="w-full bg-white dark:bg-white/10 border-gray-200 dark:border-white/10 rounded-xl h-12">
+                      <SelectValue placeholder="Seleccionar volumen" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PRICING_TIERS.small.map((tier) => (
+                        <SelectItem key={tier.messages} value={tier.messages.toString()}>
+                          {tier.messages} mensajes - €{tier.price}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="mb-8">
+                  <span className="text-5xl font-bold tracking-tighter">€{smallTier.price}</span>
+                  <span className="text-gray-500 ml-2">/mes</span>
+                </div>
+                <ul className="space-y-4 mb-10 flex-grow">
+                  <li className="flex items-center gap-3 text-sm">
+                    <Check className="size-5 text-[#FF0000] flex-shrink-0" />
+                    <span className="font-bold">{smallTier.messages} mensajes/mes incluidos</span>
+                  </li>
+                  <li className="flex items-center gap-3 text-sm">
+                    <Check className="size-5 text-gray-400 flex-shrink-0" />
+                    <span>1 Localización física</span>
+                  </li>
+                  <li className="flex items-center gap-3 text-sm">
+                    <Check className="size-5 text-gray-400 flex-shrink-0" />
+                    <span>Respuesta automática a llamadas</span>
+                  </li>
+                  <li className="flex items-center gap-3 text-sm">
+                    <Check className="size-5 text-gray-400 flex-shrink-0" />
+                    <span>Panel de control básico</span>
+                  </li>
+                </ul>
+                <Link to={`/auth?tab=register&plan=small&price=${smallTier.price}`}>
+                  <Button className="w-full h-14 rounded-2xl text-lg font-bold border-2 border-gray-200 hover:bg-gray-50 text-foreground transition-all" variant="outline">
+                    Elegir Plan
+                  </Button>
+                </Link>
+              </motion.div>
+
+              {/* Plan PRO */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.05, y: -5 }}
+                viewport={{ once: true }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="bg-white/50 dark:bg-white/5 rounded-[2.5rem] border-2 border-[#FF0000] p-10 shadow-2xl shadow-[#FF0000]/10 relative overflow-hidden flex flex-col z-10 cursor-pointer"
+              >
+                <div className="absolute top-0 right-0 bg-[#FF0000] text-white px-6 py-1.5 rounded-bl-2xl text-xs font-bold uppercase tracking-widest">
+                  Popular
+                </div>
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold mb-2">UNMI Pro</h3>
+                  <p className="text-gray-500 text-sm mb-4">Optimiza tu atención al cliente.</p>
+                  
+                  <Select 
+                    defaultValue={proTier.messages.toString()} 
+                    onValueChange={(val) => setProTier(PRICING_TIERS.pro.find(t => t.messages.toString() === val)!)}
+                  >
+                    <SelectTrigger className="w-full bg-white dark:bg-white/10 border-[#FF0000]/20 rounded-xl h-12">
+                      <SelectValue placeholder="Seleccionar volumen" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PRICING_TIERS.pro.map((tier) => (
+                        <SelectItem key={tier.messages} value={tier.messages.toString()}>
+                          {tier.messages} mensajes - €{tier.price}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="mb-8">
+                  <span className="text-5xl font-bold tracking-tighter">€{proTier.price}</span>
+                  <span className="text-gray-500 ml-2">/mes</span>
+                </div>
+                <ul className="space-y-4 mb-10 flex-grow">
+                  <li className="flex items-center gap-3 text-sm font-bold">
+                    <Check className="size-5 text-green-500 flex-shrink-0" />
+                    <span>{proTier.messages} mensajes/mes incluidos</span>
+                  </li>
+                  <li className="flex items-center gap-3 text-sm font-bold">
+                    <Check className="size-5 text-green-500 flex-shrink-0" />
+                    <span>Hasta 3 Localizaciones</span>
+                  </li>
+                  <li className="flex items-center gap-3 text-sm font-bold">
+                    <Check className="size-5 text-green-500 flex-shrink-0" />
+                    <span>Chatbots de IA personalizados</span>
+                  </li>
+                  <li className="flex items-center gap-3 text-sm font-bold">
+                    <Check className="size-5 text-green-500 flex-shrink-0" />
+                    <span>Analítica avanzada</span>
+                  </li>
+                </ul>
+                <Link to={`/auth?tab=register&plan=pro&price=${proTier.price}`}>
+                  <Button className="w-full h-14 rounded-2xl text-lg font-bold bg-[#FF0000] hover:bg-[#D32F2F] text-white shadow-lg shadow-[#FF0000]/20 transition-all">
+                    Elegir Plan Pro
+                  </Button>
+                </Link>
+              </motion.div>
+
+              {/* Plan PREMIUM */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.05, y: -5 }}
+                viewport={{ once: true }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="bg-white/50 dark:bg-white/5 rounded-[2.5rem] border-2 border-gray-200 dark:border-white/10 p-10 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col cursor-pointer"
+              >
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold mb-2 text-[#FF0000]">UNMI Premium</h3>
+                  <p className="text-gray-500 text-sm mb-4">Escalabilidad total sin límites.</p>
+                  
+                  <Select 
+                    defaultValue={premiumTier.messages.toString()} 
+                    onValueChange={(val) => setPremiumTier(PRICING_TIERS.premium.find(t => t.messages.toString() === val)!)}
+                  >
+                    <SelectTrigger className="w-full bg-white dark:bg-white/10 border-gray-200 dark:border-white/10 rounded-xl h-12">
+                      <SelectValue placeholder="Seleccionar volumen" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PRICING_TIERS.premium.map((tier) => (
+                        <SelectItem key={tier.messages} value={tier.messages.toString()}>
+                          {tier.messages} mensajes - €{tier.price}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="mb-8">
+                  <span className="text-5xl font-bold tracking-tighter">€{premiumTier.price}</span>
+                  <span className="text-gray-500 ml-2">/mes</span>
+                </div>
+                <ul className="space-y-4 mb-10 flex-grow">
+                  <li className="flex items-center gap-3 text-sm font-bold">
+                    <Check className="size-5 text-[#FF0000] flex-shrink-0" />
+                    <span>{premiumTier.messages} mensajes/mes incluidos</span>
+                  </li>
+                  <li className="flex items-center gap-3 text-sm font-bold">
+                    <Check className="size-5 text-[#FF0000] flex-shrink-0" />
+                    <span>Multi-Localización ilimitada</span>
+                  </li>
+                  <li className="flex items-center gap-3 text-sm font-bold">
+                    <Check className="size-5 text-[#FF0000] flex-shrink-0" />
+                    <span>IA de Voz Avanzada</span>
+                  </li>
+                  <li className="flex items-center gap-3 text-sm font-bold">
+                    <Check className="size-5 text-[#FF0000] flex-shrink-0" />
+                    <span>Soporte Prioritario 24/7</span>
+                  </li>
+                </ul>
+                <Link to={`/auth?tab=register&plan=premium&price=${premiumTier.price}`}>
+                  <Button className="w-full h-14 rounded-2xl text-lg font-bold border-2 border-[#FF0000] hover:bg-[#FF0000]/5 text-[#FF0000] transition-all" variant="outline">
+                    Elegir Premium
+                  </Button>
+                </Link>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section id="faq" className="w-full py-24 md:py-32 relative overflow-hidden">
+          <div className="container px-4 md:px-6">
+            <div className="text-center mb-16">
+              <Badge className="rounded-full px-4 py-1.5 text-sm font-semibold mb-4 bg-[#FF0000]/10 text-[#FF0000] border-[#FF0000]/20 hover:bg-[#FF0000]/20 transition-colors" variant="outline">
+                {t("faq.badge", "Dudas frecuentes")}
+              </Badge>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">Preguntas Frecuentes</h2>
+              <p className="max-w-[700px] mx-auto text-muted-foreground md:text-xl leading-relaxed">
+                Todo lo que necesitas saber sobre UNMI y cómo puede ayudar a tu negocio.
+              </p>
+            </div>
+
+            <div className="max-w-3xl mx-auto">
+              <Card className="bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-xl rounded-[2.5rem] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:border-[#FF0000]/20">
+                <CardContent className="p-8 md:p-12">
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="item-1" className="border-b-border/40 py-2">
+                      <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
+                        ¿Cómo se configura el desvío de llamadas?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground text-base leading-relaxed">
+                        Es muy sencillo. Solo tienes que marcar un código estándar en tu teléfono (ej: *61*número_unmi#) para activar el desvío cuando no contestes. Nosotros te guiaremos paso a paso en el panel de control.
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="item-2" className="border-b-border/40 py-2">
+                      <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
+                        ¿Tengo que cambiar mi número actual?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground text-base leading-relaxed">
+                        No, en absoluto. Sigues usando tu número de siempre para recibir llamadas. UNMI solo entra en acción si no puedes contestar, capturando la llamada perdida para enviar el WhatsApp automático.
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="item-3" className="border-b-border/40 py-2">
+                      <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
+                        ¿Qué pasa si el cliente no tiene WhatsApp?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground text-base leading-relaxed">
+                        Si el sistema detecta que el número no tiene WhatsApp activo, UNMI puede enviar un SMS automático con la misma información, asegurando que el contacto nunca se pierda.
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="item-4" className="border-b-border/40 py-2">
+                      <AccordionTrigger className="text-left font-bold text-lg hover:text-[#FF0000] transition-colors">
+                        ¿Cómo funciona el periodo de prueba?
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground text-base leading-relaxed">
+                        Ofrecemos 14 días de prueba gratuita con todas las funciones activas. Puedes configurar tu número y ver cuántas llamadas recuperas antes de decidirte por un plan.
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section - Final Cierre */}
+        <section className="w-full py-24 md:py-32 relative overflow-hidden">
+          <div className="container px-4 md:px-6 relative">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="max-w-4xl mx-auto"
+            >
+              <Card className="bg-white dark:bg-white/5 border-2 border-gray-200 dark:border-white/10 shadow-2xl rounded-[3rem] overflow-hidden transition-all duration-500 hover:border-[#FF0000]/30 hover:shadow-[#FF0000]/10">
+                <CardContent className="p-12 md:p-20 text-center relative">
+                  {/* Glow decorativo interno sutil */}
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1/2 bg-[#FF0000]/5 blur-[80px] -z-10" />
+                  
+                  <h2 className="text-4xl md:text-5xl lg:text-5xl font-bold tracking-tight mb-10 leading-tight">
+                    {t("cta.title", "Lleva la comunicación de tu negocio al siguiente nivel")}
+                  </h2>
+                  <div className="flex justify-center">
+                    <Link to="/auth?tab=register">
+                      <Button size="lg" className="rounded-full h-16 px-12 text-xl bg-[#FF0000] hover:bg-[#D32F2F] shadow-2xl shadow-[#FF0000]/40 transition-all duration-500 hover:scale-110 active:scale-95 group">
+                        {t("hero.cta", "Start Today")}
+                        <ArrowRight className="ml-3 size-6 group-hover:translate-x-2 transition-transform" />
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
         </section>
 

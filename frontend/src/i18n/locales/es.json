@@ -37,11 +37,29 @@
       "features": "Características",
       "testimonials": "Testimonios",
       "pricing": "Precios",
-      "faq": "Preguntas frecuentes"
+      "faq": "Preguntas frecuentes",
+      "howItWorks": "Cómo funciona"
     },
     "toggleTheme": "Cambiar tema",
     "access": "Acceso",
-    "trial": "Empieza hoy"
+    "trial": "Empieza hoy",
+    "howItWorks": {
+      "badge": "Proceso Simple",
+      "title": "Cómo funciona UNMI",
+      "description": "Transformamos tus llamadas perdidas en oportunidades de negocio en solo tres pasos.",
+      "step1": {
+        "title": "Llamada Perdida",
+        "description": "Un cliente llama a tu empresa y no hay respuesta en ese momento."
+      },
+      "step2": {
+        "title": "Captura Inteligente",
+        "description": "UNMI detecta el evento al instante y captura el número de teléfono del cliente."
+      },
+      "step3": {
+        "title": "WhatsApp Instantáneo",
+        "description": "El cliente recibe un mensaje automático para continuar la atención sin esperas."
+      }
+    }
   },
   "hero": {
     "badge": "Transforma tu negocio",
@@ -160,7 +178,10 @@
       "chatbots": "pro",
       "templates": "small",
       "access": "Tienes acceso a {{access}}.",
-      "change": "Cambiar plan"
+      "change": "Cambiar plan",
+      "dailyUsage": "Consumo Diario",
+      "limit": "Límite de mensajes",
+      "upgradeNow": "¡Upgrade!"
     },
     "metrics": {
       "callsToday": "Llamadas Hoy",
@@ -170,7 +191,11 @@
       "vsYesterday": "vs ayer",
       "delivered": "{{count}} entregados",
       "missedRate": "{{rate}}% del total",
-      "recoveredCalls": "llamadas recuperadas"
+      "recoveredCalls": "llamadas recuperadas",
+      "activeLines": "Líneas Activas",
+      "managing": "Gestionando {{count}} sede",
+      "managing_plural": "Gestionando {{count}} sedes",
+      "recoverableRevenue": "Revenue Recuperable"
     },
     "charts": {
       "callDistribution": "Distribución de Llamadas",
@@ -211,6 +236,9 @@
       "manageTemplates": "Gestionar plantillas",
       "yourPlan": "Tu Plan",
       "upgradePlan": "Mejorar plan"
+    },
+    "table": {
+      "general": "General"
     }
   },
   "profitability": {
@@ -219,7 +247,7 @@
     "kpis": {
       "roi": "ROI",
       "profitable": "Rentable",
-      "adjust": "Ajustar estrategia",
+      "adjust": "Ajuster estrategia",
       "revenue": "Ingresos generados",
       "costs": "Costes totales",
       "profit": "Beneficio neto",
@@ -550,7 +578,7 @@
       "timezoneHelp": "Se usa para programar mensajes y horarios",
       "planType": "Tipo de plan",
       "planTypeHelp": "Elige qué plan usar para esta ubicación",
-      "creditsAvailable": "créditos disponibles"
+      "creditsAvailable": "crédits disponibles"
     },
     "dialog": {
       "editDesc": "Modifica los datos de la ubicación seleccionada",
@@ -593,47 +621,40 @@
   },
   "plan": {
     "header": {
-      "title": "Gestiona tu Suscripción",
-      "subtitle": "Elige el plan que mejor se adapte a tu negocio actual."
+      "title": "Mi Plan",
+      "subtitle": "Gestiona tu suscripción y explora opciones de mejora"
     },
     "small": {
       "title": "Pequeña Empresa",
-      "features": {
-        "locations": "1 Sede",
-        "departments": "1 Departamento",
-        "messages": "150 Mensajes incluidos"
-      }
+      "feature1": "1 Localización",
+      "feature2": "Webhooks de voz"
     },
     "pro": {
       "title": "UNMI Pro",
-      "badge": "RECOMENDADO",
-      "features": {
-        "locations": "Multi-Sede",
-        "departments": "Multi-Departamento",
-        "messages": "360 Mensajes incluidos"
-      }
+      "feature1": "Multi-sede escalable",
+      "feature2": "Chatbots IA"
+    },
+    "premium": {
+      "title": "UNMI Premium",
+      "feature1": "Soporte 24/7",
+      "feature2": "API de alta velocidad"
     },
     "config": {
-      "locationsLabel": "Número de Sedes (+30€/u)",
-      "departmentsLabel": "Número de Depts (+15€/u)",
-      "sedes": "Sedes",
-      "depts": "Depts"
+      "locationsLabel": "Sedes / Localizaciones (+30€/ud)",
+      "departmentsLabel": "Departamentos (+15€/ud)",
+      "sedes": "sedes",
+      "depts": "deptos"
     },
     "summary": {
-      "title": "Resumen de cambio",
-      "current": "Plan actual",
-      "none": "Ninguno",
-      "arrow": "->",
-      "total": "Total mensual estimado",
+      "title": "Resumen de actualización",
+      "keep": "Mantener",
+      "change": "Cambiar a",
+      "total": "(IVA incl.)",
       "confirm": "Confirmar Cambio",
       "processing": "Procesando..."
     },
-    "perMonth": "/mes",
-    "base": "base",
-    "toast": {
-      "success": "Plan actualizado correctamente (Simulación)",
-      "error": "Error al actualizar el plan"
-    }
+    "perMonth": "mes",
+    "message": "mensaje"
   },
   "header": {
     "selectLanguage": "Seleccionar idioma",

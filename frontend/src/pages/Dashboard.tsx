@@ -38,6 +38,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Link } from 'wouter';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 import { LanguageSelector } from '@/components/LanguageSelector';
+import { usePlanStats } from '@/hooks/usePlans';
 
 const COLORS = {
   answered: '#10b981',
@@ -51,14 +52,6 @@ interface CallStats {
   averageDuration: number;
   todayCallsCount: number;
   yesterdayCallsCount: number;
-}
-
-interface MessageStats {
-  total: number;
-  sent: number;
-  delivered: number;
-  failed: number;
-  pending: number;
 }
 
 interface Location {
@@ -83,83 +76,48 @@ export default function Dashboard() {
   const [conversionRate, setConversionRate] = useState('30');
 
   // Queries
-  const { data: callStats, isLoading: loadingCalls } = useQuery<CallStats>({
-    queryKey: ['/api/calls/stats'],
-    queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/calls/stats', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error('Failed to fetch call stats');
-      return response.json();
-    },
-    enabled: !!user,
-  });
+  const fetchHeaders = { Authorization: `Bearer ${localStorage.getItem('accessToken')}` };
 
-  const { data: messageStats, isLoading: loadingMessages } = useQuery<MessageStats>({
-    queryKey: ['/api/messages/stats'],
-    queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/messages/stats', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error('Failed to fetch message stats');
-      return response.json();
-    },
+  const { data: callStats } = useQuery<CallStats>({
+    queryKey: ['/api/calls/stats'],
+    queryFn: () => fetch('/api/calls/stats', { headers: fetchHeaders }).then(r => r.json()),
     enabled: !!user,
   });
 
   const { data: locations = [] } = useQuery<Location[]>({
     queryKey: ['/api/locations'],
-    queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/locations', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error('Failed to fetch locations');
-      const data = await response.json();
-      return data.locations || [];
-    },
+    queryFn: () => fetch('/api/locations', { headers: fetchHeaders }).then(r => r.json().then(d => d.locations || [])),
     enabled: !!user,
   });
 
   const { data: recentCalls = [] } = useQuery<Call[]>({
     queryKey: ['/api/calls'],
-    queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/calls', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error('Failed to fetch calls');
-      const data = await response.json();
-      return data.calls?.slice(0, 5) || [];
-    },
+    queryFn: () => fetch('/api/calls', { headers: fetchHeaders }).then(r => r.json().then(d => d.calls?.slice(0, 5) || [])),
     enabled: !!user,
   });
 
-  // Calculations
+  // Consumo del Plan
+  const phoneCount = locations.length;
+  const messagesUsedToday = callStats?.todayCallsCount ?? 0;
+  const { data: stats } = usePlanStats(user?.planType || 'small', messagesUsedToday, phoneCount);
+
+  // Cálculos de métricas
   const todayCalls = callStats?.todayCallsCount ?? 0;
   const yesterdayCalls = callStats?.yesterdayCallsCount ?? 0;
   const callDiff = yesterdayCalls === 0 ? 100 : ((todayCalls - yesterdayCalls) / yesterdayCalls) * 100;
   const isCallsPositive = callDiff >= 0;
 
-  const totalMessages = messageStats?.sent ?? 0;
   const missedCalls = callStats?.missed ?? 0;
   const recoveredCalls = Math.floor(missedCalls * (Number(conversionRate) / 100));
   const expectedRevenue = recoveredCalls * Number(averageTicket);
 
-  // Limpiamos los nombres del PieChart para que no salga "Contestadas: : X%"
   const pieData = [
-    { name: t('telephony.metrics.answered'), value: callStats?.answered ?? 0 },
-    { name: t('telephony.metrics.missed'), value: callStats?.missed ?? 0 },
+    { name: t('dashboard.charts.answered', { count: callStats?.answered ?? 0 }), value: callStats?.answered ?? 0 },
+    { name: t('dashboard.charts.missed', { count: callStats?.missed ?? 0 }), value: callStats?.missed ?? 0 },
   ];
 
-  const missedCallRate = callStats?.total
-    ? ((callStats.missed / callStats.total) * 100).toFixed(1)
-    : '0';
-
-  // Obtener el nombre bonito del plan usando las traducciones de 'plan'
-  const displayPlanName = user?.planType ? t(`plan.${user.planType}.title`) : 'Pequeña Empresa';
+  const missedCallRate = callStats?.total ? ((missedCalls / callStats.total) * 100).toFixed(1) : '0';
+  const displayPlanName = user?.planType ? t(`plan.${user.planType}.title`) : t('plan.small.title');
 
   return (
     <>
@@ -168,118 +126,91 @@ export default function Dashboard() {
         <meta name="description" content={t('dashboard.description')} />
       </Helmet>
 
-      <div className="space-y-2 mt-1">
+      <div className="space-y-6 mt-1 pb-10">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.title')}</h1>
-            {/* ✅ CORRECCIÓN 1: Solucionado el "Bienvenido, Bienvenido" */}
             <p className="text-gray-600 mt-1">
               {t('dashboard.welcome', { username: user?.username || 'Usuario' })}
             </p>
           </div>
-
-          <div>
-            <LanguageSelector />
-          </div>
+          <LanguageSelector />
         </div>
 
         {/* Plan Alert */}
         {user?.planType && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>
+          <Alert className="bg-white/50 border-gray-200">
+            <AlertCircle className="h-4 w-4 text-[#FF0000]" />
+            <AlertTitle className="font-bold">
               {t('dashboard.plan.active', { plan: displayPlanName })}
             </AlertTitle>
           </Alert>
         )}
 
-        {/* Metrics */}
+        {/* Metrics Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {/* Calls Today */}
-          <Card>
+          <Card className="rounded-2xl shadow-sm border-none bg-white">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">{t('dashboard.metrics.callsToday')}</CardTitle>
               <PhoneCall className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              {loadingCalls ? (
-                <div className="h-8 bg-gray-200 animate-pulse rounded" />
-              ) : (
-                <>
-                  <div className="text-2xl font-bold">{todayCalls}</div>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                    {isCallsPositive ? (
-                      <>
-                        <TrendingUp className="h-3 w-3 text-green-600" />
-                        <span className="text-green-600">+{Math.abs(callDiff).toFixed(0)}%</span>
-                      </>
-                    ) : (
-                      <>
-                        <TrendingDown className="h-3 w-3 text-red-600" />
-                        <span className="text-red-600">-{Math.abs(callDiff).toFixed(0)}%</span>
-                      </>
-                    )}
-                    {t('dashboard.metrics.vsYesterday')}
-                  </p>
-                </>
-              )}
+              <div className="text-2xl font-bold">{todayCalls}</div>
+              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                {isCallsPositive ? <TrendingUp className="h-3 w-3 text-green-600" /> : <TrendingDown className="h-3 w-3 text-red-600" />}
+                <span className={isCallsPositive ? "text-green-600" : "text-red-600"}>
+                  {isCallsPositive ? '+' : ''}{callDiff.toFixed(0)}%
+                </span>
+                {t('dashboard.metrics.vsYesterday')}
+              </p>
             </CardContent>
           </Card>
 
-          {/* Missed Calls */}
-          <Card>
+          <Card className="rounded-2xl shadow-sm border-none bg-white">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">{t('dashboard.metrics.missedCalls')}</CardTitle>
               <Phone className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
-              {loadingCalls ? (
-                <div className="h-8 bg-gray-200 animate-pulse rounded" />
-              ) : (
-                <>
-                  <div className="text-2xl font-bold text-red-600">{missedCalls}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {t('dashboard.metrics.missedRate', { rate: missedCallRate })}
-                  </p>
-                </>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Messages Sent */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">{t('dashboard.metrics.messagesSent')}</CardTitle>
-              <MessageSquare className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              {loadingMessages ? (
-                <div className="h-8 bg-gray-200 animate-pulse rounded" />
-              ) : (
-                <>
-                  <div className="text-2xl font-bold">{totalMessages}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {t('dashboard.metrics.delivered', { count: messageStats?.delivered ?? 0 })}
-                  </p>
-                </>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Expected Revenue */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">{t('dashboard.metrics.expectedRevenue')}</CardTitle>
-              <DollarSign className="h-4 w-4 text-yellow-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                €{expectedRevenue.toLocaleString()}
-              </div>
+              <div className="text-2xl font-bold text-red-600">{missedCalls}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                {/* ✅ CORRECCIÓN 3: Mostramos el número de llamadas directamente para que no se pierda */}
-                {recoveredCalls} {t('dashboard.metrics.recoveredCalls')}
+                {t('dashboard.metrics.missedRate', { rate: missedCallRate })}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl shadow-sm border-none bg-blue-50/20 border-blue-100">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">{t('dashboard.plan.dailyUsage')}</CardTitle>
+              <TrendingUp className={`h-4 w-4 ${(stats?.usagePercentage || 0) > 80 ? 'text-red-500' : 'text-blue-600'}`} />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{messagesUsedToday} / {stats?.messagesPerDay || 5}</div>
+              <div className="w-full bg-gray-200 rounded-full h-2 mt-2 overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-500 ${(stats?.usagePercentage || 0) > 90 ? 'bg-red-500' : (stats?.usagePercentage || 0) > 70 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                  style={{ width: `${Math.min(stats?.usagePercentage || 0, 100)}%` }}
+                />
+              </div>
+              <p className="text-[10px] text-gray-500 mt-2 uppercase font-bold tracking-widest flex justify-between">
+                <span>{t('dashboard.plan.limit')}</span>
+                {(stats?.usagePercentage || 0) > 80 && <span className="text-red-500 animate-pulse font-black">{t('dashboard.plan.upgradeNow')}</span>}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl shadow-sm border-none bg-white">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">{t('dashboard.metrics.activeLines')}</CardTitle>
+              <MapPin className="h-4 w-4 text-gray-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{phoneCount}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {phoneCount === 1 
+                  ? t('dashboard.metrics.managing', { count: phoneCount }) 
+                  : t('dashboard.metrics.managing_plural', { count: phoneCount })}
               </p>
             </CardContent>
           </Card>
@@ -287,219 +218,142 @@ export default function Dashboard() {
 
         {/* Charts & Calculator */}
         <div className="grid gap-6 lg:grid-cols-2">
-          {/* Call Distribution Chart */}
-          <Card>
+          <Card className="rounded-2xl shadow-sm border-none">
             <CardHeader>
               <CardTitle>{t('dashboard.charts.callDistribution')}</CardTitle>
-              <CardDescription>
-                {t('dashboard.charts.totalCalls', { count: callStats?.total ?? 0 })}
-              </CardDescription>
+              <CardDescription>{t('dashboard.charts.totalCalls', { count: callStats?.total ?? 0 })}</CardDescription>
             </CardHeader>
             <CardContent>
-              {loadingCalls ? (
-                <div className="h-[300px] bg-gray-200 animate-pulse rounded" />
-              ) : (
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={index === 0 ? COLORS.answered : COLORS.missed}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              )}
-              <div className="flex justify-around mt-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-green-500" />
-                  <span className="text-sm">{t('dashboard.charts.answered', { count: callStats?.answered ?? 0 })}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500" />
-                  <span className="text-sm">{t('dashboard.charts.missed', { count: callStats?.missed ?? 0 })}</span>
-                </div>
-              </div>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie data={pieData} cx="50%" cy="50%" labelLine={false} label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`} outerRadius={80} fill="#8884d8" dataKey="value">
+                    {pieData.map((_, index) => <Cell key={`cell-${index}`} fill={index === 0 ? COLORS.answered : COLORS.missed} />)}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          {/* Revenue Calculator */}
-          <Card>
+          <Card className="rounded-2xl shadow-sm border-none">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calculator className="h-5 w-5" />
-                {t('dashboard.calculator.title')}
-              </CardTitle>
-              <CardDescription>
-                {t('dashboard.calculator.description')}
-              </CardDescription>
+              <CardTitle className="flex items-center gap-2"><Calculator className="h-5 w-5" />{t('dashboard.calculator.title')}</CardTitle>
+              <CardDescription>{t('dashboard.calculator.description')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="averageTicket">{t('dashboard.calculator.averageTicket')}</Label>
-                <Input
-                  id="averageTicket"
-                  type="number"
-                  value={averageTicket}
-                  onChange={(e) => setAverageTicket(e.target.value)}
-                  placeholder="50"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="conversionRate">{t('dashboard.calculator.conversionRate')}</Label>
-                <Input
-                  id="conversionRate"
-                  type="number"
-                  value={conversionRate}
-                  onChange={(e) => setConversionRate(e.target.value)}
-                  placeholder="30"
-                  max="100"
-                />
-              </div>
-
-              <div className="pt-4 border-t">
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">{t('dashboard.calculator.missedCalls')}</span>
-                    <span className="font-medium">{missedCalls}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">{t('dashboard.calculator.recoveredCalls', { rate: conversionRate })}</span>
-                    <span className="font-medium">{recoveredCalls}</span>
-                  </div>
-                  <div className="flex justify-between text-lg font-bold pt-2 border-t">
-                    <span>{t('dashboard.calculator.estimatedRevenue')}</span>
-                    <span className="text-green-600">€{expectedRevenue.toLocaleString()}</span>
-                  </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs uppercase font-bold text-gray-400">{t('dashboard.calculator.averageTicket')}</Label>
+                  <Input type="number" value={averageTicket} onChange={(e) => setAverageTicket(e.target.value)} className="h-10 rounded-xl" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs uppercase font-bold text-gray-400">{t('dashboard.calculator.conversionRate')}</Label>
+                  <Input type="number" value={conversionRate} onChange={(e) => setConversionRate(e.target.value)} className="h-10 rounded-xl" />
                 </div>
               </div>
-
-              <Alert className="bg-blue-50 border-blue-200">
-                <AlertDescription className="text-sm text-blue-800">
-                  {t('dashboard.calculator.tip')}
-                </AlertDescription>
-              </Alert>
+              <div className="pt-4 border-t space-y-3">
+                <div className="flex justify-between text-lg font-black text-green-600">
+                  <span>{t('dashboard.metrics.recoverableRevenue')}</span>
+                  <span>€{expectedRevenue.toLocaleString()}</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Recent Calls Table */}
-        <Card>
+        {/* Tabla de Llamadas */}
+        <Card className="rounded-2xl shadow-sm border-none overflow-hidden">
           <CardHeader>
             <CardTitle>{t('dashboard.recentCalls.title')}</CardTitle>
             <CardDescription>{t('dashboard.recentCalls.description')}</CardDescription>
           </CardHeader>
           <CardContent>
             {recentCalls.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <Phone className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>{t('dashboard.recentCalls.noCalls')}</p>
-                <p className="text-sm mt-1">{t('dashboard.recentCalls.info')}</p>
-                <Button variant="outline" className="mt-4" asChild>
-                  <Link href="/locations">
-                    <a className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-2" />
-                      {t('dashboard.recentCalls.configureLocations')}
-                    </a>
-                  </Link>
-                </Button>
-              </div>
+              <div className="text-center py-10 text-gray-400"><p>{t('dashboard.recentCalls.noCalls')}</p></div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t('dashboard.recentCalls.table.number')}</TableHead>
                     <TableHead>{t('dashboard.recentCalls.table.status')}</TableHead>
-                    <TableHead>{t('dashboard.recentCalls.table.duration')}</TableHead>
                     <TableHead>{t('dashboard.recentCalls.table.location')}</TableHead>
-                    <TableHead>{t('dashboard.recentCalls.table.time')}</TableHead>
+                    <TableHead className="text-right">{t('dashboard.recentCalls.table.time')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {recentCalls.map((call) => {
-                    const location = locations.find(l => l.id === call.routedToLocation);
-                    return (
-                      <TableRow key={call.id}>
-                        <TableCell className="font-medium">{call.callerNumber}</TableCell>
-                        <TableCell>
-                          <Badge variant={call.status === 'missed' ? 'destructive' : 'default'}>
-                            {call.status === 'missed'
-                              ? t('dashboard.recentCalls.table.missed')
-                              : t('dashboard.recentCalls.table.answered')}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{call.duration > 0 ? `${call.duration}s` : '-'}</TableCell>
-                        <TableCell>{location?.name || 'N/A'}</TableCell>
-                        <TableCell className="text-gray-500">
-                          {new Date(call.createdAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                  {recentCalls.map((call) => (
+                    <TableRow key={call.id}>
+                      <TableCell className="font-medium">{call.callerNumber}</TableCell>
+                      <TableCell>
+                        <Badge variant={call.status === 'missed' ? 'destructive' : 'default'}>
+                          {call.status === 'missed' ? t('dashboard.recentCalls.table.missed') : t('dashboard.recentCalls.table.answered')}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{locations.find(l => l.id === call.routedToLocation)?.name || t('dashboard.table.general')}</TableCell>
+                      <TableCell className="text-right text-gray-400">
+                        {new Date(call.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             )}
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
+        {/* ✅ QUICK ACTIONS GRID (RESTAURADO) */}
         <div className="grid gap-4 md:grid-cols-3">
-          {/* Locations */}
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
-            <Link href="/locations" className="block">
+          {/* Tarjeta Establecimientos */}
+          <Link href="/locations">
+            <Card className="hover:shadow-md transition-all cursor-pointer group rounded-2xl border-none">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">{t('dashboard.quickActions.locations')}</CardTitle>
-                <MapPin className="h-4 w-4 text-gray-600" />
+                <CardTitle className="text-sm font-bold group-hover:text-[#FF0000] transition-colors">
+                  {t('dashboard.quickActions.locations')}
+                </CardTitle>
+                <MapPin className="h-4 w-4 text-gray-400 group-hover:text-[#FF0000]" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{locations.length}</div>
                 <p className="text-xs text-muted-foreground">{t('dashboard.quickActions.manageLocations')}</p>
               </CardContent>
-            </Link>
-          </Card>
+            </Card>
+          </Link>
 
-          {/* Templates */}
+          {/* Tarjeta Templates */}
           {hasAccessToSection('templates') && (
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <Link href="/templates" className="block">
+            <Link href="/templates">
+              <Card className="hover:shadow-md transition-all cursor-pointer group rounded-2xl border-none">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">{t('dashboard.quickActions.templates')}</CardTitle>
-                  <FileText className="h-4 w-4 text-gray-600" />
+                  <CardTitle className="text-sm font-bold group-hover:text-[#FF0000] transition-colors">
+                    {t('dashboard.quickActions.templates')}
+                  </CardTitle>
+                  <FileText className="h-4 w-4 text-gray-400 group-hover:text-[#FF0000]" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">-</div>
                   <p className="text-xs text-muted-foreground">{t('dashboard.quickActions.manageTemplates')}</p>
                 </CardContent>
-              </Link>
-            </Card>
+              </Card>
+            </Link>
           )}
 
-          {/* Your Plan */}
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
-            <Link href="/plan" className="block">
+          {/* Tarjeta Plan */}
+          <Link href="/plan">
+            <Card className="hover:shadow-md transition-all cursor-pointer group rounded-2xl border-none">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">{t('dashboard.quickActions.yourPlan')}</CardTitle>
-                <TrendingUp className="h-4 w-4 text-gray-600" />
+                <CardTitle className="text-sm font-bold group-hover:text-[#FF0000] transition-colors">
+                  {t('dashboard.quickActions.yourPlan')}
+                </CardTitle>
+                <TrendingUp className="h-4 w-4 text-gray-400 group-hover:text-[#FF0000]" />
               </CardHeader>
               <CardContent>
-                <div className="text-sm font-medium capitalize">{displayPlanName}</div>
+                <div className="text-sm font-bold capitalize text-gray-700">
+                  {displayPlanName}
+                </div>
                 <p className="text-xs text-muted-foreground">{t('dashboard.quickActions.upgradePlan')}</p>
               </CardContent>
-            </Link>
-          </Card>
+            </Card>
+          </Link>
         </div>
       </div>
     </>

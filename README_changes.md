@@ -1,83 +1,50 @@
-# 🧾 Resumen de cambios recientes – Proyecto Lean Refactored
+## Estado del Proyecto UNMI (Última actualización: Diseño de Landing Page & Planes)
 
-## ⚙️ Configuración general
-- Eliminado componente **`ChoosePlan.tsx`**.  
-- Cambiado el **puerto de desarrollo** a **5001** en `vite.config.ts`.  
-- Corregidas importaciones globales:
-  - `import { cn } from "@/lib/utils"` → ✅ `import { cn } from "@/utils/cn"`.  
-- Inicializado **Git** (`git init`) y configurado `.gitignore` para excluir:
-  - `node_modules/`
-  - `dist/`
-  - `.env`
-  - `.vscode/`
-- Instaladas dependencias con **npm**.  
-- Conexión configurada con **Supabase** y **Stripe**.  
+### Contexto General Analizado:
+- **Arquitectura**: Monorepositorio (Frontend en React/Vite + Backend en Node/Express).
+- **Base de datos**: Supabase (PostgreSQL).
+- **Despliegue**: Render.com (Backend y Frontend).
+- **Proveedor de Telefonía**: **Telnyx** (V2 API).
 
----
+### Avances Realizados (Frontend - Landing Page):
 
-## 🧩 Configuración TypeScript / Vite
-- Creado archivo **`tsconfig.node.json`** para compatibilidad completa con ES2020:
+1. **Efectos Visuales Premium**:
+   - **Meteors**: Se implementó un componente de fondo animado con meteoritos que cubre toda la Landing Page, dando un aspecto dinámico y moderno.
+   - **Spotlight (GlowCard)**: Se creó un componente interactivo que genera un haz de luz siguiendo el cursor del usuario. Se ha aplicado a todas las tarjetas de la página (Cómo funciona, Características, Precios, FAQ, Cierre).
 
-  ```json
-  {
-    "compilerOptions": {
-      "composite": true,
-      "module": "ESNext",
-      "moduleResolution": "Node",
-      "allowSyntheticDefaultImports": true,
-      "esModuleInterop": true,
-      "target": "ES2020",
-      "lib": ["ES2020", "DOM"]
-    },
-    "include": ["vite.config.ts"]
-  }
-  ```
+2. **Navegación e Interfaz**:
+   - **Navbar Interactivo**: Los enlaces se transformaron en botones estilo "pastilla" con efectos hover. Se implementó el "Smooth Scroll" (`scrollToSection`) para navegar suavemente por la misma página sin recargar.
+   - **Dark Mode**: Se arregló la lógica del hook `useTheme.tsx` para aplicar correctamente la clase `dark` al DOM y guardar la preferencia en `localStorage`, resolviendo problemas de renderizado de React.
 
-- Referenciado correctamente desde el `tsconfig.json` principal:
+3. **Sección de Precios (Hoy)**:
+   - **Estructura de 3 Niveles**: Implementación de planes **Pequeña Empresa (60€)**, **UNMI Pro (120€)** y el nuevo **UNMI Premium (200€)**.
+   - **Unificación de Zoom**: Se aplicó un efecto de animación suave (`whileHover`) idéntico para las tres tarjetas (scale 1.05 y desplazamiento vertical).
+   - **Consistencia de Colores**: Eliminación de colores no corporativos (azul) y ajuste de los checks al estilo UNMI.
 
-  ```json
-  "references": [{ "path": "./tsconfig.node.json" }]
-  ```
+4. **Nuevas Secciones y Funcionalidades**:
+   - **Chatbots (Soon)**: Se ha deshabilitado la pestaña de Chatbot Inteligente en la Landing, añadiendo una etiqueta **"Soon"** en el amarillo oficial (#F59E0B) para indicar desarrollo futuro.
+   - **Cómo Funciona**: Diseño visual en 3 pasos mediante tarjetas `GlowCard` translúcidas.
+   - **FAQ (Preguntas Frecuentes)**: Integración del componente `Accordion` dentro de una tarjeta destacada.
+   - **Cierre (CTA)**: Tarjeta final de gran formato invitando al registro.
 
----
+5. **Diseño Responsivo (Móvil)**:
+   - Ajuste de fuentes (`h1`, `h2`, `h3`) para móviles.
+   - Incremento de márgenes de seguridad (`px-4` a `px-6`).
+   - Reducción del padding interno de las tarjetas y redimensionamiento de iconos en la vista móvil.
 
-## 🔐 Sistema de autenticación unificado
-- Unificados archivos **`authcontext.tsx`** y **`use-auth.tsx`** en un único contexto global.  
-- Eliminado conflicto con variable duplicada `useAuth`.  
-- Nueva implementación centralizada con:
-  - Manejo de **login**, **registro**, **logout**, **actualización de plan** y **validación de acceso**.  
-  - Validación de datos con **Zod** (`loginSchema`, `registerSchema`).  
-  - Gestión de token y sesión a través de `localStorage`.  
-  - Control de estado global (`isLoading`, `error`, `user`).  
-- Añadido soporte para refrescar usuario (`refreshUser`) y validación por plan (`updateUserPlan`, `hasAccessToSection`).  
+### Avances Previos (Integración Telnyx):
 
----
+1. **Backend - Infraestructura de Voz**:
+   - Instalación del SDK `telnyx`.
+   - Creado `TelnyxService.ts` y webhook `/api/webhooks/telnyx` para capturar eventos de llamadas (`call.initiated`, `call.answered`, etc.).
+   - Entorno Ngrok configurado y número de teléfono de prueba adquirido. Script de test superado.
 
-## 🧠 Integración con AuthPage
-- `AuthPage` actualizado para trabajar directamente con **AuthContext**.  
-- Integrados los esquemas y tipos (`zodResolver`, `loginSchema`, `registerSchema`, `LoginData`, `RegisterData`).  
-- Eliminadas funciones duplicadas y referencias rotas.  
-- Mejorada la compatibilidad entre formularios de inicio de sesión y registro.  
+### Próximos pasos pendientes para la siguiente sesión:
 
----
+**Opciones de Frontend**:
+- Refinar el diseño de las páginas internas (**Dashboard**, **Auth**) para que sean coherentes con la nueva estética de la Landing.
 
-## 📍 Gestión de Ubicaciones y Teléfonos
-- Integrada la relación **Locations ↔ PhoneNumbers** para mostrar y editar números desde cada ubicación.  
-- Añadidas queries separadas para **locations** y **phone-numbers**, combinadas en `locationsWithPhones`.  
-- Soporte completo para **crear y actualizar números** al editar o crear ubicaciones.  
-- Corregido warning de TypeScript sobre `phoneNumberId` (`null` → `undefined`).  
-- UI mejorada: **Cards** muestran correctamente el número configurado y permiten edición directa.  
-
-
----
-
-
-## ✅ Estado actual
-El sistema se encuentra:
-- **Unificado y funcional** en la gestión de autenticación.  
-- **Optimizado** para entorno ES2020 y compatibilidad Node/Vite.  
-- **Listo para continuar el desarrollo** con estructura limpia y coherente.  
-
----
-
-📅 *Última actualización:* 19/10/2025
+**Opciones de Backend (Telefonía)**:
+- Retomar la implementación de la lógica de respuesta de voz (IVR) usando Call Control de Telnyx (Text-to-Speech o archivos de audio).
+- Configurar el flujo de desvío de llamadas dinámico (simular la llamada perdida).
+- Iniciar el proceso de verificación eKYC en Telnyx para adquirir números de España (+34).
