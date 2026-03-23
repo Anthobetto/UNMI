@@ -352,7 +352,7 @@ export default function LandingPage(): JSX.Element {
               transition={{ duration: 0.5 }}
               className="text-center max-w-3xl mx-auto mb-12"
             >
-              <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70 leading-tight px-4">
+              <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-5xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70 leading-snug pb-2 px-4">
                 {t("hero.title", "Transform Your Business Communication Strategy")}
               </h1>
               <p className="text-sm sm:text-base md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto px-6">
