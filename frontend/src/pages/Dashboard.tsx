@@ -3,46 +3,34 @@ import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { cn } from "@/utils/cn";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   PhoneCall,
-  MessageSquare,
   TrendingUp,
   TrendingDown,
-  DollarSign,
-  Calculator,
   MapPin,
   FileText,
   Phone,
-  AlertCircle,
+  Activity,
+  ChevronRight,
+  PieChart as PieIcon,
+  Calculator as CalcIcon
 } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Link } from 'wouter';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
-import { LanguageSelector } from '@/components/LanguageSelector';
 import { usePlanStats } from '@/hooks/usePlans';
 
 const COLORS = {
-  answered: '#10b981',
-  missed: '#ef4444',
+  answered: '#003366', // UNMI Blue
+  missed: '#FF0000',   // UNMI Red
 };
 
 interface CallStats {
@@ -71,7 +59,7 @@ interface Call {
 
 export default function Dashboard() {
   const { t } = useTranslation();
-  const { user, hasAccessToSection } = useAuth();
+  const { user } = useAuth();
   const [averageTicket, setAverageTicket] = useState('50');
   const [conversionRate, setConversionRate] = useState('30');
 
@@ -117,245 +105,275 @@ export default function Dashboard() {
   ];
 
   const missedCallRate = callStats?.total ? ((missedCalls / callStats.total) * 100).toFixed(1) : '0';
-  const displayPlanName = user?.planType ? t(`plan.${user.planType}.title`) : t('plan.small.title');
 
   return (
     <>
       <Helmet>
         <title>{t('dashboard.title')} - UNMI</title>
-        <meta name="description" content={t('dashboard.description')} />
       </Helmet>
 
-      <div className="space-y-6 mt-1 pb-10">
-        {/* Header */}
-        <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-y-8">
+        {/* Header Section */}
+        <div className="flex items-center gap-3">
+          <div className="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center border border-slate-100">
+            <Activity className="h-6 w-6 text-[#003366]" />
+          </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.title')}</h1>
-            <p className="text-gray-600 mt-1">
+            <h2 className="text-xl font-bold text-slate-900 leading-tight">
+              {t('dashboard.title')}
+            </h2>
+            <p className="text-sm font-medium text-slate-400">
               {t('dashboard.welcome', { username: user?.username || 'Usuario' })}
             </p>
           </div>
-          <LanguageSelector />
         </div>
-
-        {/* Plan Alert */}
-        {user?.planType && (
-          <Alert className="bg-white/50 border-gray-200">
-            <AlertCircle className="h-4 w-4 text-[#FF0000]" />
-            <AlertTitle className="font-bold">
-              {t('dashboard.plan.active', { plan: displayPlanName })}
-            </AlertTitle>
-          </Alert>
-        )}
 
         {/* Metrics Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="rounded-2xl shadow-sm border-none bg-white">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">{t('dashboard.metrics.callsToday')}</CardTitle>
-              <PhoneCall className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{todayCalls}</div>
-              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                {isCallsPositive ? <TrendingUp className="h-3 w-3 text-green-600" /> : <TrendingDown className="h-3 w-3 text-red-600" />}
-                <span className={isCallsPositive ? "text-green-600" : "text-red-600"}>
-                  {isCallsPositive ? '+' : ''}{callDiff.toFixed(0)}%
-                </span>
-                {t('dashboard.metrics.vsYesterday')}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-2xl shadow-sm border-none bg-white">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">{t('dashboard.metrics.missedCalls')}</CardTitle>
-              <Phone className="h-4 w-4 text-red-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">{missedCalls}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {t('dashboard.metrics.missedRate', { rate: missedCallRate })}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-2xl shadow-sm border-none bg-blue-50/20 border-blue-100">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">{t('dashboard.plan.dailyUsage')}</CardTitle>
-              <TrendingUp className={`h-4 w-4 ${(stats?.usagePercentage || 0) > 80 ? 'text-red-500' : 'text-blue-600'}`} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{messagesUsedToday} / {stats?.messagesPerDay || 5}</div>
-              <div className="w-full bg-gray-200 rounded-full h-2 mt-2 overflow-hidden">
-                <div
-                  className={`h-full transition-all duration-500 ${(stats?.usagePercentage || 0) > 90 ? 'bg-red-500' : (stats?.usagePercentage || 0) > 70 ? 'bg-yellow-500' : 'bg-green-500'}`}
-                  style={{ width: `${Math.min(stats?.usagePercentage || 0, 100)}%` }}
-                />
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <Card className="rounded-[2.5rem] border-none bg-white p-8 shadow-sm transition-hover hover:shadow-md">
+            <div className="flex items-start justify-between mb-6">
+              <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center">
+                <PhoneCall className="h-6 w-6 text-[#003366]" />
               </div>
-              <p className="text-[10px] text-gray-500 mt-2 uppercase font-bold tracking-widest flex justify-between">
-                <span>{t('dashboard.plan.limit')}</span>
-                {(stats?.usagePercentage || 0) > 80 && <span className="text-red-500 animate-pulse font-black">{t('dashboard.plan.upgradeNow')}</span>}
-              </p>
-            </CardContent>
+              <span className={cn("text-xs font-bold px-2 py-1 rounded-full", isCallsPositive ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-red-600")}>
+                {isCallsPositive ? '+' : ''}{callDiff.toFixed(0)}%
+              </span>
+            </div>
+            <h4 className="text-4xl font-black text-slate-900 mb-1">{todayCalls}</h4>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('dashboard.metrics.callsToday')}</p>
           </Card>
 
-          <Card className="rounded-2xl shadow-sm border-none bg-white">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">{t('dashboard.metrics.activeLines')}</CardTitle>
-              <MapPin className="h-4 w-4 text-gray-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{phoneCount}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {phoneCount === 1 
-                  ? t('dashboard.metrics.managing', { count: phoneCount }) 
-                  : t('dashboard.metrics.managing_plural', { count: phoneCount })}
-              </p>
-            </CardContent>
+          <Card className="rounded-[2.5rem] border-none bg-white p-8 shadow-sm transition-hover hover:shadow-md">
+            <div className="flex items-start justify-between mb-6">
+              <div className="h-12 w-12 rounded-2xl bg-rose-50 flex items-center justify-center">
+                <Phone className="h-6 w-6 text-red-600" />
+              </div>
+              <span className="text-xs font-bold px-2 py-1 rounded-full bg-rose-50 text-red-600">
+                {missedCallRate}%
+              </span>
+            </div>
+            <h4 className="text-4xl font-black text-slate-900 mb-1">{missedCalls}</h4>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('dashboard.metrics.missedCalls')}</p>
+          </Card>
+
+          <Card className="rounded-[2.5rem] border-none bg-white p-8 shadow-sm transition-hover hover:shadow-md">
+            <div className="flex items-start justify-between mb-6">
+              <div className="h-12 w-12 rounded-2xl bg-amber-50 flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-amber-600" />
+              </div>
+              <span className="text-xs font-bold px-2 py-1 rounded-full bg-amber-50 text-amber-600">
+                {Math.min(stats?.usagePercentage || 0, 100)}%
+              </span>
+            </div>
+            <h4 className="text-4xl font-black text-slate-900 mb-1">{messagesUsedToday}</h4>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('dashboard.plan.dailyUsage')}</p>
+          </Card>
+
+          <Card className="rounded-[2.5rem] border-none bg-white p-8 shadow-sm transition-hover hover:shadow-md">
+            <div className="flex items-start justify-between mb-6">
+              <div className="h-12 w-12 rounded-2xl bg-indigo-50 flex items-center justify-center">
+                <MapPin className="h-6 w-6 text-indigo-600" />
+              </div>
+            </div>
+            <h4 className="text-4xl font-black text-slate-900 mb-1">{phoneCount}</h4>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('dashboard.metrics.activeLines')}</p>
           </Card>
         </div>
 
-        {/* Charts & Calculator */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Card className="rounded-2xl shadow-sm border-none">
-            <CardHeader>
-              <CardTitle>{t('dashboard.charts.callDistribution')}</CardTitle>
-              <CardDescription>{t('dashboard.charts.totalCalls', { count: callStats?.total ?? 0 })}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
+        {/* Charts Section */}
+        <div className="grid grid-cols-12 gap-6">
+          <Card className="col-span-12 lg:col-span-8 rounded-[2.5rem] border-none bg-white p-10 shadow-sm">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center">
+                <PieIcon className="h-5 w-5 text-[#003366]" />
+              </div>
+              <div>
+                <h4 className="text-lg font-bold text-slate-900 leading-tight">
+                  {t('dashboard.charts.callDistribution')}
+                </h4>
+                <p className="text-xs font-medium text-slate-400">Distribución de asistencia</p>
+              </div>
+            </div>
+
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={pieData} cx="50%" cy="50%" labelLine={false} label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`} outerRadius={80} fill="#8884d8" dataKey="value">
+                  <Pie 
+                    data={pieData} 
+                    cx="50%" 
+                    cy="50%" 
+                    innerRadius={80} 
+                    outerRadius={110} 
+                    paddingAngle={5} 
+                    cornerRadius={10}
+                    dataKey="value"
+                  >
                     {pieData.map((_, index) => <Cell key={`cell-${index}`} fill={index === 0 ? COLORS.answered : COLORS.missed} />)}
                   </Pie>
                   <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
-            </CardContent>
+            </div>
           </Card>
 
-          <Card className="rounded-2xl shadow-sm border-none">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Calculator className="h-5 w-5" />{t('dashboard.calculator.title')}</CardTitle>
-              <CardDescription>{t('dashboard.calculator.description')}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs uppercase font-bold text-gray-400">{t('dashboard.calculator.averageTicket')}</Label>
-                  <Input type="number" value={averageTicket} onChange={(e) => setAverageTicket(e.target.value)} className="h-10 rounded-xl" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs uppercase font-bold text-gray-400">{t('dashboard.calculator.conversionRate')}</Label>
-                  <Input type="number" value={conversionRate} onChange={(e) => setConversionRate(e.target.value)} className="h-10 rounded-xl" />
-                </div>
+          <Card className="col-span-12 lg:col-span-4 rounded-[2.5rem] border-none bg-white p-10 shadow-sm">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center">
+                <CalcIcon className="h-5 w-5 text-[#003366]" />
               </div>
-              <div className="pt-4 border-t space-y-3">
-                <div className="flex justify-between text-lg font-black text-green-600">
-                  <span>{t('dashboard.metrics.recoverableRevenue')}</span>
-                  <span>€{expectedRevenue.toLocaleString()}</span>
-                </div>
+              <div>
+                <h4 className="text-lg font-bold text-slate-900 leading-tight">
+                  {t('dashboard.calculator.title')}
+                </h4>
+                <p className="text-xs font-medium text-slate-400">Calcula tu retorno</p>
               </div>
-            </CardContent>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('dashboard.calculator.averageTicket')}</Label>
+                <Input type="number" value={averageTicket} onChange={(e) => setAverageTicket(e.target.value)} className="h-12 rounded-2xl bg-slate-50 border-none font-bold" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('dashboard.calculator.conversionRate')}</Label>
+                <Input type="number" value={conversionRate} onChange={(e) => setConversionRate(e.target.value)} className="h-12 rounded-2xl bg-slate-50 border-none font-bold" />
+              </div>
+              
+              <div className="mt-10 pt-10 border-t border-slate-50">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{t('dashboard.metrics.recoverableRevenue')}</p>
+                <h4 className="text-4xl font-black text-emerald-500">€{expectedRevenue.toLocaleString()}</h4>
+              </div>
+            </div>
           </Card>
         </div>
 
-        {/* Tabla de Llamadas */}
-        <Card className="rounded-2xl shadow-sm border-none overflow-hidden">
-          <CardHeader>
-            <CardTitle>{t('dashboard.recentCalls.title')}</CardTitle>
-            <CardDescription>{t('dashboard.recentCalls.description')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {recentCalls.length === 0 ? (
-              <div className="text-center py-10 text-gray-400"><p>{t('dashboard.recentCalls.noCalls')}</p></div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('dashboard.recentCalls.table.number')}</TableHead>
-                    <TableHead>{t('dashboard.recentCalls.table.status')}</TableHead>
-                    <TableHead>{t('dashboard.recentCalls.table.location')}</TableHead>
-                    <TableHead className="text-right">{t('dashboard.recentCalls.table.time')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentCalls.map((call) => (
-                    <TableRow key={call.id}>
-                      <TableCell className="font-medium">{call.callerNumber}</TableCell>
-                      <TableCell>
-                        <Badge variant={call.status === 'missed' ? 'destructive' : 'default'}>
-                          {call.status === 'missed' ? t('dashboard.recentCalls.table.missed') : t('dashboard.recentCalls.table.answered')}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{locations.find(l => l.id === call.routedToLocation)?.name || t('dashboard.table.general')}</TableCell>
-                      <TableCell className="text-right text-gray-400">
-                        {new Date(call.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
+        {/* Recent Calls List */}
+        <Card className="rounded-[2.5rem] border-none bg-white p-10 shadow-sm">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center">
+                <Phone className="h-5 w-5 text-[#003366]" />
+              </div>
+              <div>
+                <h4 className="text-lg font-bold text-slate-900 leading-tight">
+                  {t('dashboard.recentCalls.title')}
+                </h4>
+                <p className="text-xs font-medium text-slate-400">Últimas interacciones</p>
+              </div>
+            </div>
+            <Link href="/telefonia" className="text-sm font-bold text-[#003366] hover:underline flex items-center gap-1">
+              Ver todo <ChevronRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          <div className="space-y-4">
+            {recentCalls.map((call) => (
+              <div key={call.id} className="flex items-center justify-between p-4 rounded-3xl bg-slate-50 transition-hover hover:bg-slate-100">
+                <div className="flex items-center gap-4">
+                  <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center", call.status === 'missed' ? "bg-rose-100 text-red-600" : "bg-emerald-100 text-emerald-600")}>
+                    {call.status === 'missed' ? <PhoneMissed className="h-5 w-5" /> : <PhoneIncoming className="h-5 w-5" />}
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-900">{call.callerNumber}</p>
+                    <p className="text-xs font-medium text-slate-400">
+                      {locations.find(l => l.id === call.routedToLocation)?.name || t('dashboard.table.general')}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-slate-900">
+                    {new Date(call.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">
+                    {call.status === 'missed' ? t('dashboard.recentCalls.table.missed') : t('dashboard.recentCalls.table.answered')}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
         </Card>
 
-        {/* ✅ QUICK ACTIONS GRID (RESTAURADO) */}
-        <div className="grid gap-4 md:grid-cols-3">
-          {/* Tarjeta Establecimientos */}
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 pb-10">
           <Link href="/locations">
-            <Card className="hover:shadow-md transition-all cursor-pointer group rounded-2xl border-none">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-bold group-hover:text-[#FF0000] transition-colors">
-                  {t('dashboard.quickActions.locations')}
-                </CardTitle>
-                <MapPin className="h-4 w-4 text-gray-400 group-hover:text-[#FF0000]" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{locations.length}</div>
-                <p className="text-xs text-muted-foreground">{t('dashboard.quickActions.manageLocations')}</p>
-              </CardContent>
+            <Card className="rounded-[2rem] border-none bg-white p-8 shadow-sm transition-all hover:shadow-md hover:-translate-y-1 cursor-pointer flex items-center gap-4 group">
+              <div className="h-14 w-14 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 transition-colors group-hover:bg-[#003366] group-hover:text-white">
+                <MapPin className="h-7 w-7" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900">{t('dashboard.quickActions.locations')}</h4>
+                <p className="text-xs font-medium text-slate-400">{t('dashboard.quickActions.manageLocations')}</p>
+              </div>
             </Card>
           </Link>
 
-          {/* Tarjeta Templates */}
-          {hasAccessToSection('templates') && (
-            <Link href="/templates">
-              <Card className="hover:shadow-md transition-all cursor-pointer group rounded-2xl border-none">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-bold group-hover:text-[#FF0000] transition-colors">
-                    {t('dashboard.quickActions.templates')}
-                  </CardTitle>
-                  <FileText className="h-4 w-4 text-gray-400 group-hover:text-[#FF0000]" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">-</div>
-                  <p className="text-xs text-muted-foreground">{t('dashboard.quickActions.manageTemplates')}</p>
-                </CardContent>
-              </Card>
-            </Link>
-          )}
+          <Link href="/templates">
+            <Card className="rounded-[2rem] border-none bg-white p-8 shadow-sm transition-all hover:shadow-md hover:-translate-y-1 cursor-pointer flex items-center gap-4 group">
+              <div className="h-14 w-14 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 transition-colors group-hover:bg-[#003366] group-hover:text-white">
+                <FileText className="h-7 w-7" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900">{t('dashboard.quickActions.templates')}</h4>
+                <p className="text-xs font-medium text-slate-400">{t('dashboard.quickActions.manageTemplates')}</p>
+              </div>
+            </Card>
+          </Link>
 
-          {/* Tarjeta Plan */}
           <Link href="/plan">
-            <Card className="hover:shadow-md transition-all cursor-pointer group rounded-2xl border-none">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-bold group-hover:text-[#FF0000] transition-colors">
-                  {t('dashboard.quickActions.yourPlan')}
-                </CardTitle>
-                <TrendingUp className="h-4 w-4 text-gray-400 group-hover:text-[#FF0000]" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-sm font-bold capitalize text-gray-700">
-                  {displayPlanName}
-                </div>
-                <p className="text-xs text-muted-foreground">{t('dashboard.quickActions.upgradePlan')}</p>
-              </CardContent>
+            <Card className="rounded-[2rem] border-none bg-white p-8 shadow-sm transition-all hover:shadow-md hover:-translate-y-1 cursor-pointer flex items-center gap-4 group">
+              <div className="h-14 w-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 transition-colors group-hover:bg-[#003366] group-hover:text-white">
+                <TrendingUp className="h-7 w-7" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900">{t('dashboard.quickActions.yourPlan')}</h4>
+                <p className="text-xs font-medium text-slate-400">{t('dashboard.quickActions.upgradePlan')}</p>
+              </div>
             </Card>
           </Link>
         </div>
       </div>
     </>
+  );
+}
+
+function PhoneIncoming(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="16 2 22 8 16 14" />
+      <line x1="2" y1="22" x2="22" y2="2" />
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.7 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+    </svg>
+  );
+}
+
+function PhoneMissed(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="23" y1="1" x2="17" y2="7" />
+      <line x1="17" y1="1" x2="23" y2="7" />
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.7 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+    </svg>
   );
 }

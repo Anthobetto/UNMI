@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Switch, Route, Redirect } from 'wouter';
 import { HelmetProvider } from 'react-helmet-async';
@@ -5,6 +6,7 @@ import { queryClient } from '@/lib/queryClient';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Sidebar } from '@/components/nav/sidebar';
+import { Header } from '@/components/nav/header';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 import '@/i18n/config';
@@ -22,6 +24,7 @@ import Plan from '@/pages/Plan';
 
 function Router() {
   const { isLoading, user } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -42,33 +45,39 @@ function Router() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      
-      <Sidebar />
+    <div className="flex h-screen overflow-hidden bg-[#F8FAFC]">
+      {/* Sidebar - FichajeSimple Style */}
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
+      {/* Main Content Area */}
+      <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
+        {/* Header - FichajeSimple Style */}
+        <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-      <main className="md:pl-64 min-h-screen transition-all duration-300">
-        <div className="p-4 md:p-8 max-w-7xl mx-auto"> 
-          <Switch>
-            <Route path="/" component={Dashboard} />
-            <Route path="/dashboard" component={Dashboard} />
-            <Route path="/rentabilidad-unmi" component={RentabilidadUNMI} />
-            <Route path="/telefonia" component={Telefonia} />
-            <Route path="/templates" component={Templates} />
-            <Route path="/chatbots" component={Chatbots} />
-            <Route path="/locations" component={Locations} />
-            <Route path="/plan" component={Plan} />
-            <Route path="/auth"><Redirect to="/dashboard" /></Route>
-            <Route>
-              <div className="p-6 text-center mt-20">
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
-                <p>Page not found</p>
-                <a href="/dashboard" className="text-blue-600 hover:underline">Back to Dashboard</a>
-              </div>
-            </Route>
-          </Switch>
-        </div>
-      </main>
+        {/* Content */}
+        <main className="flex-1">
+          <div className="mx-auto max-w-[1600px] p-4 md:p-6 lg:p-8">
+            <Switch>
+              <Route path="/" component={Dashboard} />
+              <Route path="/dashboard" component={Dashboard} />
+              <Route path="/rentabilidad-unmi" component={RentabilidadUNMI} />
+              <Route path="/telefonia" component={Telefonia} />
+              <Route path="/templates" component={Templates} />
+              <Route path="/chatbots" component={Chatbots} />
+              <Route path="/locations" component={Locations} />
+              <Route path="/plan" component={Plan} />
+              <Route path="/auth"><Redirect to="/dashboard" /></Route>
+              <Route>
+                <div className="p-6 text-center mt-20">
+                  <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
+                  <p>Page not found</p>
+                  <a href="/dashboard" className="text-blue-600 hover:underline">Back to Dashboard</a>
+                </div>
+              </Route>
+            </Switch>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

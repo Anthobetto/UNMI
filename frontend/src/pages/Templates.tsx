@@ -1,8 +1,6 @@
-"use client"
-
 import { useState, useMemo } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { useTranslation } from "react-i18next" // AÑADIDO
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,11 +8,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, Phone, ExternalLink, MessageSquare } from "lucide-react"
+import { Plus, Search, Phone, ExternalLink, MessageSquare, FileText, Filter, ChevronRight, Clock } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
-import { LanguageSelector } from "@/components/LanguageSelector"
+import { cn } from "@/utils/cn"
+import { Link } from "wouter"
+import { Helmet } from 'react-helmet-async';
 
 // Tipos
 type TemplateCategory = "UTILITY" | "AUTHENTICATION" | "MARKETING" | "SERVICE"
@@ -46,7 +46,7 @@ interface Template {
 
 export default function TemplatesPage() {
   const { user } = useAuth()
-  const { t } = useTranslation() // AÑADIDO
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [searchTerm, setSearchTerm] = useState("")
   const [filterCategory, setFilterCategory] = useState<string>("all")
@@ -54,7 +54,6 @@ export default function TemplatesPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
 
-  // Fetch templates
   const { data: templates = [], isLoading } = useQuery({
     queryKey: ["templates", user?.id],
     queryFn: async () => {
@@ -65,7 +64,6 @@ export default function TemplatesPage() {
     enabled: !!user,
   })
 
-  // Filtered templates
   const filteredTemplates = useMemo(() => {
     return templates.filter((template: Template) => {
       const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -76,156 +74,137 @@ export default function TemplatesPage() {
   }, [templates, searchTerm, filterCategory, filterStatus])
 
   return (
-    <div className="space-y-2 mt-1">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">{t('templates.title')}</h1>
-            <p className="text-gray-600 mt-1">{t('templates.subtitle')}</p>
+    <>
+      <Helmet>
+        <title>{t('templates.title')} - UNMI</title>
+      </Helmet>
+
+      <div className="flex flex-col gap-y-8 pb-10">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center border border-slate-100">
+              <FileText className="h-6 w-6 text-[#003366]" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-900 leading-tight">
+                {t('templates.title')}
+              </h2>
+              <p className="text-sm font-medium text-slate-400">Mensajes predefinidos para WhatsApp</p>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
+
+          <div className="flex items-center gap-3">
+            <div className="relative hidden md:block">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input 
+                placeholder="Buscar plantilla..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="rounded-2xl border-none shadow-sm h-12 pl-11 bg-white w-64" 
+              />
+            </div>
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-red-600 hover:bg-red-700 text-white">
-                  <Plus className="w-4 h-4 mr-2" />
-                  {t('templates.new')}
+                <Button className="rounded-2xl bg-[#003366] hover:bg-blue-900 text-white h-12 px-6 font-bold shadow-lg shadow-blue-900/20">
+                  <Plus className="h-4 w-4 mr-2" /> {t('templates.new')}
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-[2.5rem] p-10 border-none">
                 <TemplateFormDialog onClose={() => setIsCreateOpen(false)} template={selectedTemplate} />
               </DialogContent>
             </Dialog>
-            <div>
-              <LanguageSelector />
-            </div>
           </div>
         </div>
 
-        {/* Filters */}
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  placeholder={t('templates.search')}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Select value={filterCategory} onValueChange={setFilterCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('templates.allCategories')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('templates.allCategories')}</SelectItem>
-                  <SelectItem value="UTILITY">{t('templates.categories.UTILITY')}</SelectItem>
-                  <SelectItem value="AUTHENTICATION">{t('templates.categories.AUTHENTICATION')}</SelectItem>
-                  <SelectItem value="MARKETING">{t('templates.categories.MARKETING')}</SelectItem>
-                  <SelectItem value="SERVICE">{t('templates.categories.SERVICE')}</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('templates.allStatus')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('templates.allStatus')}</SelectItem>
-                  <SelectItem value="PENDING">{t('templates.status.PENDING')}</SelectItem>
-                  <SelectItem value="APPROVED">{t('templates.status.APPROVED')}</SelectItem>
-                  <SelectItem value="REJECTED">{t('templates.status.REJECTED')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
+        {/* Filters Card */}
+        <Card className="rounded-[2rem] border-none bg-white p-6 shadow-sm flex flex-wrap gap-4 items-center">
+          <div className="flex items-center gap-2 mr-4">
+            <Filter className="h-4 w-4 text-slate-400" />
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Filtros</span>
+          </div>
+          <Select value={filterCategory} onValueChange={setFilterCategory}>
+            <SelectTrigger className="w-[200px] rounded-xl bg-slate-50 border-none h-10 px-4 font-bold">
+              <SelectValue placeholder="Categoría" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las categorías</SelectItem>
+              <SelectItem value="UTILITY">Utilidad</SelectItem>
+              <SelectItem value="MARKETING">Marketing</SelectItem>
+              <SelectItem value="SERVICE">Servicio</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-[200px] rounded-xl bg-slate-50 border-none h-10 px-4 font-bold">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              <SelectItem value="APPROVED">Aprobadas</SelectItem>
+              <SelectItem value="PENDING">Pendientes</SelectItem>
+              <SelectItem value="REJECTED">Rechazadas</SelectItem>
+            </SelectContent>
+          </Select>
         </Card>
 
         {/* Templates Grid */}
         {isLoading ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">{t('templates.loading')}</p>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => <div key={i} className="animate-pulse h-64 bg-white rounded-[2.5rem]" />)}
           </div>
         ) : filteredTemplates.length === 0 ? (
-          <Card className="py-12">
-            <CardContent className="text-center">
-              <MessageSquare className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('templates.noTemplates')}</h3>
-              <p className="text-gray-600 mb-4">{t('templates.firstTemplate')}</p>
-              <Button onClick={() => setIsCreateOpen(true)} className="bg-red-600 hover:bg-red-700 text-white">
-                <Plus className="w-4 h-4 mr-2" />
-                {t('templates.create')}
-              </Button>
-            </CardContent>
+          <Card className="rounded-[2.5rem] border-none bg-white py-24 shadow-sm text-center">
+            <MessageSquare className="h-20 w-20 mx-auto text-slate-100 mb-6" />
+            <h3 className="text-2xl font-black text-slate-900 mb-2">{t('templates.noTemplates')}</h3>
+            <p className="text-slate-400 mb-8 max-w-sm mx-auto">{t('templates.firstTemplate')}</p>
+            <Button onClick={() => setIsCreateOpen(true)} className="rounded-2xl bg-[#003366] text-white h-14 px-10 font-bold text-lg shadow-xl shadow-blue-900/20">
+              {t('templates.create')}
+            </Button>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTemplates.map((template: Template) => (
-              <TemplateCard
-                key={template.id}
-                template={template}
-                onEdit={(t) => {
-                  setSelectedTemplate(t)
-                  setIsCreateOpen(true)
-                }}
-              />
+              <Card 
+                key={template.id} 
+                className="rounded-[2.5rem] border-none bg-white p-8 shadow-sm transition-hover hover:shadow-md cursor-pointer group"
+                onClick={() => { setSelectedTemplate(template); setIsCreateOpen(true); }}
+              >
+                <div className="flex items-start justify-between mb-6">
+                  <div className={cn("inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase", 
+                    template.status === 'APPROVED' ? "bg-emerald-50 text-emerald-600" : 
+                    template.status === 'PENDING' ? "bg-amber-50 text-amber-600" : "bg-rose-50 text-red-600"
+                  )}>
+                    {template.status}
+                  </div>
+                  <Badge variant="outline" className="border-slate-100 text-slate-400 text-[10px] font-bold uppercase">{template.category}</Badge>
+                </div>
+                
+                <h3 className="text-lg font-bold text-slate-900 mb-4 group-hover:text-[#003366] transition-colors line-clamp-1">{template.name}</h3>
+                
+                <div className="bg-slate-50 rounded-2xl p-4 mb-6 relative min-h-[100px]">
+                  <p className="text-sm text-slate-600 line-clamp-3 leading-relaxed italic">"{template.body}"</p>
+                </div>
+
+                <div className="pt-6 border-t border-slate-50 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
+                    <Clock className="h-3 w-3" />
+                    {new Date(template.created_at).toLocaleDateString()}
+                  </div>
+                  <span className="text-sm font-bold text-[#003366] group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                    Editar <ChevronRight className="h-4 w-4" />
+                  </span>
+                </div>
+              </Card>
             ))}
           </div>
         )}
       </div>
-    </div>
+    </>
   )
 }
 
-// Template Card Component
-function TemplateCard({ template, onEdit }: { template: Template; onEdit: (t: Template) => void }) {
-  const { t } = useTranslation() // AÑADIDO
-  const statusColors = {
-    PENDING: "bg-yellow-100 text-yellow-800",
-    APPROVED: "bg-green-100 text-green-800",
-    REJECTED: "bg-red-100 text-red-800",
-  }
-
-  const categoryColors = {
-    UTILITY: "bg-blue-100 text-blue-800",
-    AUTHENTICATION: "bg-purple-100 text-purple-800",
-    MARKETING: "bg-pink-100 text-pink-800",
-    SERVICE: "bg-cyan-100 text-cyan-800",
-  }
-
-  return (
-    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => onEdit(template)}>
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <h3 className="font-semibold text-gray-900 text-lg">{template.name}</h3>
-          <Badge className={statusColors[template.status]}>{t(`templates.status.${template.status}`)}</Badge>
-        </div>
-        <Badge className={`${categoryColors[template.category]} mb-3`}>{t(`templates.categories.${template.category}`)}</Badge>
-        <div className="space-y-2 text-sm">
-          {template.header_text && <div className="font-semibold text-gray-700">{template.header_text}</div>}
-          <p className="text-gray-600 line-clamp-3">{template.body}</p>
-          {template.footer && <p className="text-xs text-gray-500">{template.footer}</p>}
-          {template.buttons.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {template.buttons.map((btn, idx) => (
-                <Badge key={idx} variant="outline" className="text-xs">
-                  {btn.type === "PHONE_NUMBER" && <Phone className="w-3 h-3 mr-1" />}
-                  {btn.type === "URL" && <ExternalLink className="w-3 h-3 mr-1" />}
-                  {btn.text}
-                </Badge>
-              ))}
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-// Template Form Dialog Component
 function TemplateFormDialog({ onClose, template }: { onClose: () => void; template: Template | null }) {
-  const { t } = useTranslation() // AÑADIDO
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState("basic")
   const [formData, setFormData] = useState({
     name: template?.name || "",
@@ -242,321 +221,105 @@ function TemplateFormDialog({ onClose, template }: { onClose: () => void; templa
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const validateName = (name: string) => {
-    if (!/^[a-z0-9_]+$/.test(name)) return t('templates.validation.nameFormat')
-    if (name.length > 512) return t('templates.validation.nameLength')
+    if (!/^[a-z0-9_]+$/.test(name)) return "Solo minúsculas, números y guiones bajos"
     return ""
   }
 
   const handleSubmit = async () => {
-    const newErrors: Record<string, string> = {}
-
-    // Validaciones
-    const nameError = validateName(formData.name)
-    if (nameError) newErrors.name = nameError
-    if (!formData.body) newErrors.body = t('templates.validation.bodyRequired')
-    if (formData.body.length > 1024) newErrors.body = t('templates.validation.bodyLength')
-    if (formData.footer && formData.footer.length > 60) newErrors.footer = t('templates.validation.footerLength')
-    if (formData.header_text && formData.header_text.length > 60) newErrors.header_text = t('templates.validation.headerLength')
-    if (formData.buttons.length > 3) newErrors.buttons = t('templates.validation.buttonsMax')
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
-      return
-    }
-
-    console.log("Guardando template:", formData)
     onClose()
   }
 
   return (
-    <div>
+    <div className="space-y-8">
       <DialogHeader>
-        <DialogTitle>{template ? t('templates.edit') : t('templates.create')}</DialogTitle>
+        <DialogTitle className="text-2xl font-black text-[#003366]">{template ? 'Editar Plantilla' : 'Nueva Plantilla'}</DialogTitle>
       </DialogHeader>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="basic">{t('templates.tabs.basic')}</TabsTrigger>
-          <TabsTrigger value="header">{t('templates.tabs.header')}</TabsTrigger>
-          <TabsTrigger value="body">{t('templates.tabs.body')}</TabsTrigger>
-          <TabsTrigger value="footer">{t('templates.tabs.footer')}</TabsTrigger>
+        <TabsList className="bg-slate-100 p-1 rounded-2xl grid w-full grid-cols-4 mb-8">
+          <TabsTrigger value="basic" className="rounded-xl font-bold">Básico</TabsTrigger>
+          <TabsTrigger value="header" className="rounded-xl font-bold">Encabezado</TabsTrigger>
+          <TabsTrigger value="body" className="rounded-xl font-bold">Cuerpo</TabsTrigger>
+          <TabsTrigger value="footer" className="rounded-xl font-bold">Pie</TabsTrigger>
         </TabsList>
 
-        {/* Tab 1: Básico */}
-        <TabsContent value="basic" className="space-y-4">
-          <div>
-            <Label htmlFor="name">{t('templates.form.name')}</Label>
+        <TabsContent value="basic" className="space-y-6">
+          <div className="space-y-2">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nombre único</Label>
             <Input
-              id="name"
               value={formData.name}
-              onChange={(e) => {
-                const value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "")
-                setFormData({ ...formData, name: value })
-                const error = validateName(value)
-                setErrors({ ...errors, name: error })
-              }}
-              placeholder={t('templates.form.namePlaceholder')}
-              className={errors.name ? "border-red-500" : ""}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "") })}
+              placeholder="ej: recordatorio_cita"
+              className="h-12 rounded-2xl bg-slate-50 border-none font-bold"
             />
-            {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
-            <p className="text-xs text-gray-500 mt-1">{t('templates.form.nameHelp')}</p>
           </div>
 
-          <div>
-            <Label htmlFor="category">{t('templates.form.category')}</Label>
-            <Select
-              value={formData.category}
-              onValueChange={(value: TemplateCategory) => setFormData({ ...formData, category: value })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="UTILITY">{t('templates.categories.UTILITY_DESC')}</SelectItem>
-                <SelectItem value="AUTHENTICATION">{t('templates.categories.AUTHENTICATION_DESC')}</SelectItem>
-                <SelectItem value="MARKETING">{t('templates.categories.MARKETING_DESC')}</SelectItem>
-                <SelectItem value="SERVICE">{t('templates.categories.SERVICE_DESC')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="language">{t('templates.form.language')}</Label>
-            <Select value={formData.language} onValueChange={(value) => setFormData({ ...formData, language: value })}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="es">Español</SelectItem>
-                <SelectItem value="en">English</SelectItem>
-                <SelectItem value="fr">Français</SelectItem>
-                <SelectItem value="pt">Portugués</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Categoría Meta</Label>
+              <Select value={formData.category} onValueChange={(val: any) => setFormData({ ...formData, category: val })}>
+                <SelectTrigger className="h-12 rounded-2xl bg-slate-50 border-none font-bold px-4"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="UTILITY">Utilidad</SelectItem>
+                  <SelectItem value="MARKETING">Marketing</SelectItem>
+                  <SelectItem value="SERVICE">Servicio</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Idioma</Label>
+              <Select value={formData.language} onValueChange={(val) => setFormData({ ...formData, language: val })}>
+                <SelectTrigger className="h-12 rounded-2xl bg-slate-50 border-none font-bold px-4"><SelectValue /></SelectTrigger>
+                <SelectContent><SelectItem value="es">Español</SelectItem><SelectItem value="en">Inglés</SelectItem></SelectContent>
+              </Select>
+            </div>
           </div>
         </TabsContent>
 
-        {/* Tab 2: Header */}
-        <TabsContent value="header" className="space-y-4">
-          <div>
-            <Label htmlFor="header_type">{t('templates.form.headerType')}</Label>
-            <Select
-              value={formData.header_type}
-              onValueChange={(value: HeaderType) => setFormData({ ...formData, header_type: value })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
+        <TabsContent value="header" className="space-y-6">
+          <div className="space-y-2">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Tipo de Encabezado</Label>
+            <Select value={formData.header_type} onValueChange={(val: any) => setFormData({ ...formData, header_type: val })}>
+              <SelectTrigger className="h-12 rounded-2xl bg-slate-50 border-none font-bold px-4"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="NONE">{t('templates.form.headerTypes.NONE')}</SelectItem>
-                <SelectItem value="TEXT">{t('templates.form.headerTypes.TEXT')}</SelectItem>
-                <SelectItem value="IMAGE">{t('templates.form.headerTypes.IMAGE')}</SelectItem>
-                <SelectItem value="VIDEO">{t('templates.form.headerTypes.VIDEO')}</SelectItem>
-                <SelectItem value="DOCUMENT">{t('templates.form.headerTypes.DOCUMENT')}</SelectItem>
+                <SelectItem value="NONE">Sin encabezado</SelectItem>
+                <SelectItem value="TEXT">Texto</SelectItem>
+                <SelectItem value="IMAGE">Imagen</SelectItem>
               </SelectContent>
             </Select>
           </div>
-
-          {formData.header_type === "TEXT" && (
-            <div>
-              <Label htmlFor="header_text">{t('templates.form.headerText')}</Label>
-              <Input
-                id="header_text"
-                value={formData.header_text}
-                onChange={(e) => setFormData({ ...formData, header_text: e.target.value })}
-                placeholder={t('templates.form.headerTextPlaceholder')}
-                maxLength={60}
-                className={errors.header_text ? "border-red-500" : ""}
-              />
-              {errors.header_text && <p className="text-sm text-red-600 mt-1">{errors.header_text}</p>}
-              <p className="text-xs text-gray-500 mt-1">{formData.header_text.length}/60</p>
+          {formData.header_type === 'TEXT' && (
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Texto del encabezado</Label>
+              <Input value={formData.header_text} onChange={(e) => setFormData({ ...formData, header_text: e.target.value })} className="h-12 rounded-2xl bg-slate-50 border-none font-bold" />
             </div>
           )}
-
-          {(formData.header_type === "IMAGE" ||
-            formData.header_type === "VIDEO" ||
-            formData.header_type === "DOCUMENT") && (
-              <div>
-                <Label htmlFor="header_media_url">{t('templates.form.headerMediaUrl')}</Label>
-                <Input
-                  id="header_media_url"
-                  type="url"
-                  value={formData.header_media_url}
-                  onChange={(e) => setFormData({ ...formData, header_media_url: e.target.value })}
-                  placeholder={t('templates.form.headerMediaUrlPlaceholder')}
-                />
-                <p className="text-xs text-gray-500 mt-1">{t('templates.form.headerMediaUrlHelp')}</p>
-              </div>
-            )}
         </TabsContent>
 
-        {/* Tab 3: Body */}
-        <TabsContent value="body" className="space-y-4">
-          <div>
-            <Label htmlFor="body">{t('templates.form.body')}</Label>
-            <Textarea
-              id="body"
-              value={formData.body}
-              onChange={(e) => setFormData({ ...formData, body: e.target.value })}
-              placeholder={t('templates.form.bodyPlaceholder')}
-              rows={8}
-              maxLength={1024}
-              className={errors.body ? "border-red-500" : ""}
+        <TabsContent value="body" className="space-y-6">
+          <div className="space-y-2">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Contenido del mensaje</Label>
+            <Textarea 
+              value={formData.body} 
+              onChange={(e) => setFormData({ ...formData, body: e.target.value })} 
+              rows={6}
+              className="rounded-2xl bg-slate-50 border-none font-medium leading-relaxed" 
             />
-            {errors.body && <p className="text-sm text-red-600 mt-1">{errors.body}</p>}
-            <p className="text-xs text-gray-500 mt-1">
-              {formData.body.length}/1024 {t('templates.form.bodyHelp')}
-            </p>
-          </div>
-
-          <div className="bg-blue-50 p-3 rounded-lg">
-            <p className="text-sm text-blue-900 font-medium mb-1">💡 {t('templates.form.tipTitle')}</p>
-            <p className="text-xs text-blue-800">{t('templates.form.tipDesc')}</p>
+            <p className="text-[10px] text-slate-400 font-medium italic">Puedes usar variables como {'{{1}}'}, {'{{2}}'} para personalizar el mensaje.</p>
           </div>
         </TabsContent>
 
-        {/* Tab 4: Footer & Botones */}
-        <TabsContent value="footer" className="space-y-4">
-          <div>
-            <Label htmlFor="footer">{t('templates.form.footer')}</Label>
-            <Input
-              id="footer"
-              value={formData.footer}
-              onChange={(e) => setFormData({ ...formData, footer: e.target.value })}
-              placeholder={t('templates.form.footerPlaceholder')}
-              maxLength={60}
-              className={errors.footer ? "border-red-500" : ""}
-            />
-            {errors.footer && <p className="text-sm text-red-600 mt-1">{errors.footer}</p>}
-            <p className="text-xs text-gray-500 mt-1">{formData.footer?.length || 0}/60</p>
-          </div>
-
-          <div>
-            <Label>{t('templates.form.buttons')}</Label>
-            <div className="space-y-2 mt-2">
-              {formData.buttons.map((button, index) => (
-                <div key={index} className="flex gap-2 items-start p-3 border rounded-lg">
-                  <div className="flex-1 space-y-2">
-                    <Select
-                      value={button.type}
-                      onValueChange={(value: ButtonType) => {
-                        const newButtons = [...formData.buttons]
-                        newButtons[index].type = value
-                        setFormData({ ...formData, buttons: newButtons })
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="QUICK_REPLY">{t('templates.form.buttonTypes.QUICK_REPLY')}</SelectItem>
-                        <SelectItem value="PHONE_NUMBER">{t('templates.form.buttonTypes.PHONE_NUMBER')}</SelectItem>
-                        <SelectItem value="URL">{t('templates.form.buttonTypes.URL')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      placeholder={t('templates.form.buttonText')}
-                      value={button.text}
-                      onChange={(e) => {
-                        const newButtons = [...formData.buttons]
-                        newButtons[index].text = e.target.value
-                        setFormData({ ...formData, buttons: newButtons })
-                      }}
-                    />
-                    {button.type === "PHONE_NUMBER" && (
-                      <Input
-                        placeholder="+34600123456"
-                        value={button.phone_number || ""}
-                        onChange={(e) => {
-                          const newButtons = [...formData.buttons]
-                          newButtons[index].phone_number = e.target.value
-                          setFormData({ ...formData, buttons: newButtons })
-                        }}
-                      />
-                    )}
-                    {button.type === "URL" && (
-                      <Input
-                        placeholder="https://ejemplo.com"
-                        value={button.url || ""}
-                        onChange={(e) => {
-                          const newButtons = [...formData.buttons]
-                          newButtons[index].url = e.target.value
-                          setFormData({ ...formData, buttons: newButtons })
-                        }}
-                      />
-                    )}
-                  </div>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => {
-                      const newButtons = formData.buttons.filter((_, i) => i !== index)
-                      setFormData({ ...formData, buttons: newButtons })
-                    }}
-                  >
-                    {t('common.delete')}
-                  </Button>
-                </div>
-              ))}
-              {formData.buttons.length < 3 && (
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setFormData({
-                      ...formData,
-                      buttons: [...formData.buttons, { type: "QUICK_REPLY", text: "" }],
-                    })
-                  }}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  {t('templates.form.addButton')}
-                </Button>
-              )}
-            </div>
-            {errors.buttons && <p className="text-sm text-red-600 mt-1">{errors.buttons}</p>}
+        <TabsContent value="footer" className="space-y-6">
+          <div className="space-y-2">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Pie de página (Opcional)</Label>
+            <Input value={formData.footer} onChange={(e) => setFormData({ ...formData, footer: e.target.value })} className="h-12 rounded-2xl bg-slate-50 border-none font-bold" />
           </div>
         </TabsContent>
       </Tabs>
 
-      {/* Preview */}
-      <div className="mt-6 p-4 bg-gray-100 rounded-lg">
-        <Label className="text-sm font-semibold mb-2 block">{t('templates.form.preview')}</Label>
-        <div className="bg-white rounded-lg p-4 shadow-sm max-w-md">
-          {formData.header_type === "TEXT" && formData.header_text && (
-            <div className="font-bold text-gray-900 mb-2">{formData.header_text}</div>
-          )}
-          {formData.header_type === "IMAGE" && (
-            <div className="bg-gray-200 h-32 rounded mb-2 flex items-center justify-center text-gray-500">
-              {t('templates.form.headerTypes.IMAGE')}
-            </div>
-          )}
-          <div className="text-gray-800 whitespace-pre-wrap mb-2">
-            {formData.body || t('templates.form.previewBody')}
-          </div>
-          {formData.footer && <div className="text-xs text-gray-500 mb-3">{formData.footer}</div>}
-          {formData.buttons.length > 0 && (
-            <div className="space-y-1">
-              {formData.buttons.map((btn, idx) => (
-                <button
-                  key={idx}
-                  className="w-full py-2 text-center text-blue-600 border border-gray-300 rounded font-medium text-sm"
-                >
-                  {btn.text || t('templates.form.previewButton')}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className="flex justify-end gap-3 mt-6">
-        <Button variant="outline" onClick={onClose}>
-          {t('templates.form.cancel')}
-        </Button>
-        <Button onClick={handleSubmit} className="bg-red-600 hover:bg-red-700 text-white">
-          {template ? t('templates.form.saveChanges') : t('templates.create')}
-        </Button>
+      <div className="flex gap-3 pt-6">
+        <Button variant="outline" onClick={onClose} className="flex-1 h-12 rounded-2xl font-bold">Cancelar</Button>
+        <Button onClick={handleSubmit} className="flex-1 h-12 rounded-2xl bg-[#003366] text-white font-bold shadow-lg shadow-blue-900/20">Guardar Cambios</Button>
       </div>
     </div>
   )

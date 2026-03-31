@@ -4,25 +4,20 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import {
   Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Calculator,
   TrendingUp,
   DollarSign,
   Download,
-  ArrowUpRight,
-  ArrowDownRight,
   Percent,
   Euro,
+  Target,
+  BarChart3
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -33,11 +28,9 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  BarChart,
-  Bar
 } from 'recharts';
 import { useTranslation } from 'react-i18next';
-import { LanguageSelector } from '@/components/LanguageSelector';
+import { cn } from '@/utils/cn';
 
 interface CallStats {
   total: number;
@@ -104,282 +97,160 @@ export default function RentabilidadUNMI() {
     { month: 'May (Proyección)', revenue: expectedRevenue * (1 + Number(monthlyGrowth) / 100), cost: totalCost * 1.05, profit: (expectedRevenue * (1 + Number(monthlyGrowth) / 100)) - (totalCost * 1.05) },
   ];
 
-  const comparisonData = [
-    {
-      metric: t('profitability.comparison.recoveredCalls'),
-      beforeUNMI: Math.floor(missedCalls * 0.05),
-      withUNMI: recoveredCalls,
-    },
-    {
-      metric: t('profitability.comparison.responseTime'),
-      beforeUNMI: 120,
-      withUNMI: 2,
-    },
-    {
-      metric: t('profitability.comparison.monthlyRevenue'),
-      beforeUNMI: Math.floor(missedCalls * 0.05 * Number(averageTicket)),
-      withUNMI: expectedRevenue,
-    },
-  ];
-
-  const handleExportPDF = () => {
-    alert(t('profitability.calculator.exportPDF'));
-  };
-
   return (
     <>
       <Helmet>
         <title>{t('profitability.title')} - UNMI</title>
-        <meta name="description" content={t('profitability.subtitle')} />
       </Helmet>
 
-      <div className="space-y-2 mt-1">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-          <div className="break-words">
-            <h1 className="text-3xl font-bold text-gray-900 break-words">{t('profitability.title')}</h1>
-            <p className="text-gray-600 mt-1 break-words">{t('profitability.subtitle')}</p>
+      <div className="flex flex-col gap-y-8 pb-10">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center border border-slate-100">
+              <TrendingUp className="h-6 w-6 text-[#003366]" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-900 leading-tight">
+                {t('profitability.title')}
+              </h2>
+              <p className="text-sm font-medium text-slate-400">Análisis de ROI y crecimiento</p>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 mt-4 md:mt-0">
-            <Button onClick={handleExportPDF} variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              PDF
-            </Button>
-            <LanguageSelector />
-          </div>
+          <Button variant="outline" className="rounded-2xl border-none bg-white shadow-sm h-12 px-6 font-bold text-[#003366]">
+            <Download className="h-4 w-4 mr-2" /> Exportar informe
+          </Button>
         </div>
 
-        {/* KPIs */}
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
-          <Card className="min-w-0">
-            <CardHeader className="pb-2">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <CardTitle className="text-sm font-medium break-words">{t('profitability.kpis.roi')}</CardTitle>
-                <Percent className="h-4 w-4 text-blue-600" />
+        {/* KPIs Grid */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <Card className="rounded-[2.5rem] border-none bg-white p-8 shadow-sm">
+            <div className="flex items-start justify-between mb-6">
+              <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center">
+                <Percent className="h-6 w-6 text-emerald-600" />
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className={`text-3xl font-bold ${isPositiveROI ? 'text-green-600' : 'text-red-600'}`}>
-                {isPositiveROI && '+'}{roi}%
-              </div>
-              <p className="text-xs text-gray-600 mt-1 flex items-center gap-1">
-                {isPositiveROI ? (
-                  <>
-                    <ArrowUpRight className="h-3 w-3 text-green-600" />
-                    <span className="text-green-600 break-words">{t('profitability.kpis.profitable')}</span>
-                  </>
-                ) : (
-                  <>
-                    <ArrowDownRight className="h-3 w-3 text-red-600" />
-                    <span className="text-red-600 break-words">{t('profitability.kpis.adjust')}</span>
-                  </>
-                )}
-              </p>
-            </CardContent>
+              <span className={cn("text-xs font-bold px-2 py-1 rounded-full", isPositiveROI ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-red-600")}>
+                {isPositiveROI ? 'Rentable' : 'Ajustar'}
+              </span>
+            </div>
+            <h4 className={cn("text-4xl font-black mb-1", isPositiveROI ? "text-emerald-500" : "text-rose-500")}>
+              {isPositiveROI && '+'}{roi}%
+            </h4>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('profitability.kpis.roi')}</p>
           </Card>
 
-          <Card className="min-w-0">
-            <CardHeader className="pb-2">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <CardTitle className="text-sm font-medium">{t('profitability.kpis.revenue')}</CardTitle>
-                <Euro className="h-4 w-4 text-green-600" />
+          <Card className="rounded-[2.5rem] border-none bg-white p-8 shadow-sm">
+            <div className="flex items-start justify-between mb-6">
+              <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center">
+                <Euro className="h-6 w-6 text-[#003366]" />
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-600">€{expectedRevenue.toLocaleString()}</div>
-              <p className="text-xs text-gray-600 mt-1 break-words">{recoveredCalls} {t('profitability.calculator.recovered')}</p>
-            </CardContent>
+            </div>
+            <h4 className="text-4xl font-black text-slate-900 mb-1">€{expectedRevenue.toLocaleString()}</h4>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('profitability.kpis.revenue')}</p>
           </Card>
 
-          <Card className="min-w-0">
-            <CardHeader className="pb-2">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <CardTitle className="text-sm font-medium break-words">{t('profitability.kpis.costs')}</CardTitle>
-                <DollarSign className="h-4 w-4 text-orange-600" />
+          <Card className="rounded-[2.5rem] border-none bg-white p-8 shadow-sm">
+            <div className="flex items-start justify-between mb-6">
+              <div className="h-12 w-12 rounded-2xl bg-rose-50 flex items-center justify-center">
+                <DollarSign className="h-6 w-6 text-rose-600" />
               </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-gray-600 mt-1 break-words">{t('profitability.calculator.monthlyCost')} + {messagesSent} {t('profitability.calculator.messages')}</p>
-              <div className="text-3xl font-bold text-orange-600">€{totalCost.toLocaleString()}</div>
-            </CardContent>
+            </div>
+            <h4 className="text-4xl font-black text-slate-900 mb-1">€{totalCost.toLocaleString()}</h4>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('profitability.kpis.costs')}</p>
           </Card>
 
-          <Card className="min-w-0">
-            <CardHeader className="pb-2">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <CardTitle className="text-sm font-medium break-words">{t('profitability.kpis.profit')}</CardTitle>
-                <TrendingUp className="h-4 w-4 text-purple-600" />
+          <Card className="rounded-[2.5rem] border-none bg-white p-8 shadow-sm">
+            <div className="flex items-start justify-between mb-6">
+              <div className="h-12 w-12 rounded-2xl bg-indigo-50 flex items-center justify-center">
+                <Target className="h-6 w-6 text-indigo-600" />
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className={`text-3xl font-bold ${profit >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
-                {profit >= 0 && '+'} €{profit.toLocaleString()}
-              </div>
-              <p className="text-xs text-gray-600 mt-1 break-words">{t('profitability.kpis.margin')}: {totalCost > 0 ? ((profit / expectedRevenue) * 100).toFixed(1) : '0'}%</p>
-            </CardContent>
+            </div>
+            <h4 className="text-4xl font-black text-slate-900 mb-1">€{profit.toLocaleString()}</h4>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('profitability.kpis.profit')}</p>
           </Card>
         </div>
 
-        {/* Calculadora y Gráfico Tendencia */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Card className="min-w-0">
-            <CardHeader>
-              <div className="flex flex-wrap items-center gap-2">
-                <Calculator className="h-5 w-5 text-blue-600" />
-                <CardTitle className="break-words">{t('profitability.calculator.title')}</CardTitle>
+        {/* Calculator and Trend */}
+        <div className="grid grid-cols-12 gap-6">
+          <Card className="col-span-12 lg:col-span-5 rounded-[2.5rem] border-none bg-white p-10 shadow-sm">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center">
+                <Calculator className="h-5 w-5 text-[#003366]" />
               </div>
-              <CardDescription className="break-words">{t('profitability.calculator.subtitle')}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              <h4 className="text-lg font-bold text-slate-900">{t('profitability.calculator.title')}</h4>
+            </div>
+            
+            <div className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="averageTicket">{t('profitability.calculator.avgTicket')}</Label>
-                <Input
-                  id="averageTicket"
-                  type="number"
-                  value={averageTicket}
-                  onChange={(e) => setAverageTicket(e.target.value)}
-                  placeholder="50"
-                />
-                <p className="text-xs text-muted-foreground break-words">{t('profitability.calculator.avgValue')}</p>
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('profitability.calculator.avgTicket')}</Label>
+                <Input type="number" value={averageTicket} onChange={(e) => setAverageTicket(e.target.value)} className="h-12 rounded-2xl bg-slate-50 border-none font-bold" />
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="conversionRate">{t('profitability.calculator.conversionRate')}</Label>
-                <Input
-                  id="conversionRate"
-                  type="number"
-                  value={conversionRate}
-                  onChange={(e) => setConversionRate(e.target.value)}
-                  placeholder="30"
-                  max="100"
-                />
-                <p className="text-xs text-muted-foreground break-words">{t('profitability.calculator.conversionDesc')}</p>
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('profitability.calculator.conversionRate')}</Label>
+                <Input type="number" value={conversionRate} onChange={(e) => setConversionRate(e.target.value)} className="h-12 rounded-2xl bg-slate-50 border-none font-bold" />
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="monthlyGrowth">{t('profitability.calculator.monthlyGrowth')}</Label>
-                <Input
-                  id="monthlyGrowth"
-                  type="number"
-                  value={monthlyGrowth}
-                  onChange={(e) => setMonthlyGrowth(e.target.value)}
-                  placeholder="10"
-                />
-                <p className="text-xs text-muted-foreground break-words">{t('profitability.calculator.growthDesc')}</p>
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('profitability.calculator.monthlyGrowth')}</Label>
+                <Input type="number" value={monthlyGrowth} onChange={(e) => setMonthlyGrowth(e.target.value)} className="h-12 rounded-2xl bg-slate-50 border-none font-bold" />
               </div>
 
-              <div className="pt-4 border-t space-y-3">
-                <div className="flex justify-between text-sm break-words">
-                  <span className="text-gray-600">{t('profitability.calculator.missedCalls')}:</span>
-                  <span className="font-semibold">{missedCalls}</span>
+              <div className="mt-8 pt-8 border-t border-slate-50 space-y-4">
+                <div className="flex justify-between items-center text-sm font-bold text-slate-500 uppercase tracking-widest">
+                  <span>{t('profitability.calculator.recovered')}:</span>
+                  <span className="text-[#003366] text-lg">{recoveredCalls}</span>
                 </div>
-                <div className="flex justify-between text-sm break-words">
-                  <span className="text-gray-600">{t('profitability.calculator.recovered')} ({conversionRate}%):</span>
-                  <span className="font-semibold text-green-600">{recoveredCalls}</span>
-                </div>
-                <div className="flex justify-between text-sm break-words">
-                  <span className="text-gray-600">{t('profitability.calculator.monthlyCost')}:</span>
-                  <span className="font-semibold text-orange-600">€{totalCost}</span>
-                </div>
-                <div className="flex justify-between text-lg font-bold pt-2 border-t break-words">
-                  <span>{t('profitability.calculator.expectedProfit')}:</span>
-                  <span className={profit >= 0 ? 'text-green-600' : 'text-red-600'}>
-                    €{profit.toLocaleString()}
-                  </span>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('profitability.calculator.expectedProfit')}:</span>
+                  <span className={cn("text-3xl font-black", profit >= 0 ? "text-emerald-500" : "text-rose-500")}>€{profit.toLocaleString()}</span>
                 </div>
               </div>
-
-              <Alert className="bg-blue-50 border-blue-200">
-                <AlertDescription className="text-sm text-blue-800 break-words">
-                  💡 {t('profitability.calculator.recommendation')}
-                </AlertDescription>
-              </Alert>
-            </CardContent>
+            </div>
           </Card>
 
-          <Card className="w-full min-w-0 overflow-x-auto">
-            <CardHeader>
-              <CardTitle className="break-words">{t('profitability.trends.title')}</CardTitle>
-              <CardDescription className="break-words">{t('profitability.trends.subtitle')}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+          <Card className="col-span-12 lg:col-span-7 rounded-[2.5rem] border-none bg-white p-10 shadow-sm">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center">
+                <BarChart3 className="h-5 w-5 text-[#003366]" />
+              </div>
+              <h4 className="text-lg font-bold text-slate-900">{t('profitability.trends.title')}</h4>
+            </div>
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip formatter={(value: any) => `€${value.toFixed(0)}`} contentStyle={{ backgroundColor: 'white', border: '1px solid #ccc' }} />
-                  <Legend />
-                  <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} name={t('profitability.trends.revenue')} />
-                  <Line type="monotone" dataKey="cost" stroke="#f59e0b" strokeWidth={2} name={t('profitability.trends.costs')} />
-                  <Line type="monotone" dataKey="profit" stroke="#8b5cf6" strokeWidth={2} name={t('profitability.trends.profit')} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 12}} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 12}} />
+                  <Tooltip contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
+                  <Legend iconType="circle" />
+                  <Line type="monotone" dataKey="revenue" stroke="#10B981" strokeWidth={4} dot={{ r: 4, fill: '#10B981' }} name={t('profitability.trends.revenue')} />
+                  <Line type="monotone" dataKey="cost" stroke="#F59E0B" strokeWidth={4} dot={{ r: 4, fill: '#F59E0B' }} name={t('profitability.trends.costs')} />
+                  <Line type="monotone" dataKey="profit" stroke="#8B5CF6" strokeWidth={4} dot={{ r: 4, fill: '#8B5CF6' }} name={t('profitability.trends.profit')} />
                 </LineChart>
               </ResponsiveContainer>
-            </CardContent>
+            </div>
           </Card>
         </div>
 
-        {/* Comparativa Antes/Después UNMI */}
-        <Card className="w-full min-w-0 overflow-x-auto">
-          <CardHeader>
-            <CardTitle className="break-words">{t('profitability.comparison.title')}</CardTitle>
-            <CardDescription className="break-words">{t('profitability.comparison.subtitle')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={comparisonData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="metric" />
-                <YAxis />
-                <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #ccc' }} />
-                <Legend />
-                <Bar dataKey="beforeUNMI" fill="#ef4444" name={t('profitability.comparison.beforeUNMI')} />
-                <Bar dataKey="withUNMI" fill="#10b981" name={t('profitability.comparison.withUNMI')} />
-              </BarChart>
-            </ResponsiveContainer>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
-              {comparisonData.map((item, index) => {
-                const improvement = item.beforeUNMI > 0
-                  ? (((item.withUNMI - item.beforeUNMI) / item.beforeUNMI) * 100).toFixed(0)
-                  : '∞';
-                return (
-                  <div key={index} className="text-center p-4 bg-gray-50 rounded-lg min-w-0">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2 break-words">{item.metric}</h4>
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                      +{improvement}% {t('profitability.comparison.improvement')}
-                    </Badge>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
         {/* CTA Card */}
-        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 min-w-0">
-          <CardHeader>
-            <CardTitle className="flex flex-wrap items-center gap-2 break-words">
-              <TrendingUp className="h-5 w-5 text-blue-600" />
-              {t('profitability.cta.title')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-gray-700 break-words">{t('profitability.cta.subtitle')}</p>
-            <ul className="space-y-2 text-sm text-gray-600">
-              {(t('profitability.cta.benefits', { returnObjects: true }) as string[]).map((benefit, idx) => (
-                <li key={idx} className="flex items-start gap-2 break-words">
-                  <span className="text-green-600">✓</span>
-                  <span className="break-words">{benefit}</span>
-                </li>
-              ))}
-            </ul>
-            <div className="flex flex-wrap gap-3 pt-2">
-              <Button className="bg-blue-600 hover:bg-blue-700">{t('profitability.cta.upgrade')}</Button>
-              <Button variant="outline">{t('profitability.cta.consult')}</Button>
+        <Card className="rounded-[2.5rem] border-none bg-[#003366] p-12 shadow-xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 transition-transform group-hover:scale-110" />
+          <div className="relative z-10 text-center md:text-left flex flex-col md:flex-row md:items-center justify-between gap-8">
+            <div className="max-w-2xl">
+              <h4 className="text-3xl font-black text-white mb-4 italic">
+                {t('profitability.cta.title')}
+              </h4>
+              <p className="text-blue-100 text-lg font-medium opacity-80">{t('profitability.cta.subtitle')}</p>
             </div>
-          </CardContent>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button className="bg-white text-[#003366] hover:bg-blue-50 h-14 px-8 rounded-2xl text-lg font-black shadow-lg">
+                {t('profitability.cta.upgrade')}
+              </Button>
+              <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 h-14 px-8 rounded-2xl text-lg font-bold">
+                {t('profitability.cta.consult')}
+              </Button>
+            </div>
+          </div>
         </Card>
       </div>
     </>

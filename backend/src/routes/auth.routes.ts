@@ -104,14 +104,30 @@ router.post('/login', asyncHandler(async (req, res) => {
   }
 
   // 2. Obtener perfil enriquecido (SupabaseService ya normaliza los planes)
-  const user = await supabaseService.getUserByAuthId(data.user.id);
+  let user = await supabaseService.getUserByAuthId(data.user.id);
 
+  // 🔴 JIT PROVISIONING: Si el usuario existe en Auth pero no tiene perfil en la tabla 'users'
+  // lo creamos ahora para evitar el error 404.
   if (!user) {
-    res.status(404).json({
-      message: 'User profile not found',
-      error: 'PROFILE_NOT_FOUND'
-    });
-    return;
+    console.log(`⚠️ User profile not found for ${data.user.email}. Creating JIT profile...`);
+    try {
+      user = await supabaseService.createUser({
+        auth_id: data.user.id,
+        email: data.user.email,
+        username: data.user.user_metadata?.username || data.user.email?.split('@')[0] || 'User',
+        companyName: data.user.user_metadata?.company_name || 'My Company',
+        termsAccepted: true,
+        planType: 'small', // Plan por defecto si no existe
+      });
+      console.log(`✅ JIT Profile created successfully for ${data.user.id}`);
+    } catch (createError) {
+      console.error("❌ Failed to create JIT profile:", createError);
+      res.status(404).json({
+        message: 'User profile not found and could not be created',
+        error: 'PROFILE_NOT_FOUND'
+      });
+      return;
+    }
   }
 
   // 3. Calcular créditos/consumo

@@ -4,11 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import {
   Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import {
   Dialog,
@@ -30,7 +25,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   Bot,
   ExternalLink,
@@ -38,17 +32,17 @@ import {
   Settings,
   Lock,
   AlertCircle,
-  Zap,
   Play,
   FileText,
   Code,
+  ChevronRight
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link } from 'wouter';
-import { LanguageSelector } from '@/components/LanguageSelector'; // Añadido por si quieres ponerlo en el header
+import { cn } from '@/utils/cn';
 
 interface ChatbotProvider {
   id: string;
@@ -65,12 +59,11 @@ interface ChatbotProvider {
 export default function Chatbots() {
   const { user, hasAccessToSection } = useAuth();
   const { toast } = useToast();
-  const { t } = useTranslation(); // AÑADIDO
+  const { t } = useTranslation();
   const [selectedProvider, setSelectedProvider] = useState<ChatbotProvider | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [testMode, setTestMode] = useState(false);
 
-  // Schema de configuración movido dentro del componente para usar t() en los mensajes de error
   const chatbotConfigSchema = z.object({
     provider: z.string().min(1, 'Selecciona un proveedor'),
     apiKey: z.string().min(10, 'La API key debe tener al menos 10 caracteres'),
@@ -80,29 +73,23 @@ export default function Chatbots() {
 
   type ChatbotConfigData = z.infer<typeof chatbotConfigSchema>;
 
-  // Check access
   const hasAccess = hasAccessToSection('chatbots');
 
-  // Form
   const form = useForm<ChatbotConfigData>({
     resolver: zodResolver(chatbotConfigSchema),
     defaultValues: {
       provider: '',
       apiKey: '',
       webhookUrl: '',
-      fallbackMessage: t('chatbots.config.fallbackPlaceholder'), // Usando traducción
+      fallbackMessage: t('chatbots.config.fallbackPlaceholder'),
     },
   });
 
   const onSubmit = (data: ChatbotConfigData) => {
-    console.log('Chatbot config:', data);
-    
-    // Mock: Guardar configuración
     toast({
       title: t('notifications.success.chatbotConfigured'),
       description: `${selectedProvider?.name} ${t('notifications.success.chatbotConfiguredDesc')}`,
     });
-    
     setDialogOpen(false);
     form.reset();
     setSelectedProvider(null);
@@ -110,26 +97,15 @@ export default function Chatbots() {
 
   const handleTestChatbot = () => {
     setTestMode(true);
-    toast({
-      title: '🧪 Test mode activated',
-      description: 'You can now test your chatbot before going live.',
-    });
   };
 
-  // Datos quemados movidos dentro del componente si se quisieran traducir a futuro, 
-  // aunque como son nombres propios y features específicas, dejarlas aquí es aceptable.
   const chatbotProviders: ChatbotProvider[] = [
     {
       id: 'voiceflow',
       name: 'Voiceflow',
       description: 'Constructor visual de chatbots con IA, sin código necesario',
       logo: '🎙️',
-      features: [
-        'Constructor drag & drop',
-        'GPT-4 integrado',
-        'Soporte multi-canal',
-        'Analytics en tiempo real',
-      ],
+      features: ['Constructor drag & drop', 'GPT-4 integrado', 'Soporte multi-canal'],
       setupDifficulty: 'easy',
       pricing: 'Desde $50/mes',
       docsUrl: 'https://www.voiceflow.com/docs',
@@ -140,12 +116,7 @@ export default function Chatbots() {
       name: 'Botpress',
       description: 'Plataforma open-source para chatbots empresariales',
       logo: '🤖',
-      features: [
-        'Open source',
-        'NLU avanzado',
-        'Integración completa APIs',
-        'Hosting on-premise',
-      ],
+      features: ['Open source', 'NLU avanzado', 'Integración completa APIs'],
       setupDifficulty: 'medium',
       pricing: 'Gratis (self-hosted)',
       docsUrl: 'https://botpress.com/docs',
@@ -155,118 +126,34 @@ export default function Chatbots() {
       name: 'Tidio',
       description: 'Chat en vivo + chatbot para ecommerce y atención al cliente',
       logo: '💬',
-      features: [
-        'Chat en vivo',
-        'Chatbot visual',
-        'Integraciones ecommerce',
-        'Plantillas predefinidas',
-      ],
+      features: ['Chat en vivo', 'Chatbot visual', 'Integraciones ecommerce'],
       setupDifficulty: 'easy',
       pricing: 'Desde €29/mes',
       docsUrl: 'https://www.tidio.com/docs',
     },
-    {
-      id: 'dialogflow',
-      name: 'Dialogflow (Google)',
-      description: 'NLP de Google para conversaciones naturales',
-      logo: '🔷',
-      features: [
-        'NLP de Google',
-        'Soporte 30+ idiomas',
-        'Integración Google Cloud',
-        'Machine Learning',
-      ],
-      setupDifficulty: 'advanced',
-      pricing: 'Pago por uso',
-      docsUrl: 'https://cloud.google.com/dialogflow/docs',
-      popular: true,
-    },
-    {
-      id: 'landbot',
-      name: 'Landbot',
-      description: 'Chatbots conversacionales para landing pages y WhatsApp',
-      logo: '🚀',
-      features: [
-        'WhatsApp Business API',
-        'Landing page builder',
-        'Integraciones +100',
-        'Templates listos',
-      ],
-      setupDifficulty: 'easy',
-      pricing: 'Desde $40/mes',
-      docsUrl: 'https://landbot.io/docs',
-    },
-    {
-      id: 'custom',
-      name: 'API Personalizada',
-      description: 'Conecta tu propio chatbot mediante webhook',
-      logo: '⚙️',
-      features: [
-        'Total flexibilidad',
-        'Tu propia infraestructura',
-        'Control completo',
-        'Sin limitaciones',
-      ],
-      setupDifficulty: 'advanced',
-      pricing: 'Según tu implementación',
-      docsUrl: '/docs/custom-chatbot-api',
-    },
   ];
 
-// No access UI
   if (!hasAccess) {
     return (
-      <>
-        <Helmet>
-          <title>{t('plan.chatbots.title')} - Restricted - UNMI</title>
-        </Helmet>
-        <div className="space-y-2 mt-1">
-          <Card className="max-w-2xl mx-auto">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-purple-100 rounded-full">
-                  <Lock className="h-6 w-6 text-purple-600" />
-                </div>
-                <div>
-                  <CardTitle>{t('chatbots.restrictedAccess.title')}</CardTitle>
-                  <CardDescription>
-                    {t('chatbots.restrictedAccess.subtitle')}
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 mb-4">
-                {t('chatbots.restrictedAccess.currentPlan', { plan: t(`plan.${user?.planType || 'small'}.title`) })}
-              </p>
-              <p className="text-gray-600 mb-4">
-                {t('chatbots.restrictedAccess.upgrade')}
-              </p>
-              <ul className="space-y-2 mb-6">
-                <li className="flex items-start gap-2 text-sm">
-                  <Check className="h-4 w-4 text-green-600 mt-0.5" />
-                  <span>{t('chatbots.restrictedAccess.feature1')}</span>
-                </li>
-                <li className="flex items-start gap-2 text-sm">
-                  <Check className="h-4 w-4 text-green-600 mt-0.5" />
-                  <span>{t('chatbots.restrictedAccess.feature2')}</span>
-                </li>
-                <li className="flex items-start gap-2 text-sm">
-                  <Check className="h-4 w-4 text-green-600 mt-0.5" />
-                  <span>{t('chatbots.restrictedAccess.feature3')}</span>
-                </li>
-              </ul>
-            </CardContent>
-            <CardFooter>
-              <Button asChild className="bg-purple-600 hover:bg-purple-700">
-                <Link href="/plan">
-                  {t('dashboard.quickActions.upgradePlan')}
-                </Link>
-              </Button>
-            </CardFooter>
-          </Card>
+      <div className="flex flex-col gap-y-8">
+        <div className="flex items-center gap-3">
+          <div className="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center border border-slate-100">
+            <Bot className="h-6 w-6 text-[#003366]" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 leading-tight">Chatbots</h2>
         </div>
-      </>
+
+        <Card className="max-w-2xl mx-auto rounded-[2.5rem] border-none bg-white p-12 shadow-sm text-center">
+          <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-3xl bg-blue-50 text-[#003366]">
+            <Lock className="h-12 w-12" />
+          </div>
+          <h3 className="mb-4 text-2xl font-black text-slate-900">{t('chatbots.restrictedAccess.title')}</h3>
+          <p className="text-slate-400 mb-10">{t('chatbots.restrictedAccess.subtitle')}</p>
+          <Button asChild className="w-full bg-[#003366] hover:bg-blue-900 h-14 rounded-2xl text-lg font-black shadow-xl shadow-blue-900/20">
+            <Link href="/plan">{t('dashboard.quickActions.upgradePlan')}</Link>
+          </Button>
+        </Card>
+      </div>
     );
   }
 
@@ -274,295 +161,134 @@ export default function Chatbots() {
     <>
       <Helmet>
         <title>{t('chatbots.title')} - UNMI</title>
-        <meta name="description" content={t('chatbots.subtitle')} />
       </Helmet>
 
-      <div className="space-y-2 mt-1">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                <Bot className="h-8 w-8 text-purple-600" />
-                {t('chatbots.title')}
-              </h1>
-              <p className="text-gray-600 mt-1">
-                {t('chatbots.subtitle')}
-              </p>
-            </div>
-            <div>
-              <LanguageSelector />
-            </div>
+      <div className="flex flex-col gap-y-8 pb-10">
+        {/* Header Section */}
+        <div className="flex items-center gap-3">
+          <div className="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center border border-slate-100">
+            <Bot className="h-6 w-6 text-[#003366]" />
           </div>
-
-          {/* Alert Info */}
-          <Alert className="bg-blue-50 border-blue-200 mb-6">
-            <AlertCircle className="h-4 w-4 text-blue-600" />
-            <AlertTitle>{t('chatbots.howItWorks.title')}</AlertTitle>
-            <AlertDescription>
-              {t('chatbots.howItWorks.desc')}
-            </AlertDescription>
-          </Alert>
-
-          {/* Chatbot Providers Grid */}
-          <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4">{t('chatbots.chooseProvider')}</h2>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {chatbotProviders.map((provider) => (
-                <Card 
-                  key={provider.id} 
-                  className="hover:shadow-lg transition-shadow relative"
-                >
-                  {provider.popular && (
-                    <Badge className="absolute -top-2 -right-2 bg-purple-600">Popular</Badge>
-                  )}
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="text-5xl mb-3">{provider.logo}</div>
-                      <Badge 
-                        variant={
-                          provider.setupDifficulty === 'easy' 
-                            ? 'default' 
-                            : provider.setupDifficulty === 'medium' 
-                              ? 'secondary' 
-                              : 'outline'
-                        }
-                      >
-                        {t(`chatbots.difficulty.${provider.setupDifficulty}`)}
-                      </Badge>
-                    </div>
-                    <CardTitle>{provider.name}</CardTitle>
-                    <CardDescription>{provider.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2 mb-4">
-                      {provider.features.map((feature, index) => (
-                        <li key={index} className="flex items-start gap-2 text-sm">
-                          <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                          <span className="text-gray-700">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="flex items-center justify-between text-sm pt-4 border-t">
-                      <span className="text-gray-600">{t('chatbots.price')}:</span>
-                      <span className="font-semibold">{provider.pricing}</span>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex gap-2">
-                    <Button 
-                      className="flex-1 bg-purple-600 hover:bg-purple-700"
-                      onClick={() => {
-                        setSelectedProvider(provider);
-                        setDialogOpen(true);
-                      }}
-                    >
-                      <Settings className="h-4 w-4 mr-2" />
-                      {t('chatbots.configure')}
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={() => window.open(provider.docsUrl, '_blank')}
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
+          <div>
+            <h2 className="text-xl font-bold text-slate-900 leading-tight">
+              {t('chatbots.title')}
+            </h2>
+            <p className="text-sm font-medium text-slate-400">Automatización inteligente para tu negocio</p>
           </div>
-
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Ejemplo de Embed */}
-            <Card className="bg-gradient-to-br from-purple-50 to-white border-purple-200 h-full">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Code className="h-5 w-5 text-purple-600" />
-                  <CardTitle>{t('chatbots.preview.title')}</CardTitle>
-                </div>
-                <CardDescription>
-                  {t('chatbots.preview.subtitle')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-white rounded-lg border-2 border-dashed border-purple-300 p-8 text-center">
-                  <Bot className="h-16 w-16 mx-auto mb-4 text-purple-600" />
-                  <p className="text-gray-600 mb-4">
-                    {t('chatbots.preview.placeholder')}
-                  </p>
-                  {testMode ? (
-                    <div className="space-y-3">
-                      <div className="bg-gray-100 p-3 rounded-lg text-left">
-                        <p className="text-sm"><strong>Usuario:</strong> Hola, necesito información</p>
-                      </div>
-                      <div className="bg-purple-100 p-3 rounded-lg text-left">
-                        <p className="text-sm"><strong>Bot:</strong> ¡Hola! Estoy aquí para ayudarte. ¿Qué información necesitas?</p>
-                      </div>
-                      <Button size="sm" variant="outline" onClick={() => setTestMode(false)}>
-                        {t('chatbots.preview.stop')}
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button onClick={handleTestChatbot} variant="outline">
-                      <Play className="h-4 w-4 mr-2" />
-                      {t('chatbots.preview.test')}
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Fallback Configuration */}
-            <Card className="border-orange-200 bg-orange-50 h-full">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5 text-orange-600" />
-                  <CardTitle>{t('chatbots.fallback.title')}</CardTitle>
-                </div>
-                <CardDescription>
-                  {t('chatbots.fallback.subtitle')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Alert className="bg-white/50 border-orange-200">
-                  <FileText className="h-4 w-4 text-orange-600" />
-                  <AlertDescription>
-                    {t('chatbots.fallback.conditions')}
-                    <ul className="list-disc list-inside mt-2 space-y-1 text-gray-700">
-                      <li>{t('chatbots.fallback.condition1')}</li>
-                      <li>{t('chatbots.fallback.condition2')}</li>
-                      <li>{t('chatbots.fallback.condition3')}</li>
-                    </ul>
-                  </AlertDescription>
-                </Alert>
-
-                <div className="flex gap-3 pt-4">
-                  <Button variant="outline" className="w-full border-orange-300 text-orange-700 hover:bg-orange-100" asChild>
-                    <Link href="/templates">
-                      <FileText className="h-4 w-4 mr-2" />
-                      {t('chatbots.fallback.configureTemplates')}
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Dialog de Configuración */}
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  {selectedProvider?.logo}
-                  {t('chatbots.config.title')} {selectedProvider?.name}
-                </DialogTitle>
-                <DialogDescription>
-                  {t('chatbots.config.subtitle')}
-                </DialogDescription>
-              </DialogHeader>
-
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <input type="hidden" {...form.register('provider')} value={selectedProvider?.id} />
-
-                  <FormField
-                    control={form.control}
-                    name="apiKey"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('chatbots.config.apiKey')}</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="password" 
-                            placeholder={t('chatbots.config.apiKeyPlaceholder')} 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          {t('chatbots.config.apiKeyHelp')}{' '}
-                          <a 
-                            href={selectedProvider?.docsUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-purple-600 hover:underline"
-                          >
-                            Ver documentación →
-                          </a>
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="webhookUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('chatbots.config.webhook')}</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder={t('chatbots.config.webhookPlaceholder')} 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          {t('chatbots.config.webhookHelp')}
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="fallbackMessage"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('chatbots.config.fallbackMessage')}</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder={t('chatbots.config.fallbackPlaceholder')} 
-                            rows={3}
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          {t('chatbots.config.fallbackHelp')}
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <Alert className="bg-yellow-50 border-yellow-200">
-                    <Zap className="h-4 w-4 text-yellow-600" />
-                    <AlertDescription className="text-sm">
-                      <strong>Nota:</strong> {t('chatbots.config.note')}
-                    </AlertDescription>
-                  </Alert>
-
-                  <div className="flex gap-3 pt-4">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => {
-                        setDialogOpen(false);
-                        setSelectedProvider(null);
-                      }}
-                    >
-                      {t('common.cancel')}
-                    </Button>
-                    <Button type="submit" className="bg-purple-600 hover:bg-purple-700">
-                      <Check className="h-4 w-4 mr-2" />
-                      {t('chatbots.config.save')}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
         </div>
+
+        {/* Chatbot Providers Grid */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {chatbotProviders.map((provider) => (
+            <Card key={provider.id} className="rounded-[2.5rem] border-none bg-white p-8 shadow-sm transition-hover hover:shadow-md relative flex flex-col group">
+              {provider.popular && <Badge className="absolute top-6 right-6 bg-[#003366] text-white border-none px-3 py-1 font-bold rounded-full text-[10px] uppercase">Popular</Badge>}
+              <div className="text-5xl mb-6">{provider.logo}</div>
+              <h4 className="text-xl font-bold text-slate-900 mb-2">{provider.name}</h4>
+              <p className="text-sm text-slate-400 mb-8 line-clamp-2">{provider.description}</p>
+              
+              <ul className="space-y-4 mb-10 flex-grow">
+                {provider.features.map((feature, index) => (
+                  <li key={index} className="flex items-center gap-3 text-sm font-medium text-slate-600">
+                    <Check className="h-5 w-5 text-emerald-500 bg-emerald-50 p-1 rounded-lg" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="flex gap-3">
+                <Button 
+                  className="flex-1 rounded-2xl bg-[#003366] hover:bg-blue-900 text-white h-12 font-bold"
+                  onClick={() => { setSelectedProvider(provider); setDialogOpen(true); }}
+                >
+                  <Settings className="h-4 w-4 mr-2" /> Configurar
+                </Button>
+                <Button variant="outline" size="icon" className="rounded-2xl border-slate-100 h-12 w-12 text-slate-400 hover:text-[#003366]" onClick={() => window.open(provider.docsUrl, '_blank')}>
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="rounded-[2.5rem] border-none bg-white p-10 shadow-sm flex flex-col items-center text-center">
+             <div className="h-16 w-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-6">
+                <Code className="h-8 w-8" />
+             </div>
+             <h4 className="text-xl font-bold text-slate-900 mb-2">{t('chatbots.preview.title')}</h4>
+             <p className="text-sm text-slate-400 mb-8">{t('chatbots.preview.subtitle')}</p>
+             
+             <div className="w-full bg-slate-50 rounded-3xl p-10 border-2 border-dashed border-slate-200">
+                <Bot className="h-16 w-16 mx-auto mb-4 text-[#003366] opacity-20" />
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-8">{t('chatbots.preview.placeholder')}</p>
+                
+                {testMode ? (
+                  <div className="space-y-4 max-w-sm mx-auto text-left">
+                    <div className="bg-white p-4 rounded-2xl shadow-sm"><p className="text-xs font-bold text-slate-900">Usuario: Hola!</p></div>
+                    <div className="bg-[#003366] p-4 rounded-2xl text-white"><p className="text-xs font-bold">Bot: Hola! ¿En qué puedo ayudarte?</p></div>
+                    <Button size="sm" variant="ghost" className="w-full text-slate-400 hover:text-red-500" onClick={() => setTestMode(false)}>Detener prueba</Button>
+                  </div>
+                ) : (
+                  <Button onClick={handleTestChatbot} className="rounded-2xl bg-white text-[#003366] h-12 px-8 font-bold shadow-sm hover:shadow-md">
+                    <Play className="h-4 w-4 mr-2" /> {t('chatbots.preview.test')}
+                  </Button>
+                )}
+             </div>
+          </Card>
+
+          <Card className="rounded-[2.5rem] border-none bg-[#003366] p-10 shadow-sm flex flex-col justify-between text-white relative overflow-hidden">
+             <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -mr-24 -mt-24" />
+             <div className="relative z-10">
+               <div className="h-16 w-16 rounded-2xl bg-white/10 flex items-center justify-center mb-6">
+                  <AlertCircle className="h-8 w-8 text-white" />
+               </div>
+               <h4 className="text-2xl font-black mb-4 italic">{t('chatbots.fallback.title')}</h4>
+               <p className="text-blue-100 font-medium opacity-80 mb-8">{t('chatbots.fallback.subtitle')}</p>
+               
+               <div className="space-y-4 mb-10">
+                  <div className="flex items-center gap-3 text-sm font-bold"><Check size={18} className="text-emerald-400" /> {t('chatbots.fallback.condition1')}</div>
+                  <div className="flex items-center gap-3 text-sm font-bold"><Check size={18} className="text-emerald-400" /> {t('chatbots.fallback.condition2')}</div>
+               </div>
+             </div>
+
+             <Button variant="outline" className="relative z-10 w-full h-14 rounded-2xl border-white/20 text-white font-bold hover:bg-white/10" asChild>
+                <Link href="/templates">Configurar Plantillas <ChevronRight className="h-4 w-4 ml-2" /></Link>
+             </Button>
+          </Card>
+        </div>
+
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="rounded-[2.5rem] border-none p-10 max-w-2xl overflow-y-auto max-h-[90vh]">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-black text-[#003366] flex items-center gap-3">
+                {selectedProvider?.logo} {t('chatbots.config.title')} {selectedProvider?.name}
+              </DialogTitle>
+              <DialogDescription>{t('chatbots.config.subtitle')}</DialogDescription>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-6">
+                <FormField control={form.control} name="apiKey" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('chatbots.config.apiKey')}</FormLabel>
+                    <FormControl><Input type="password" placeholder={t('chatbots.config.apiKeyPlaceholder')} {...field} className="h-12 rounded-2xl bg-slate-50 border-none font-bold" /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="fallbackMessage" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('chatbots.config.fallbackMessage')}</FormLabel>
+                    <FormControl><Textarea rows={4} {...field} className="rounded-2xl bg-slate-50 border-none font-medium" /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <div className="flex gap-3 pt-4">
+                  <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="flex-1 h-12 rounded-2xl font-bold">Cancelar</Button>
+                  <Button type="submit" className="flex-1 h-12 bg-[#003366] text-white font-bold shadow-lg shadow-blue-900/20">Guardar</Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </div>
     </>
   );

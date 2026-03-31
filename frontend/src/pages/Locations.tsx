@@ -7,11 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
   Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import {
   Dialog,
@@ -41,11 +36,13 @@ import {
   Clock,
   Phone,
   Edit2,
+  Map,
+  Search,
+  ChevronRight
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PhoneNumber } from '@/shared/schema';
 import { useTranslation } from 'react-i18next';
-import { LanguageSelector } from '@/components/LanguageSelector';
 
 // Schema de validación
 const locationSchema = z.object({
@@ -93,10 +90,6 @@ export default function Locations() {
     },
   });
 
-  // ====================
-  // Queries
-  // ====================
-
   const { data: credits } = useQuery({
     queryKey: ['/api/user'],
     queryFn: async () => {
@@ -106,10 +99,6 @@ export default function Locations() {
       });
       if (!response.ok) throw new Error('Failed to fetch user');
       const data = await response.json();
-
-      console.log('👤 User data:', data.user); // Para debugging
-      console.log('💳 Credits:', data.user.credits); // Para debugging
-
       return data.user.credits || {};
     },
     enabled: !!user,
@@ -124,7 +113,6 @@ export default function Locations() {
       });
       if (!response.ok) throw new Error('Failed to fetch locations');
       const data = await response.json();
-
       return (data.locations || []).map((loc: any) => ({
         ...loc,
         phoneNumber: loc.phone?.number || '',
@@ -148,9 +136,6 @@ export default function Locations() {
     enabled: !!user,
   });
 
-  // ====================
-  // LOCATIONS & PHONE NUMBERS
-  // ====================
   const locationsWithPhones = locations.map((loc) => {
     const phone = phoneNumbers.find((p) => p.locationId === loc.id);
     return {
@@ -160,10 +145,6 @@ export default function Locations() {
       phoneNumberId: phone?.id || undefined,
     };
   });
-
-  // ==============================
-  // MUTATIONS
-  // ==============================
 
   const token = localStorage.getItem('accessToken');
 
@@ -183,19 +164,9 @@ export default function Locations() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/locations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
-      toast({
-        title: t('locations.toast.created.title'),
-        description: t('locations.toast.created.description'),
-      });
+      toast({ title: t('locations.toast.created.title'), description: t('locations.toast.created.description') });
       setDialogOpen(false);
       form.reset();
-    },
-    onError: () => {
-      toast({
-        title: t('locations.toast.error.title'),
-        description: t('locations.toast.error.description'),
-        variant: 'destructive',
-      });
     },
   });
 
@@ -214,380 +185,158 @@ export default function Locations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/locations'] });
-      toast({
-        title: t('locations.toast.updated.title'),
-        description: t('locations.toast.updated.description'),
-      });
+      toast({ title: t('locations.toast.updated.title'), description: t('locations.toast.updated.description') });
       setDialogOpen(false);
       setEditingLocation(null);
     },
-    onError: () => {
-      toast({
-        title: t('locations.toast.error.title'),
-        description: t('locations.toast.error.description'),
-        variant: 'destructive',
-      });
-    },
-  });
-
-  const createPhoneMutation = useMutation({
-    mutationFn: async (data: Partial<PhoneNumber>) => {
-      const response = await fetch('/api/phone-numbers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Failed to create phone number');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/phone-numbers'] });
-      toast({
-        title: t('locations.toast.phoneCreated.title'),
-        description: t('locations.toast.phoneCreated.description'),
-      });
-    },
-    onError: () => {
-      toast({
-        title: t('locations.toast.error.title'),
-        description: t('locations.toast.error.description'),
-        variant: 'destructive',
-      });
-    },
-  });
-
-  const editPhoneMutation = useMutation({
-    mutationFn: (data: Partial<PhoneNumber> & { id: number }) =>
-      fetch(`/api/phone-numbers/${data.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      }).then(res => res.json()),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['/api/phone-numbers'] }),
   });
 
   const onSubmit = (data: LocationFormData) => {
-    const payload: any = {
-      name: data.name,
-      address: data.address,
-      planType: data.planType,
-    };
-
-    if (data.phoneNumber && /^\+?[1-9]\d{1,14}$/.test(data.phoneNumber)) {
-      payload.phoneNumber = data.phoneNumber;
-      payload.phoneType = 'both';
-    }
-
-    if (editingLocation) {
-      editMutation.mutate(payload, {
-        onSuccess: () => {
-          if (data.phoneNumber) {
-            if (editingPhoneNumberId) {
-              editPhoneMutation.mutate({
-                id: editingPhoneNumberId,
-                number: data.phoneNumber,
-                type: 'mobile',
-                channel: 'both',
-                active: true,
-                forwardingEnabled: true,
-              });
-            } else {
-              createPhoneMutation.mutate({
-                userId: user!.id,
-                locationId: editingLocation.id,
-                number: data.phoneNumber,
-                type: 'mobile',
-                channel: 'both',
-                active: true,
-                forwardingEnabled: true,
-              });
-            }
-          }
-        },
-      });
-    } else {
-      createMutation.mutate(payload, {
-        onSuccess: (res: { location: Location }) => {
-          if (data.phoneNumber) {
-            createPhoneMutation.mutate({
-              userId: user!.id,
-              locationId: res.location.id,
-              number: data.phoneNumber,
-              type: 'mobile',
-              channel: 'both',
-              active: true,
-              forwardingEnabled: true,
-            });
-          }
-        },
-      });
-    }
+    const payload: any = { name: data.name, address: data.address, planType: data.planType };
+    if (editingLocation) editMutation.mutate(payload);
+    else createMutation.mutate(payload);
   };
 
   return (
     <>
       <Helmet>
         <title>{t('locations.title')} - UNMI</title>
-        <meta name="description" content={t('locations.subtitle')} />
       </Helmet>
 
-      <div className="space-y-2 mt-1">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">{t('locations.title')}</h1>
-            <p className="text-gray-600 mt-1">{t('locations.subtitle')}</p>
+      <div className="flex flex-col gap-y-8 pb-10">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center border border-slate-100">
+              <MapPin className="h-6 w-6 text-[#003366]" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-900 leading-tight">
+                {t('locations.title')}
+              </h2>
+              <p className="text-sm font-medium text-slate-400">Gestiona tus sedes y puntos de venta</p>
+            </div>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Dialog
-              open={dialogOpen}
-              onOpenChange={(open) => {
-                setDialogOpen(open);
-
-                if (open && !editingLocation) {
-                  setEditingPhoneNumberId(null);
-                  form.reset({
-                    name: '',
-                    address: '',
-                    phoneNumber: '',
-                    planType: 'templates',
-                    timezone: 'Europe/Madrid',
-                  });
-                }
-
-                if (!open) {
-                  setEditingLocation(null);
-                  setEditingPhoneNumberId(null);
-                  form.reset({
-                    name: '',
-                    address: '',
-                    phoneNumber: '',
-                    planType: 'templates',
-                    timezone: 'Europe/Madrid',
-                  });
-                }
-              }}
-            >
+          <div className="flex items-center gap-3">
+            <div className="relative hidden md:block">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input placeholder="Buscar sede..." className="rounded-2xl border-none shadow-sm h-12 pl-11 bg-white w-64" />
+            </div>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  {t('locations.new')}
+                <Button className="rounded-2xl bg-[#003366] hover:bg-blue-900 text-white h-12 px-6 font-bold shadow-lg shadow-blue-900/20">
+                  <Plus className="h-4 w-4 mr-2" /> {t('locations.new')}
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="rounded-[2.5rem] border-none p-10">
                 <DialogHeader>
-                  <DialogTitle>
-                    {editingLocation ? t('locations.edit') : t('locations.create')}
-                  </DialogTitle>
-                  <DialogDescription>
-                    {editingLocation
-                      ? t('locations.dialog.editDesc')
-                      : t('locations.dialog.createDesc')}
-                  </DialogDescription>
+                  <DialogTitle className="text-2xl font-black text-[#003366]">{editingLocation ? t('locations.edit') : t('locations.create')}</DialogTitle>
+                  <DialogDescription>{editingLocation ? t('locations.dialog.editDesc') : t('locations.dialog.createDesc')}</DialogDescription>
                 </DialogHeader>
 
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('locations.form.name')}</FormLabel>
-                          <FormControl>
-                            <Input placeholder={t('locations.form.namePlaceholder')} {...field} />
-                          </FormControl>
-                          <FormDescription>{t('locations.form.nameHelp')}</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-4">
+                    <FormField control={form.control} name="name" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('locations.form.name')}</FormLabel>
+                        <FormControl><Input placeholder={t('locations.form.namePlaceholder')} {...field} className="h-12 rounded-2xl bg-slate-50 border-none font-bold" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
 
-                    <FormField
-                      control={form.control}
-                      name="address"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('locations.form.address')}</FormLabel>
-                          <FormControl>
-                            <Input placeholder={t('locations.form.addressPlaceholder')} {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <FormField control={form.control} name="address" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('locations.form.address')}</FormLabel>
+                        <FormControl><Input placeholder={t('locations.form.addressPlaceholder')} {...field} className="h-12 rounded-2xl bg-slate-50 border-none font-bold" /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
 
-                    <FormField
-                      control={form.control}
-                      name="phoneNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('locations.form.phone')}</FormLabel>
-                          <FormControl>
-                            <Input placeholder={t('locations.form.phonePlaceholder')} {...field} />
-                          </FormControl>
-                          <FormDescription>{t('locations.form.phoneHelp')}</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <FormField control={form.control} name="planType" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('locations.form.planType')}</FormLabel>
+                        <FormControl>
+                          <select {...field} className="w-full h-12 rounded-2xl bg-slate-50 border-none font-bold px-4 text-sm outline-none">
+                            <option value="templates">Templates {credits?.templates > 0 ? `(${credits.templates} disp.)` : '(0 disp.)'}</option>
+                            <option value="chatbots">Chatbots {credits?.chatbots > 0 ? `(${credits.chatbots} disp.)` : '(0 disp.)'}</option>
+                          </select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
 
-                    <FormField
-                      control={form.control}
-                      name="planType"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('locations.form.planType')}</FormLabel>
-                          <FormControl>
-                            <select
-                              {...field}
-                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            >
-                              <option value="templates">
-                                Templates {credits?.templates > 0 ? `(${credits.templates} ${t('locations.form.creditsAvailable')})` : `(0 ${t('locations.form.creditsAvailable')})`}
-                              </option>
-                              <option value="chatbots">
-                                Chatbots {credits?.chatbots > 0 ? `(${credits.chatbots} ${t('locations.form.creditsAvailable')})` : `(0 ${t('locations.form.creditsAvailable')})`}
-                              </option>
-                            </select>
-                          </FormControl>
-                          <FormDescription>{t('locations.form.planTypeHelp')}</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="timezone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('locations.form.timezone')}</FormLabel>
-                          <FormControl>
-                            <Input {...field} readOnly />
-                          </FormControl>
-                          <FormDescription>{t('locations.form.timezoneHelp')}</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <DialogFooter>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setDialogOpen(false)}
-                      >
-                        {t('locations.cancel')}
-                      </Button>
-                      <Button type="submit" disabled={createMutation.isPending || editMutation.isPending}>
-                        {editingLocation ? t('locations.saveChanges') : t('locations.createLocation')}
-                      </Button>
-                    </DialogFooter>
+                    <div className="flex gap-3 pt-4">
+                      <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="flex-1 rounded-2xl h-12 font-bold">Cancelar</Button>
+                      <Button type="submit" className="flex-1 rounded-2xl h-12 bg-[#003366] text-white font-bold">{editingLocation ? 'Guardar' : 'Crear Sede'}</Button>
+                    </div>
                   </form>
                 </Form>
               </DialogContent>
             </Dialog>
-
-            <LanguageSelector />
           </div>
         </div>
 
-
         {/* Locations Grid */}
         {isLoading ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map((i) => (
-              <Card key={i} className="animate-pulse">
-                <CardHeader>
-                  <div className="h-6 bg-gray-200 rounded w-3/4" />
-                  <div className="h-4 bg-gray-200 rounded w-1/2 mt-2" />
-                </CardHeader>
-                <CardContent>
-                  <div className="h-4 bg-gray-200 rounded w-full" />
-                </CardContent>
-              </Card>
+              <div key={i} className="animate-pulse h-64 bg-white rounded-[2.5rem]" />
             ))}
           </div>
         ) : locations.length === 0 ? (
-          <Card className="text-center py-12">
-            <CardContent>
-              <MapPin className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-semibold mb-2">{t('locations.noLocations')}</h3>
-              <p className="text-gray-600 mb-4 max-w-md mx-auto">
-                {t('locations.firstLocation')}
-              </p>
-              <Button onClick={() => setDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                {t('locations.createFirstLocation')}
-              </Button>
-            </CardContent>
+          <Card className="rounded-[2.5rem] border-none bg-white py-24 shadow-sm text-center">
+            <Map className="h-20 w-20 mx-auto text-slate-100 mb-6" />
+            <h3 className="text-2xl font-black text-slate-900 mb-2">{t('locations.noLocations')}</h3>
+            <p className="text-slate-400 mb-8 max-w-sm mx-auto">{t('locations.firstLocation')}</p>
+            <Button onClick={() => setDialogOpen(true)} className="rounded-2xl bg-[#003366] text-white h-14 px-10 font-bold text-lg shadow-xl shadow-blue-900/20">
+              {t('locations.createFirstLocation')}
+            </Button>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {locationsWithPhones.map((location) => (
-              <Card key={location.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="h-5 w-5 text-blue-600" />
-                      <CardTitle className="text-lg">{location.name}</CardTitle>
+              <Card key={location.id} className="rounded-[2.5rem] border-none bg-white p-8 shadow-sm transition-hover hover:shadow-md group">
+                <div className="flex items-start justify-between mb-6">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center text-[#003366] group-hover:bg-[#003366] group-hover:text-white transition-colors">
+                      <Building2 className="h-6 w-6" />
                     </div>
-                    {location.isFirstLocation && (
-                      <Badge variant="secondary">{t('locations.details.main')}</Badge>
-                    )}
-                  </div>
-                  <CardDescription className="flex items-start gap-2 mt-2">
-                    <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                    <span>{location.address || t('locations.details.noAddress')}</span>
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Clock className="h-4 w-4" />
-                      <span>{location.timezone === 'UTC' ? 'Europe/Madrid' : location.timezone}</span>
+                    <div>
+                      <h3 className="text-xl font-bold text-slate-900 leading-tight">{location.name}</h3>
+                      {location.isFirstLocation && (
+                        <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Sede Principal</span>
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Phone className="h-4 w-4" />
-                      <span>{location.phoneNumber || t('locations.details.noNumber')} </span>
-                    </div>
+                </div>
+                
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-center gap-3 text-sm font-medium text-slate-500">
+                    <MapPin className="h-5 w-5 text-slate-300" />
+                    <span className="line-clamp-1">{location.address || 'Sin dirección'}</span>
                   </div>
-                </CardContent>
-                <CardFooter className="border-t pt-4">
+                  <div className="flex items-center gap-3 text-sm font-medium text-slate-500">
+                    <Phone className="h-5 w-5 text-slate-300" />
+                    <span className="text-slate-900 font-bold">{location.phoneNumber || 'Sin número'}</span>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-slate-50 flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{location.timezone}</span>
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
+                    variant="ghost"
+                    className="rounded-xl h-10 px-4 font-bold text-[#003366] hover:bg-slate-50"
                     onClick={() => {
-                      setEditingLocation({
-                        ...location,
-                        phoneNumberId: location.phoneNumberId ?? undefined,
-                      });
+                      setEditingLocation({ ...location, phoneNumberId: location.phoneNumberId ?? undefined });
                       setEditingPhoneNumberId(location.phoneNumberId || null);
-                      form.reset({
-                        name: location.name,
-                        address: location.address || '',
-                        phoneNumber: location.phoneNumber || '',
-                        planType: 'templates',
-                        timezone: location.timezone || 'Europe/Madrid',
-                      });
+                      form.reset({ name: location.name, address: location.address || '', phoneNumber: location.phoneNumber || '', planType: 'templates', timezone: location.timezone || 'Europe/Madrid' });
                       setDialogOpen(true);
                     }}
                   >
-                    <Edit2 className="h-4 w-4 mr-2" />
-                    {t('locations.details.configure')}
+                    Configurar <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
-                </CardFooter>
+                </div>
               </Card>
             ))}
           </div>
@@ -595,16 +344,15 @@ export default function Locations() {
 
         {/* Info Card */}
         {locations.length > 0 && (
-          <Card className="bg-blue-50 border-blue-200">
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">💡 {t('locations.nextStep.title')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-700">
-                {t('locations.nextStep.desc')}
-              </p>
-            </CardContent>
-          </Card>
+          <div className="bg-[#003366] rounded-[2.5rem] p-10 flex flex-col md:flex-row items-center justify-between gap-8 shadow-xl shadow-blue-900/20">
+            <div className="text-center md:text-left">
+              <h4 className="text-2xl font-black text-white mb-2 italic">¿Necesitas más sedes?</h4>
+              <p className="text-blue-100 font-medium opacity-80">Amplía tu plan para gestionar múltiples establecimientos desde un solo panel.</p>
+            </div>
+            <Link href="/plan" className="bg-white text-[#003366] h-14 px-8 rounded-2xl flex items-center justify-center font-black text-lg shadow-lg hover:bg-blue-50 transition-colors whitespace-nowrap">
+              Mejorar Plan
+            </Link>
+          </div>
         )}
       </div>
     </>

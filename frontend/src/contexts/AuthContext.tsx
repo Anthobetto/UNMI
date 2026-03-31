@@ -124,12 +124,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('accessToken', data.accessToken);
       }
 
-      const profileResponse = await fetch('/api/user', {
-        headers: { Authorization: `Bearer ${data.accessToken}` },
-      });
+      // Si el backend ya devolvió el usuario completo, lo usamos directamente
+      if (data.user) {
+        setUser(data.user);
+      } else {
+        // Fallback: solo si el backend no devolvió el usuario (por seguridad)
+        const profileResponse = await fetch('/api/user', {
+          headers: { Authorization: `Bearer ${data.accessToken}` },
+        });
 
-      const profileData = await profileResponse.json();
-      setUser(profileData.user);
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json();
+          setUser(profileData.user);
+        }
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
       setError(message);

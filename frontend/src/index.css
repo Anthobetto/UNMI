@@ -61,6 +61,59 @@
   }
 }
 
+@layer utilities {
+  /* TailAdmin Custom Classes */
+  .shadow-default {
+    @apply shadow-[0px_8px_13px_-3px_rgba(0,0,0,0.07)];
+  }
+  .border-stroke {
+    @apply border-[#E2E8F0];
+  }
+  .dark .border-strokedark {
+    @apply border-[#2E3A47];
+  }
+  .bg-gray {
+    @apply bg-[#F7F9FC];
+  }
+  .bg-gray-2 {
+    @apply bg-[#F1F5F9];
+  }
+  .bg-boxdark {
+    @apply bg-[#24303F];
+  }
+  .text-title-md2 {
+    @apply text-[26px] leading-[30px];
+  }
+  .text-title-md {
+    @apply text-[24px] leading-[28px];
+  }
+  .text-title-sm {
+    @apply text-[18px] leading-[22px];
+  }
+  
+  /* Meta colors from TailAdmin */
+  .text-meta-1 { @apply text-[#FB5454]; }
+  .bg-meta-1 { @apply bg-[#FB5454]; }
+  .text-meta-2 { @apply text-[#EFF4FB]; }
+  .bg-meta-2 { @apply bg-[#EFF4FB]; }
+  .text-meta-3 { @apply text-[#10B981]; }
+  .bg-meta-3 { @apply bg-[#10B981]; }
+  .text-meta-4 { @apply text-[#313D4A]; }
+  .bg-meta-4 { @apply bg-[#313D4A]; }
+  .text-meta-5 { @apply text-[#A0616A]; }
+  .bg-meta-5 { @apply bg-[#A0616A]; }
+  .text-meta-6 { @apply text-[#FFA70B]; }
+  .bg-meta-6 { @apply bg-[#FFA70B]; }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
 .animate-in {
   animation: animate-in 0.5s ease-out;
 }

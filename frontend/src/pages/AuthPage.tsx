@@ -22,19 +22,16 @@ const PRICING_TIERS = {
     { messages: 50, price: 25 },
     { messages: 100, price: 50 },
     { messages: 150, price: 60 },
-    { messages: 200, price: 80 },
   ],
   pro: [
-    { messages: 250, price: 100 },
-    { messages: 300, price: 110 },
-    { messages: 350, price: 135 },
-    { messages: 400, price: 150 },
+    { messages: 200, price: 100 },
+    { messages: 250, price: 120 },
+    { messages: 300, price: 135 },
   ],
   premium: [
-    { messages: 500, price: 175 },
-    { messages: 600, price: 200 },
-    { messages: 800, price: 250 },
-    { messages: 1000, price: 300 },
+    { messages: 350, price: 150 },
+    { messages: 400, price: 165 },
+    { messages: 500, price: 200 },
   ],
 };
 
@@ -55,6 +52,23 @@ export default function AuthPage() {
   const [proTier, setProTier] = useState(PRICING_TIERS.pro[1]); 
   const [premiumTier, setPremiumTier] = useState(PRICING_TIERS.premium[1]);
   
+  // Estados independientes para la cantidad de números por plan (Sincronizados con Landing)
+  const [smallPhones, setSmallPhones] = useState(1);
+  const [proPhones, setProPhones] = useState(1);
+  const [premiumPhones, setPremiumPhones] = useState(1);
+
+  // Función para calcular el coste de los números de teléfono (Misma que Landing)
+  const calculatePhoneCost = (q: number) => {
+    if (q === 1) return q * 35;
+    if (q === 2) return q * 33;
+    if (q === 3) return q * 31;
+    if (q >= 4 && q <= 5) return q * 29;
+    if (q >= 6 && q <= 10) return q * 27;
+    return q * 25;
+  };
+
+  const phoneOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 20, 25, 30, 40, 50];
+  
   const [selectedPlanUI, setSelectedPlanUI] = useState<'small' | 'pro' | 'premium'>('small');
   const [finalSelection, setFinalSelection] = useState<any>(null);
 
@@ -63,6 +77,7 @@ export default function AuthPage() {
     const tabParam = url.searchParams.get("tab");
     const planParam = url.searchParams.get("plan");
     const priceParam = url.searchParams.get("price");
+    const phonesParam = url.searchParams.get("phones");
 
     if (tabParam === "login") {
       setActiveTab("login");
@@ -73,13 +88,28 @@ export default function AuthPage() {
         const plan = planParam as 'small' | 'pro' | 'premium';
         setSelectedPlanUI(plan);
         const tierList = PRICING_TIERS[plan];
+        
+        // Manejo de teléfonos desde la URL
+        const phonesCount = phonesParam ? parseInt(phonesParam) : 1;
+        if (plan === 'small') setSmallPhones(phonesCount);
+        if (plan === 'pro') setProPhones(phonesCount);
+        if (plan === 'premium') setPremiumPhones(phonesCount);
+
+        // Encontrar el tier de mensajes correcto (restando el precio de los teléfonos si es necesario)
         const matchedTier = priceParam 
-          ? tierList.find(t => t.price.toString() === priceParam) || tierList[0]
+          ? tierList.find(t => (t.price + calculatePhoneCost(phonesCount)).toString() === priceParam) || tierList[0]
           : tierList[0];
+          
         if (plan === 'small') setSmallTier(matchedTier);
         if (plan === 'pro') setProTier(matchedTier);
         if (plan === 'premium') setPremiumTier(matchedTier);
-        setFinalSelection({ plan, ...matchedTier });
+        
+        setFinalSelection({ 
+          plan, 
+          ...matchedTier, 
+          phones: phonesCount, 
+          totalPrice: matchedTier.price + calculatePhoneCost(phonesCount) 
+        });
         setStep(2);
       }
     }
@@ -111,9 +141,9 @@ export default function AuthPage() {
     if (!finalSelection) return;
     const selectionData = {
       planType: finalSelection.plan,
-      quantity: 1, 
+      quantity: finalSelection.phones || 1, 
       departments: 1,
-      price: finalSelection.price,
+      price: finalSelection.totalPrice || finalSelection.price,
       messages: finalSelection.messages
     };
     registerForm.setValue('selections', [selectionData as any], {
@@ -122,9 +152,10 @@ export default function AuthPage() {
     });
   }, [finalSelection, registerForm]);
 
-  const handleSelectPlan = (plan: 'small' | 'pro' | 'premium', tier: any) => {
+  const handleSelectPlan = (plan: 'small' | 'pro' | 'premium', tier: any, phones: number) => {
     setSelectedPlanUI(plan);
-    setFinalSelection({ plan, ...tier });
+    const totalPrice = tier.price + calculatePhoneCost(phones);
+    setFinalSelection({ plan, ...tier, phones, totalPrice });
     setStep(2);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -195,64 +226,105 @@ export default function AuthPage() {
               <div className="mb-8">
                 <h3 className="text-2xl font-bold mb-2">Pequeña Empresa</h3>
                 <p className="text-gray-500 text-sm mb-4 text-balance">Todo lo esencial para empezar.</p>
-                <Select defaultValue={smallTier.messages.toString()} onValueChange={(val) => setSmallTier(PRICING_TIERS.small.find(t => t.messages.toString() === val)!)}>
-                  <SelectTrigger className="w-full bg-white dark:bg-white/10 border-gray-200 dark:border-white/10 rounded-xl h-12"><SelectValue /></SelectTrigger>
-                  <SelectContent>{PRICING_TIERS.small.map(t => <SelectItem key={t.messages} value={t.messages.toString()}>{t.messages} mensajes - €{t.price}</SelectItem>)}</SelectContent>
-                </Select>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 uppercase mb-1.5 block">Mensajes</label>
+                    <Select defaultValue={smallTier.messages.toString()} onValueChange={(val) => setSmallTier(PRICING_TIERS.small.find(t => t.messages.toString() === val)!)}>
+                      <SelectTrigger className="w-full bg-white dark:bg-white/10 border-gray-200 dark:border-white/10 rounded-xl h-12"><SelectValue /></SelectTrigger>
+                      <SelectContent>{PRICING_TIERS.small.map(t => <SelectItem key={t.messages} value={t.messages.toString()}>{t.messages} mensajes - €{t.price}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 uppercase mb-1.5 block">Números</label>
+                    <Select defaultValue={smallPhones.toString()} onValueChange={(val) => setSmallPhones(parseInt(val))}>
+                      <SelectTrigger className="w-full bg-white dark:bg-white/10 border-gray-200 dark:border-white/10 rounded-xl h-12"><SelectValue /></SelectTrigger>
+                      <SelectContent>{phoneOptions.map(q => <SelectItem key={q} value={q.toString()}>{q} {q === 1 ? 'número' : 'números'}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
               <div className="mb-8">
-                <span className="text-5xl font-black tracking-tighter">€{smallTier.price}</span>
+                <span className="text-5xl font-black tracking-tighter">€{smallTier.price + calculatePhoneCost(smallPhones)}</span>
                 <span className="text-gray-500 ml-2">/mes</span>
               </div>
               <ul className="space-y-4 mb-10 flex-grow">
                 <li className="flex items-center gap-3 text-sm font-bold"><Check className="size-5 text-[#FF0000]" /> {smallTier.messages} mensajes/mes</li>
-                <li className="flex items-center gap-3 text-sm"><Check className="size-5 text-gray-400" /> 1 Localización</li>
+                <li className="flex items-center gap-3 text-sm font-bold"><Check className="size-5 text-[#FF0000]" /> {smallPhones} {smallPhones === 1 ? 'Línea telefónica' : 'Líneas telefónicas'}</li>
                 <li className="flex items-center gap-3 text-sm"><Check className="size-5 text-gray-400" /> Respuesta automática</li>
               </ul>
-              <Button onClick={() => handleSelectPlan('small', smallTier)} className="w-full h-14 rounded-2xl text-lg font-bold border-2 border-[#FF0000] hover:bg-[#FF0000]/5 text-[#FF0000]" variant="outline">Elegir Plan</Button>
+              <Button onClick={() => handleSelectPlan('small', smallTier, smallPhones)} className="w-full h-14 rounded-2xl text-lg font-bold border-2 border-[#FF0000] hover:bg-[#FF0000]/5 text-[#FF0000]" variant="outline">Elegir Plan</Button>
             </motion.div>
+
             {/* Tarjeta PRO */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white/50 dark:bg-white/5 rounded-[2.5rem] border-2 border-[#FF0000] p-10 shadow-2xl relative overflow-hidden flex flex-col z-10">
               <div className="absolute top-0 right-0 bg-[#FF0000] text-white px-6 py-1.5 rounded-bl-2xl text-xs font-bold uppercase">Popular</div>
               <div className="mb-8">
                 <h3 className="text-2xl font-bold mb-2">UNMI Pro</h3>
                 <p className="text-gray-500 text-sm mb-4 text-balance">Optimiza tu atención al cliente.</p>
-                <Select defaultValue={proTier.messages.toString()} onValueChange={(val) => setProTier(PRICING_TIERS.pro.find(t => t.messages.toString() === val)!)}>
-                  <SelectTrigger className="w-full bg-white dark:bg-white/10 border-[#FF0000]/20 rounded-xl h-12"><SelectValue /></SelectTrigger>
-                  <SelectContent>{PRICING_TIERS.pro.map(t => <SelectItem key={t.messages} value={t.messages.toString()}>{t.messages} mensajes - €{t.price}</SelectItem>)}</SelectContent>
-                </Select>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-[#FF0000]/60 uppercase mb-1.5 block">Mensajes</label>
+                    <Select defaultValue={proTier.messages.toString()} onValueChange={(val) => setProTier(PRICING_TIERS.pro.find(t => t.messages.toString() === val)!)}>
+                      <SelectTrigger className="w-full bg-white dark:bg-white/10 border-[#FF0000]/20 rounded-xl h-12"><SelectValue /></SelectTrigger>
+                      <SelectContent>{PRICING_TIERS.pro.map(t => <SelectItem key={t.messages} value={t.messages.toString()}>{t.messages} mensajes - €{t.price}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-[#FF0000]/60 uppercase mb-1.5 block">Números</label>
+                    <Select defaultValue={proPhones.toString()} onValueChange={(val) => setProPhones(parseInt(val))}>
+                      <SelectTrigger className="w-full bg-white dark:bg-white/10 border-[#FF0000]/20 rounded-xl h-12"><SelectValue /></SelectTrigger>
+                      <SelectContent>{phoneOptions.map(q => <SelectItem key={q} value={q.toString()}>{q} {q === 1 ? 'número' : 'números'}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
               <div className="mb-8">
-                <span className="text-5xl font-black tracking-tighter">€{proTier.price}</span>
+                <span className="text-5xl font-black tracking-tighter">€{proTier.price + calculatePhoneCost(proPhones)}</span>
                 <span className="text-gray-500 ml-2">/mes</span>
               </div>
               <ul className="space-y-4 mb-10 flex-grow">
                 <li className="flex items-center gap-3 text-sm font-bold"><Check className="size-5 text-green-500" /> {proTier.messages} mensajes/mes</li>
-                <li className="flex items-center gap-3 text-sm font-bold"><Check className="size-5 text-green-500" /> Hasta 3 Localizaciones</li>
+                <li className="flex items-center gap-3 text-sm font-bold"><Check className="size-5 text-green-500" /> {proPhones} {proPhones === 1 ? 'Línea telefónica' : 'Líneas telefónicas'}</li>
                 <li className="flex items-center gap-3 text-sm font-bold"><Check className="size-5 text-green-500" /> Chatbots de IA</li>
               </ul>
-              <Button onClick={() => handleSelectPlan('pro', proTier)} className="w-full h-14 rounded-2xl text-lg font-bold bg-[#FF0000] hover:bg-[#cc0000] text-white shadow-xl shadow-red-500/20">Elegir Plan Pro</Button>
+              <Button onClick={() => handleSelectPlan('pro', proTier, proPhones)} className="w-full h-14 rounded-2xl text-lg font-bold bg-[#FF0000] hover:bg-[#cc0000] text-white shadow-xl shadow-red-500/20">Elegir Plan Pro</Button>
             </motion.div>
+
             {/* Tarjeta PREMIUM */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white/50 dark:bg-white/5 rounded-[2.5rem] border-2 border-gray-200 dark:border-white/10 p-10 shadow-xl flex flex-col">
               <div className="mb-8">
                 <h3 className="text-2xl font-bold mb-2 text-[#FF0000]">UNMI Premium</h3>
                 <p className="text-gray-500 text-sm mb-4 text-balance">Escalabilidad total sin límites.</p>
-                <Select defaultValue={premiumTier.messages.toString()} onValueChange={(val) => setPremiumTier(PRICING_TIERS.premium.find(t => t.messages.toString() === val)!)}>
-                  <SelectTrigger className="w-full bg-white dark:bg-white/10 border-gray-200 dark:border-white/10 rounded-xl h-12"><SelectValue /></SelectTrigger>
-                  <SelectContent>{PRICING_TIERS.premium.map(t => <SelectItem key={t.messages} value={t.messages.toString()}>{t.messages} mensajes - €{t.price}</SelectItem>)}</SelectContent>
-                </Select>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 uppercase mb-1.5 block">Mensajes</label>
+                    <Select defaultValue={premiumTier.messages.toString()} onValueChange={(val) => setPremiumTier(PRICING_TIERS.premium.find(t => t.messages.toString() === val)!)}>
+                      <SelectTrigger className="w-full bg-white dark:bg-white/10 border-gray-200 dark:border-white/10 rounded-xl h-12"><SelectValue /></SelectTrigger>
+                      <SelectContent>{PRICING_TIERS.premium.map(t => <SelectItem key={t.messages} value={t.messages.toString()}>{t.messages} mensajes - €{t.price}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 uppercase mb-1.5 block">Números</label>
+                    <Select defaultValue={premiumPhones.toString()} onValueChange={(val) => setPremiumPhones(parseInt(val))}>
+                      <SelectTrigger className="w-full bg-white dark:bg-white/10 border-gray-200 dark:border-white/10 rounded-xl h-12"><SelectValue /></SelectTrigger>
+                      <SelectContent>{phoneOptions.map(q => <SelectItem key={q} value={q.toString()}>{q} {q === 1 ? 'número' : 'números'}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
               <div className="mb-8">
-                <span className="text-5xl font-black tracking-tighter">€{premiumTier.price}</span>
+                <span className="text-5xl font-black tracking-tighter">€{premiumTier.price + calculatePhoneCost(premiumPhones)}</span>
                 <span className="text-gray-500 ml-2">/mes</span>
               </div>
               <ul className="space-y-4 mb-10 flex-grow">
                 <li className="flex items-center gap-3 text-sm font-bold"><Check className="size-5 text-[#FF0000]" /> {premiumTier.messages} mensajes/mes</li>
-                <li className="flex items-center gap-3 text-sm font-bold"><Check className="size-5 text-[#FF0000]" /> Multi-Localización</li>
+                <li className="flex items-center gap-3 text-sm font-bold"><Check className="size-5 text-[#FF0000]" /> {premiumPhones} {premiumPhones === 1 ? 'Línea telefónica' : 'Líneas telefónicas'}</li>
                 <li className="flex items-center gap-3 text-sm font-bold"><Check className="size-5 text-[#FF0000]" /> IA Avanzada</li>
               </ul>
-              <Button onClick={() => handleSelectPlan('premium', premiumTier)} className="w-full h-14 rounded-2xl text-lg font-bold border-2 border-[#FF0000] hover:bg-[#FF0000]/5 text-[#FF0000]" variant="outline">Elegir Premium</Button>
+              <Button onClick={() => handleSelectPlan('premium', premiumTier, premiumPhones)} className="w-full h-14 rounded-2xl text-lg font-bold border-2 border-[#FF0000] hover:bg-[#FF0000]/5 text-[#FF0000]" variant="outline">Elegir Premium</Button>
             </motion.div>
           </div>
           <footer className="mt-16 text-center text-sm text-muted-foreground">
@@ -316,12 +388,18 @@ export default function AuthPage() {
                 </div>
                 <div>
                   <h3 className="font-bold text-lg leading-tight capitalize">{selectedPlanUI === 'small' ? 'Pequeña Empresa' : selectedPlanUI === 'pro' ? 'UNMI Pro' : 'UNMI Premium'}</h3>
-                  <p className="text-[11px] text-muted-foreground uppercase font-black tracking-[0.1em]">{finalSelection?.messages} Mensajes / Mes</p>
+                  <div className="flex flex-col gap-0.5 mt-1">
+                    <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.1em]">{finalSelection?.messages} Mensajes / Mes</p>
+                    <p className="text-[10px] text-[#FF0000] uppercase font-black tracking-[0.1em]">{finalSelection?.phones} {finalSelection?.phones === 1 ? 'Línea telefónica' : 'Líneas telefónicas'}</p>
+                  </div>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-[10px] text-muted-foreground font-bold uppercase mb-0.5">Total</div>
-                <div className="flex items-baseline justify-end gap-0.5"><span className="text-3xl font-black text-foreground">€{finalSelection?.price}</span><span className="text-xs text-muted-foreground font-medium">/mes</span></div>
+                <div className="text-[10px] text-muted-foreground font-bold uppercase mb-0.5">Total Mensual</div>
+                <div className="flex items-baseline justify-end gap-0.5">
+                  <span className="text-3xl font-black text-foreground">€{finalSelection?.totalPrice || finalSelection?.price}</span>
+                  <span className="text-xs text-muted-foreground font-medium">/mes</span>
+                </div>
               </div>
             </div>
           </motion.div>

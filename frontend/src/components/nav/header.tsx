@@ -1,37 +1,41 @@
-/**
- * Header Component
- * Shows page title, company name and language selector
- */
-
 import { useAuth } from "@/contexts/AuthContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { Menu, Bell, HelpCircle } from "lucide-react";
 
 interface HeaderProps {
-  pageName: string;
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
 }
 
-export function Header({ pageName }: HeaderProps) {
+export function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
   const { user } = useAuth();
 
   return (
-    <div className="mb-6 p-4 border-b border-gray-200">
-      <div className="flex justify-between items-center">
-        {/* Left section: company name + page title */}
-        <div className="flex flex-col">
-          <h1 className="unmi-client-name font-bold mb-2 text-[#003366]">
-            {user?.companyName || "UNMI"}
-          </h1>
-          <div className="flex items-center">
-            <div className="w-1.5 h-8 bg-[#FF0000] rounded-full mr-3"></div>
-            <h2 className="text-2xl font-semibold text-[#333333]">
-              {pageName}
-            </h2>
-          </div>
+    <header className="sticky top-0 z-[99] px-4 md:px-6 py-4">
+      <div className="flex items-center justify-between bg-white px-6 py-4 rounded-3xl shadow-sm border border-slate-100">
+        <div className="flex items-center gap-4">
+          {/* Hamburger Toggle */}
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="lg:hidden p-2 rounded-xl hover:bg-slate-50 transition-colors"
+          >
+            <Menu className="h-6 w-6 text-slate-600" />
+          </button>
         </div>
 
-        {/* Right section: language selector */}
-        <LanguageSelector />
+        <div className="flex items-center gap-2 md:gap-6">
+          <LanguageSelector />
+          
+          <div className="hidden md:flex items-center gap-3 border-l border-slate-100 pl-6">
+            <button className="p-2 rounded-xl text-slate-400 hover:bg-slate-50 hover:text-[#003366] transition-all">
+              <Bell className="h-5 w-5" />
+            </button>
+            <button className="p-2 rounded-xl text-slate-400 hover:bg-slate-50 hover:text-[#003366] transition-all">
+              <HelpCircle className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+    </header>
   );
 }
