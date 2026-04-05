@@ -43,6 +43,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { PhoneNumber } from '@/shared/schema';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 
 // Schema de validación
 const locationSchema = z.object({
@@ -310,7 +311,7 @@ export default function Locations() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="space-y-4 mb-8">
                   <div className="flex items-center gap-3 text-sm font-medium text-slate-500">
                     <MapPin className="h-5 w-5 text-slate-300" />
@@ -349,7 +350,8 @@ export default function Locations() {
               <h4 className="text-2xl font-black text-white mb-2 italic">¿Necesitas más sedes?</h4>
               <p className="text-blue-100 font-medium opacity-80">Amplía tu plan para gestionar múltiples establecimientos desde un solo panel.</p>
             </div>
-            <Link href="/plan" className="bg-white text-[#003366] h-14 px-8 rounded-2xl flex items-center justify-center font-black text-lg shadow-lg hover:bg-blue-50 transition-colors whitespace-nowrap">
+            {/* CAMBIO AQUÍ: href por to */}
+            <Link to="/plan" className="bg-white text-[#003366] h-14 px-8 rounded-2xl flex items-center justify-center font-black text-lg shadow-lg hover:bg-blue-50 transition-colors whitespace-nowrap">
               Mejorar Plan
             </Link>
           </div>
