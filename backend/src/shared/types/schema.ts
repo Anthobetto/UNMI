@@ -12,7 +12,7 @@ export const userSchema = z.object({
   companyName: z.string().min(1),
   termsAccepted: z.boolean(),
   termsAcceptedAt: z.date().optional(),
-  planType: z.enum(['templates', 'chatbots']).optional(),
+  planType: z.enum(['small', 'pro']).optional(),
   subscriptionStatus: z.enum(['active', 'inactive', 'trial', 'cancelled']).optional(),
 });
 
