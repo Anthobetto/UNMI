@@ -8,7 +8,8 @@
       "ESNext"
     ],
     "jsx": "react-jsx",
-    "moduleResolution": "Node",
+    /* CAMBIO: De 'Node' a 'Bundler' para Vite */
+    "moduleResolution": "Bundler",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "strict": true,
@@ -16,14 +17,10 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "isolatedModules": true,
-    "baseUrl": "./src",
+    /* ELIMINADO: baseUrl se va. Ajustamos los paths abajo */
     "paths": {
-      "@/*": [
-        "*"
-      ],
-      "@shared/*": [
-        "../backend/shared/*"
-      ]
+      "@/*": ["./src/*"],
+      "@shared/*": ["../backend/shared/*"]
     },
     "resolveJsonModule": true
   },

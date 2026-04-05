@@ -5,7 +5,7 @@ import { z } from "zod";
 // ENUMS (Actualizados)
 // ==================
 // ✅ CAMBIO CLAVE: De templates/chatbots a small/pro
-export const planTypeEnum = z.enum(['small', 'pro']); 
+export const planTypeEnum = z.enum(['small', 'pro', 'premium']);
 export const subscriptionStatusEnum = z.enum(['active', 'inactive', 'trial', 'cancelled']);
 export const templateTypeEnum = z.enum(['missed_call', 'after_hours', 'welcome', 'follow_up']);
 export const messageChannelEnum = z.enum(['sms', 'whatsapp', 'both']);
@@ -20,14 +20,13 @@ export const messageDirectionEnum = z.enum(['inbound', 'outbound']);
 // ==================
 export const userSchema = z.object({
     id: z.string().uuid(),
-    auth_id: z.string().uuid(),
+    authId: z.string().uuid(), 
     username: z.string().min(3),
     email: z.string().email(),
-    companyName: z.string().min(1),
-    termsAccepted: z.boolean(),
-    termsAcceptedAt: z.date().optional(),
-    planType: planTypeEnum.optional(), // ✅ Actualizado
-    subscriptionStatus: subscriptionStatusEnum.optional(),
+    companyName: z.string().min(1), 
+    planType: planTypeEnum.default('small'),
+    subscriptionStatus: subscriptionStatusEnum.default('inactive'),
+    stripeCustomerId: z.string().optional(),
 });
 
 // ==================
@@ -46,6 +45,16 @@ export const locationSchema = z.object({
 });
 
 export const updateLocationSchema = locationSchema.partial();
+
+export const purchasedLocationSchema = z.object({
+    id: z.number(),
+    userId: z.string().uuid(),
+    planType: z.string(),
+    quantity: z.number(), // Líneas/Sedes compradas
+    used: z.number().default(0),
+    departmentsCount: z.number().default(1), // En DB es departments_count
+    status: z.string().default('active'),
+});
 
 // ==================
 // TEMPLATE SCHEMA

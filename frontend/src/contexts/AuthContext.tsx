@@ -6,12 +6,15 @@ import { z } from 'zod';
 // --- Tipos base ---
 export interface User {
   id: string;
+  authId: string; 
   username: string;
   email: string;
-  // ✅ ACTUALIZADO: Aceptamos small/pro sin romper lo anterior
-  planType: 'small' | 'pro' | 'templates' | 'chatbots' | null;
-  companyName?: string;
-  purchasedLocations?: any[]; 
+  companyName: string;
+  planType: 'small' | 'pro' | 'premium' | null; 
+  subscriptionStatus: 'active' | 'inactive' | 'trial' | 'cancelled';
+  
+  numPhones?: number;  
+  maxMessages?: number; 
   credits?: Record<string, number>;
 }
 
@@ -23,23 +26,18 @@ export const loginSchema = z.object({
 
 export type LoginData = z.infer<typeof loginSchema>;
 
-// ✅ AQUÍ ESTÁ EL ÚNICO CAMBIO NECESARIO:
 export const registerSchema = z.object({
-  username: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
+  username: z.string().min(3, 'Mínimo 3 caracteres'),
   email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
-  companyName: z.string().min(1, 'Nombre de empresa requerido'),
-  termsAccepted: z.boolean().refine(val => val === true, {
-    message: "Debes aceptar los términos y condiciones",
-  }),
+  password: z.string().min(6, 'Mínimo 6 caracteres'),
+  companyName: z.string().min(1, 'Requerido'),
+  termsAccepted: z.boolean().refine(val => val === true),
   selections: z.array(z.object({
-    // 👇 Aceptamos 'small' y 'pro' explícitamente
-    planType: z.enum(['small', 'pro', 'templates', 'chatbots']),
-    quantity: z.number().min(1),
-    // 👇 Hacemos opcionales estos campos para que no fallen si vienen o no
-    departments: z.number().optional(),
+    planType: z.enum(['small', 'pro', 'premium']),
+    quantity: z.number().min(1), // Esto mapea a líneas/sedes
+    departments: z.number().optional(), // Mapea a departments_count
     price: z.number().optional()
-  })).min(1, 'Debes seleccionar al menos un plan'),
+  })).min(1),
 });
 
 export type RegisterData = z.infer<typeof registerSchema>;
