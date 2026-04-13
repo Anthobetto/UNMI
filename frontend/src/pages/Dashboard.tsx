@@ -215,36 +215,6 @@ export default function Dashboard() {
               </ResponsiveContainer>
             </div>
           </Card>
-
-          <Card className="col-span-12 lg:col-span-4 rounded-[2.5rem] border-none bg-white p-10 shadow-sm">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center">
-                <CalcIcon className="h-5 w-5 text-[#003366]" />
-              </div>
-              <div>
-                <h4 className="text-lg font-bold text-slate-900 leading-tight">
-                  {t('dashboard.calculator.title')}
-                </h4>
-                <p className="text-xs font-medium text-slate-400">Calcula tu retorno</p>
-              </div>
-            </div>
-            
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('dashboard.calculator.averageTicket')}</Label>
-                <Input type="number" value={averageTicket} onChange={(e) => setAverageTicket(e.target.value)} className="h-12 rounded-2xl bg-slate-50 border-none font-bold" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('dashboard.calculator.conversionRate')}</Label>
-                <Input type="number" value={conversionRate} onChange={(e) => setConversionRate(e.target.value)} className="h-12 rounded-2xl bg-slate-50 border-none font-bold" />
-              </div>
-              
-              <div className="mt-10 pt-10 border-t border-slate-50">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{t('dashboard.metrics.recoverableRevenue')}</p>
-                <h4 className="text-4xl font-black text-emerald-500">€{expectedRevenue.toLocaleString()}</h4>
-              </div>
-            </div>
-          </Card>
         </div>
 
         {/* Recent Calls List */}
