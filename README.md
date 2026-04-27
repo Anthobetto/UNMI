@@ -13,8 +13,8 @@ Solució diseñada para la monitorización y recuperación de leads mediante el 
 * **Arquitectura:** Implementación de API REST para el registro y seguimiento de incidencias.
 
 ## 👥 Equipo de Desarrollo
-* **Anthony Flores** ([@Anthobetto](https://github.com/Anthobetto)): **Lead Developer & Creator**. Responsable de la arquitectura integral, gestión de flujos de trabajo, lógica de estados de llamadas y desarrollo core.
-* **Juan Marin** ([@JuanMarin129](https://github.com/JuanMarin129)): **Contributor**. Apoyo en el desarrollo de componentes Front-end y mantenimiento del proyecto.
+* **Anthony Flores** ([@Anthobetto](https://github.com/Anthobetto)): **Lead Developer & Creator**. Responsable de la arquitectura integral, gestión de flujos de trabajo, lógica de estados de llamadas y diseño de interfaz.
+* **Juan Marin** ([@JuanMarin129](https://github.com/JuanMarin129)): **Front-end Support & Refinement**. Encargado optimización de estilos visuales y mantenimiento del proyecto
 
 ## 🚀 Instalación y Ejecución
 Para ejecutar este proyecto localmente, sigue estos pasos:
